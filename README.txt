@@ -4,7 +4,7 @@ A framework for running unit tests in Drupal.
 
 Status
 ------------------
-No tests have been written. This framework should work though. 
+One test suite has been written - 'user validation'. We need more.
 
 Requirements
 ----------------

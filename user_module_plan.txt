@@ -1,0 +1,36 @@
+Intro
+-------
+- A plan for user.module unit testing via simpletest framework.
+- This will replace the existing tests for name+email validation
+- See http://www.lastcraft.com/form_testing_documentation.php for technique
+
+Version 1
+---------------
+navigate to user/register
+
+submit a few bad usernames and email addresses.
+assert that they are rejected
+
+submit register form with timestamp as email address and name
+assert that all bits hit the users table
+
+view the user
+assert all is well
+
+edit user
+assert edits took
+
+logout
+assert we aren't logged in anymore
+
+login
+assert we are logged in
+
+delete our test user from users table
+
+Version 2
+-------------------
+- Add a 'deny' mask. Verify it works
+- Distributed Auth
+- user_access()
+- user administration
