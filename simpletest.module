@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.3 2004/10/01 00:08:35 uwe Exp $
+// $Id: simpletest.module,v 1.4 2004/10/21 19:22:04 weitzman Exp $
 
 function simpletest_help($section) {
   $output = "";
@@ -16,9 +16,10 @@ function simpletest_help($section) {
   return $output;
 }
 
-function simpletest_link($type) {
-  if ($type == 'system') {
-    menu('admin/simpletest', 'simpletest', 'simpletest_admin');
+function simpletest_menu($may_cache) {
+  if ($may_cache) {
+    $items[] = array('path' => 'admin/simpletest', 'title' => 'simpletest', 'callback' => 'simpletest_admin');
+    return $items;
   }
 }
 
@@ -33,7 +34,7 @@ function simpletest_admin() {
     require_once(SIMPLE_TEST . 'mock_objects.php');
     require_once(SIMPLE_TEST . 'extensions/pear_test_case.php');
     require_once(SIMPLE_TEST . 'extensions/phpunit_test_case.php');
-    
+
     class DrupalUnitTests extends GroupTest {
       function DrupalUnitTests() {
         $this->GroupTest("Drupal unit tests");
@@ -43,7 +44,7 @@ function simpletest_admin() {
         }
       }
     }
-    
+
     if (! defined("TEST_RUNNING")) {
         define("TEST_RUNNING", true);
         $test = &new DrupalUnitTests();
@@ -51,7 +52,7 @@ function simpletest_admin() {
             exit ($test->run(new TextReporter()) ? 0 : 1);
         }
         $test->run(new HtmlReporter());
-    } 
+    }
 }
 
 function simpletest_simpletest() {

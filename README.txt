@@ -22,12 +22,12 @@ Install
 Simpletest hook
 -----------------------
 
-This module offers a new 'simpletest' hook. Modules implementing this hook should an array of paths which
+This module offers a new 'simpletest' hook. Modules implementing this hook should return an array of paths which
 point to test files. These paths should be relative to the /simpletest directory.
 
 Writing Tests
 -----------------------
-Please write some tests. I'm a bit new at this and haven't decided on a worthy approach.
+Please write some tests.
 
 Author
 ---------------------
