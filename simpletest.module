@@ -1,0 +1,57 @@
+<?php
+
+function simpletest_help($section) {
+  $output = "";
+
+  switch ($section) {
+    case 'admin/system/modules#description':
+      $output = t("Simple unit testing suite");
+      break;
+    case 'admin/system/modules/simpletest':
+      $output = '';
+      break;
+  }
+
+  return $output;
+}
+
+function simpletest_link($type) {
+  if ($type == 'system') {
+    menu('admin/simpletest', 'simpletest', 'simpletest_admin');
+  }
+}
+
+function simpletest_admin() {
+  if (!defined("SIMPLE_TEST")) {
+        define("SIMPLE_TEST", "simpletest/");
+    }
+    require_once(SIMPLE_TEST . 'unit_tester.php');
+    require_once(SIMPLE_TEST . 'web_tester.php');
+    require_once(SIMPLE_TEST . 'shell_tester.php');
+    require_once(SIMPLE_TEST . 'reporter.php');
+    require_once(SIMPLE_TEST . 'mock_objects.php');
+    require_once(SIMPLE_TEST . 'extensions/pear_test_case.php');
+    require_once(SIMPLE_TEST . 'extensions/phpunit_test_case.php');
+    
+    class UnitTests extends GroupTest {
+      function UnitTests() {
+        $this->GroupTest("Drupal unit tests");
+        $files = module_invoke_all('simpletest');
+        foreach ($files as $file) {
+          $this->addTestFile($file);
+        }
+      }
+    }
+    
+    if (! defined("TEST_RUNNING")) {
+        define("TEST_RUNNING", true);
+        $test = &new UnitTests();
+        if (SimpleReporter::inCli()) {
+            exit ($test->run(new TextReporter()) ? 0 : 1);
+        }
+        $test->run(new HtmlReporter());
+    } 
+}
+
+
+?>
