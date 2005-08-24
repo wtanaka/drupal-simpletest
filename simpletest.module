@@ -1,8 +1,11 @@
 <?php
-// $Id: simpletest.module,v 1.5 2005/03/02 03:22:32 weitzman Exp $
+// $Id: simpletest.module,v 1.6 2005/08/24 19:10:02 thomasilsche Exp $
 
+/**
+ * Implementation of hook_help().
+ */
 function simpletest_help($section) {
-  $output = "";
+  $output = '';
 
   switch ($section) {
     case 'admin/modules#description':
@@ -16,48 +19,168 @@ function simpletest_help($section) {
   return $output;
 }
 
+/**
+ * Implementation of hook_menu().
+ */
 function simpletest_menu($may_cache) {
   if ($may_cache) {
-    $items[] = array('path' => 'admin/simpletest', 'title' => 'simpletest', 'callback' => 'simpletest_admin');
+    $items = array();
+    $items[] = array('path' => 'admin/simpletest', 'title' => 'simpletest',
+                     'callback' => 'simpletest_entrypoint',
+                     'access' => user_access('administer unit tests'));
     return $items;
   }
 }
 
-function simpletest_admin() {
-  if (!defined("SIMPLE_TEST")) {
-        define("SIMPLE_TEST", "simpletest/");
-    }
-    require_once(SIMPLE_TEST . 'unit_tester.php');
-    require_once(SIMPLE_TEST . 'web_tester.php');
-    require_once(SIMPLE_TEST . 'shell_tester.php');
-    require_once(SIMPLE_TEST . 'reporter.php');
-    require_once(SIMPLE_TEST . 'mock_objects.php');
-    require_once(SIMPLE_TEST . 'extensions/pear_test_case.php');
-    require_once(SIMPLE_TEST . 'extensions/phpunit_test_case.php');
 
-    class DrupalUnitTests extends GroupTest {
-      function DrupalUnitTests() {
-        $this->GroupTest("Drupal unit tests");
-        $files = module_invoke_all('simpletest');
-        foreach ($files as $file) {
-          $this->addTestFile($file);
-        }
-      }
-    }
+/**
+ * Try to load the simepletest
+ * @return boolean TRUE if the load succeeded
+ */
+function simpletest_load() {
+  static $loaded;
+  if ($loaded) {
+    return true; 
+  }
+  $loaded = true;
+  if (!defined('SIMPLE_TEST')) {
+    define('SIMPLE_TEST', drupal_get_path('module', 'simpletest'). '/simpletest'); 
+  } 
+  if (!is_dir(SIMPLE_TEST) ){
+    $output = t('Sorry but the simpletest cannot be found in the current installation. Please notice that simpletest.module needs Simpletest framework. '
+              . 'Please download it from %simpletest_link and place it into the same directory as simpletest.module: %simpletest_directory',
+                array('%simpletest_link' => l('https://sourceforge.net/project/showfiles.php?group_id=76550','Simpletest on SourceForge'),
+                      '%simpletest_directory' => SIMPLE_TEST));
+    drupal_set_message($output, 'error');
+    return false;
+  }
 
-    if (! defined("TEST_RUNNING")) {
-        define("TEST_RUNNING", true);
-        $test = &new DrupalUnitTests();
-        if (SimpleReporter::inCli()) {
-            exit ($test->run(new TextReporter()) ? 0 : 1);
-        }
-        $test->run(new HtmlReporter());
-    }
+  /* We currently use only the web tester that DrupalTestCase is built upon */
+  require_once(SIMPLE_TEST . '/web_tester.php');
+  require_once(SIMPLE_TEST . '/reporter.php');
+
+  $path = drupal_get_path('module', 'simpletest'). '/';
+  require_once($path . 'drupal_test_case.php');
+  require_once($path . 'drupal_unit_tests.php');
+  return true;
 }
 
+
+/**
+ * Menu callback for both running tests and listing possible tests
+ */
+function simpletest_entrypoint() {
+  if (!simpletest_load()) {
+    /**
+     * @todo find a better way for this return,
+     * currently needed to show error, true leads to page not found
+     */
+    return '&nbsp;';  
+  }  
+	$op = $_POST['op'];
+	$edit = $_POST['edit'];
+	
+	if (empty($op)) {
+		$op = arg(2);
+	}
+	switch ($op) {
+		case t('Run All Tests'):
+      $output  = simpletest_run_tests();
+			$output .= form_submit(t('Back to Menu'));
+			$output  = form($output);
+  		break;
+		
+		case t('Run Selected Tests'):
+			$tests_list = array();
+			foreach($edit as $test => $checked) {
+				if ($checked) {
+					$tests_list[] = $test;
+				}
+			}
+			if (count($tests_list) > 0 ) {
+				$output = simpletest_run_tests($tests_list);  	 	 
+			}
+			else { 
+				// no test has been selected
+				drupal_set_message(t('No test has been selected.'), 'error');
+				$output = form_submit(t('Back to Menu'));
+				$output = form($output);
+			}
+			break;
+		default:
+			$output = simpletest_overview();
+  }
+	print theme('page', $output);	
+}
+
+/**
+ * Create menu 
+ */
+function simpletest_overview() {
+  
+  $total_test = &simpletest_get_total_test();
+  
+  $test_instances = $total_test->getTestInstances();
+  foreach ($test_instances as $group_test) {
+    $group = '';
+    $tests = $group_test->getTestInstances();
+    foreach($tests as $test) {
+      $test_info = $test->get_info();
+      $desc = $test_info['desc'];
+      $group .= form_checkbox($test_info['name'], get_class($test), 1, 0, $desc);
+    }
+    $output .= form_group_collapsible($group_test->getLabel(), $group, FALSE);
+  }
+  $output .= form_submit(t('Run All Tests'));
+  $output .= form_submit(t('Run Selected Tests'));
+  return form($output);
+}
+
+/**
+ * Actually runs tests
+ * @param array $testlist list of tests to run or DEFAULT NULL run all tests
+ */
+function simpletest_run_tests($testlist = NULL) {
+  if (!defined("TEST_RUNNING")) {
+    define("TEST_RUNNING", true);
+    $test = simpletest_get_total_test($testlist);
+    if (SimpleReporter::inCli()) {
+      exit ($test->run(new TextReporter()) ? 0 : 1);
+    }
+    $reporter = &new HtmlReporter();
+
+    cache_clear_all();
+    $test->run($reporter);
+    exit;
+  }
+}
+
+/**
+ * Implementation of hook_simpletest().
+ */
 function simpletest_simpletest() {
-  return 'modules/simpletest/tests/user_validation_test.php';
+	$dir = drupal_get_path('module', 'simpletest'). '/tests';
+	$tests = file_scan_directory($dir, '\.test');
+  return array_keys($tests);
 }
 
-
+/**
+ * This function makes sure no unnecesary copies of the DrupalUnitTests object are instantiated
+ * @param  array $classes list of all classes the test should concern or
+ *                        DEFAULT NULL
+ * @return DrupalUnitTests object
+ */
+function &simpletest_get_total_test($classes = NULL) {
+  static $total_test;
+  if (!$total_test) {
+    if (!simpletest_load()) {
+      return FALSE; 
+    }
+    $total_test = &new DrupalUnitTests();
+  }
+  if (!is_null($classes)) {
+    return new DrupalUnitTests($classes);
+  }
+  return $total_test;
+}
 ?>

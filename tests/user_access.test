@@ -1,0 +1,79 @@
+<?php
+class UserAccessTest extends DrupalTestCase {
+  var $_cleanup_masks = array();
+  
+  function get_info() {
+    return array('name' => t('User access rules'), 
+                 'desc' => t('Assure that negative and positive access rules behave as designed.') ,
+                 'group' => 'User tests'
+           );
+  }
+
+  function _addMask($mask, $type, $status = 0) {
+    $aid = db_next_id('{access}_aid');
+    db_query("INSERT INTO {access} (aid, mask, type, status) VALUES ('%s', '%s', '%s', %d)", $aid, $mask, $type, $status);
+    $str_status = ($status == 0) ? 'deny' : 'allow';
+    $this->assertTrue(db_affected_rows() > 0, "$str_status Mask added for $type '$mask'");
+    $this->_cleanup_masks[] = $aid;
+  }
+  
+  function tearDown() {
+    while (sizeof($this->_cleanup_masks) > 0) {
+      $aid = array_pop($this->_cleanup_masks);
+      db_query("DELETE FROM {access} WHERE aid = %d", $aid);
+    } 
+  }
+  
+  function testAccess() {
+    /* To avoid conflicts with non allowed account creations */
+    $user_register_backup = variable_get('user_register', 1);
+    if ((variable_get('user_register', 1)) != 1) {
+      variable_set('user_register', 1);
+    }
+    
+    $this->_addMask('simpletest_block%', 'user');
+    $this->_addMask('simpletest_block_allow%', 'user', 1);
+    
+    /* first try blocked user */    
+    $name = $this->randomName(2, 'simpletest_block_');
+    $mail = "$name@example.com";
+    $edit = array('name' => $name,
+                  'mail' => $mail);
+    
+    $this->drupalPostRequest('user/register', $edit, 'Create new account');
+    
+    $this->assertNoUnWantedText(t('Your password and further instructions have been sent to your e-mail address.'), 'blocked user: Your password and further instructions - not found');
+    $this->assertwantedText(t('The name %name has been denied access.', array('%name' => $name)), 'blocked user: denied access - found');
+    
+    /* Lets make a new browser for new cookies */
+    $this->setBrowser($this->createBrowser());
+    
+    /* now try allowed user */    
+    $name = $this->randomName(2, 'simpletest_block_allow_');
+    $mail = "$name@example.com";
+    $edit = array('name' => $name,
+                  'mail' => $mail);
+    
+    $this->drupalPostRequest('user/register', $edit, 'Create new account');
+    
+    $this->assertWantedText(t('Your password and further instructions have been sent to your e-mail address.'), 'access user: Your password and further instructions - found');
+    $this->assertNoUnwantedText(t('The name %name has been denied access.', array('%name' => $name)), 'access user: denied access - not found');
+
+    $user = user_load($edit);
+    
+    $this->assertTrue(isset($user->uid), 'user->uid set');
+    $this->assertTrue(($user->uid > 0), 'uid > 0');
+    if (isset($user->uid) && ($user->uid > 0)) {
+      /* delete test user, roles and maybe authmap */
+      db_query('DELETE FROM {users} WHERE uid = %d', $user->uid);
+      db_query('DELETE FROM {users_roles} WHERE uid = %d', $user->uid);
+      db_query('DELETE FROM {authmap} WHERE uid = %d', $user->uid);
+    }
+   
+    /* Cleanup of user_register variable */
+    if ($user_register_backup != variable_get('user_register', 1)) {
+      variable_set('user_register', $user_register_backup);   
+    }
+  }
+}
+?>

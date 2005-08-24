@@ -1,12 +1,14 @@
 <?php
-
-class UserValidationCase extends UnitTestCase {
-  function UserValidationCase() {
-    $this->UnitTestCase('User validation test');
+// $Id: user_validation.test,v 1.1 2005/08/24 19:10:02 thomasilsche Exp $
+/**
+ * This class is based on the original Simpletest Module by Moshe Weitzman
+ */
+class UserValidationTest extends DrupalTestCase {
+  function get_info() {
+    return array('name' => 'Username/email validation', 'desc' => 'Verify that username/email validity checks behave as designed.' , 'group' => 'User tests');
   }
-  
+
   // username validation
-  
   function testMinLengthName() {
     $name = '';
     $result = user_validate_name($name);
@@ -27,9 +29,8 @@ class UserValidationCase extends UnitTestCase {
     $result = user_validate_name($name);
     $this->assertNull($result, 'Valid username');
   }
-  
+
   // mail validation
-  
   function testMinLengthMail() {
     $name = '';
     $result = user_validate_mail($name);
@@ -45,14 +46,5 @@ class UserValidationCase extends UnitTestCase {
     $result = user_validate_mail($name);
     $this->assertNull($result, 'Valid mail');
   }
-  
-  // authmap validation
-  
-  function testValidAuthmap() {
-    $name = 'absdsdsdc@dsdsde.com';
-    $result = user_validate_authmap('Drupal', $name, 'drupal');
-    $this->assertNull($result, 'Valid authmap');
-  }
 }
-
 ?>

@@ -1,0 +1,131 @@
+<?php
+/* $Id: upload_tests.test,v 1.1 2005/08/24 19:10:02 thomasilsche Exp $ */
+class UploadPictureTests extends DrupalTestCase {
+  function get_info() {
+     return array('name' => 'Upload user picture', 'desc' => 'Assure that user pictures are properly submitted and displayed on user profile pages' , 'group' => 'File API Tests');
+  }
+
+  function testUploadPicture() {
+    global $base_url;
+      $old_pic_set = variable_get('user_pictures', 0);
+      variable_set('user_pictures', 1);
+
+      // create test user
+      $name = 'simpletest_'. $this->randomName();
+      $pass = $this->randomName();
+      $mail = "$name@example.com";
+      $edit['roles'] = array(_user_authenticated_id() => 'authenticated user');
+      $user = user_save('', array('name' => $name, 'pass' => $pass, 'init' => $mail, 'mail' => $mail, 'roles' => $edit['roles'], 'status' => 1));
+      //log in
+      $edit = array('name' => $name, 'pass' => $pass);
+      $this->drupalPostRequest('user', $edit, 'Log in' );
+      unset($edit);
+            
+      // not a image
+      $img_path = realpath(__FILE__);
+      $edit = array('picture' => $img_path);
+      $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
+      $pattern = '/'.t('The uploaded file was not an image.').'/i';
+      $this->assertWantedPattern($pattern, $this->drupalGetContent(), 'The uploaded file was not an image.');
+
+      // changing actual setting;
+      $old_dim = variable_get('user_picture_dimensions', '85x85');
+      $old_size = variable_get('user_picture_file_size', '30');
+      $img_path = realpath(dirname(__FILE__). '/pictureTesting.jpg');
+      $info = image_get_info($img_path);
+      
+      // set new variables;
+      $test_size = floor(filesize($img_path) / 1000) + 1;
+      $test_dim = ($info['width'] - 10) . 'x' . ($info['height'] - 10);
+      variable_set('user_picture_dimensions', $test_dim);
+      variable_set('user_picture_file_size', $test_size);
+
+      // clean urls ?
+      if (!variable_get('clean_url', 0))
+        $url = "?q=";
+
+      if (image_get_toolkit()) {
+        // if we have gd installed drupal will scale our picture
+        // invalid dimensions
+        $edit = array('picture' => $img_path);
+        $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
+        //$searching = '<div class="picture"><a href="'.$url.'user/'.$user->uid.'" title="'.t('View user profile.').'" class="active"><img src="'.$base_url.'/files/pictures/picture-'.$user->uid.'.jpg" alt="'.$name .'&#039;s picture" title="'.$name .'&#039;s picture" /></a></div>';
+        $searching = 'src="'.$base_url.'/files/pictures/picture-'.$user->uid.'.jpg"';
+
+        $pos = strstr($this->drupalGetContent(), $searching);
+        $this->assertNotEqual($pos, false, 'Checking response on proper image');
+        // invalid size
+        // restore one and set another
+        $test_dim = ($info['width'] + 10) . 'x' . ($info['height'] + 10);
+        $test_size = floor(filesize($img_path) / 1000) - 1;
+        variable_set('user_picture_dimensions', $test_dim);
+        variable_set('user_picture_file_size', $test_size);
+
+        $edit = array('picture' => $img_path);
+        $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
+        //$searching = '<div class="picture"><a href="'.$url.'user/'.$user->uid.'" title="'.t('View user profile.').'" class="active"><img src="'.$base_url.'/files/pictures/picture-'.$user->uid.'.jpg" alt="'.$name .'&#039;s picture" title="'.$name .'&#039;s picture" /></a></div>';
+        $searching = 'src="'.$base_url.'/files/pictures/picture-'.$user->uid.'.jpg"';
+        $pos = strstr($this->drupalGetContent(), $searching);
+        $this->assertNotEqual($pos, false, 'Checking response on proper image');
+
+      }
+      else {
+        // invalid dimensions
+        $edit = array('picture' => $img_path);
+        $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
+        $pattern = '/'.t('The uploaded image is too large; the maximum dimensions are %dimensions pixels.', array('%dimensions' => variable_get('user_picture_dimensions', '85x85'))).'/i';
+        $this->assertWantedPattern($pattern, $this->drupalGetContent(), 'Checking response on invalid image (dimensions).');
+
+        // invalid size
+        // restore one and set another
+        $test_dim = ($info['width'] + 10) . 'x' . ($info['height'] + 10);
+        $test_size = floor(filesize($img_path) / 1000) - 1;
+        variable_set('user_picture_dimensions', $test_dim);
+        variable_set('user_picture_file_size', $test_size);
+
+        $edit = array('picture' => $img_path);
+        $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
+        $pattern = '/'.t('The uploaded image is too large; the maximum file size is %size kB.', array('%size' => variable_get('user_picture_file_size', '30'))).'/i';
+        $this->assertWantedPattern($pattern, $this->drupalGetContent(), 'Checking response on invalid image size.');
+      }
+      // valid size & dimensions
+      // restore one and set another
+      $test_dim = ($info['width'] + 10) . 'x' . ($info['height'] + 10);
+      $test_size = floor(filesize($img_path) / 1000) + 1;
+      variable_set('user_picture_dimensions', $test_dim);
+      variable_set('user_picture_file_size', $test_size);
+
+      unset($edit);
+      $edit = array('picture' => $img_path);
+      $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
+
+
+      //$searching = '<div class="picture"><a href="'.$url.'user/'.$user->uid.'" title="'.t('View user profile.').'" class="active"><img src="'.$base_url.'/files/pictures/picture-'.$user->uid.'.jpg" alt="'.$name .'&#039;s picture" title="'.$name .'&#039;s picture" /></a></div>';
+      $searching = 'src="'.$base_url.'/files/pictures/picture-'.$user->uid.'.jpg"';
+      $pos = strstr($this->drupalGetContent(), $searching);
+      $this->assertNotEqual($pos, false, 'Checking response on proper image');
+
+      // deleting picture
+      unset($edit);
+      $edit = array('picture_delete' => 1);
+      $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
+      $pos = strstr($this->drupalGetContent(), $searching);
+      $this->assertEqual($pos, false, 'Checking response on deleting image');
+
+      // restore variables;
+      variable_set('user_picture_file_size', $old_size);
+      variable_set('user_picture_dimensions', $old_dim);
+
+      variable_set('user_pictures', $old_pic_set);
+
+      // do we have to check users roles?
+      // delete test user and roles
+      if ($user->uid > 0) {
+        db_query('DELETE FROM {users} WHERE uid = %d', $user->uid);
+        db_query('DELETE FROM {users_roles} WHERE uid = %d', $user->uid);
+      }
+
+  }
+}
+
+?>

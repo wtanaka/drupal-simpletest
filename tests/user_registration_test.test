@@ -1,0 +1,109 @@
+<?php
+// $Id: user_registration_test.test,v 1.1 2005/08/24 19:10:02 thomasilsche Exp $
+/**
+ * Class to test the user registration process,
+ * - based on initial version by Kuba Zygmunt -
+ */
+class UserRegistrationTest extends DrupalTestCase {
+  function get_info() {
+    return array('name' => t('User registration'), 'desc' => t('Registers a user, fails login, successfully logs in, changes password, logs out.') , 'group' => 'User tests');
+  }
+  
+  function testUserRegistration() {
+    /* We first allow every user to login instantly. */
+    $user_register_backup = variable_get('user_register', 1);
+    if ((variable_get('user_register', 1)) != 1) {
+      variable_set('user_register', 1);
+    }
+    
+    /* make sure the profiles module is disabled to avoid conflicts */
+    $this->drupalModuleDisable('profiles');
+    
+    $name = $this->randomName();
+    $mail = "$name@example.com";
+    $edit = array('name' => $name,
+                  'mail' => $mail);
+    
+    $this->drupalPostRequest('user/register', $edit, 'Create new account');
+    
+    $this->assertWantedText(t('Your password and further instructions have been sent to your e-mail address.'), 'Your password and further instructions ... found');
+    $this->assertNoUnwantedText(t('The name %name has been denied access.', array('%name' => $name)), 'not denied access');
+    
+    // now we check database fields
+    // we can use an 'edit' array to load user variable
+    $user = user_load($edit);
+
+    $this->assertTrue(isset($user->uid), 'user->uid set');
+    $this->assertTrue(($user->uid > 0), 'uid > 0');
+    if (!isset($user->uid) || ($user->uid == 0)) {
+      /* Don't forget cleanup */
+      if ($user_register_backup != variable_get('user_register', 1)) {
+        variable_set('user_register', $user_register_backup);   
+      }
+      return FALSE;
+    }
+
+    $this->assertEqual($user->name, $name, 'Checking name of user');
+    $this->assertEqual($user->mail, $mail, 'Checking e-mail address');
+    $this->assertEqual($user->mode, 0, 'Checking mode field');
+    $this->assertEqual($user->sort, 0, 'Checking sort field');
+    $this->assertEqual($user->threshold, 0,'Checking treshold field');
+    $this->assertEqual($user->theme, '','Checking theme field');
+    $this->assertEqual($user->signature, '','Checking signature field');
+    $this->assertTrue(($user->created > time() - 20 ), 0,'Checking creation time.');
+    $this->assertEqual($user->status, variable_get('user_register', 1) == 1 ? 1 : 0,'Checking status field');
+    $this->assertEqual($user->timezone, NULL, 'Checking timezone field');
+    $this->assertEqual($user->language, '', 'Checking language field');
+    $this->assertEqual($user->picture, '', 'Check picture field');
+    $this->assertEqual($user->init, $mail, 'Check init field');
+    
+    /* We try to login with a wrong password */
+    $login_edit = array('name' => $name, 'pass' => 'foo');
+    $this->drupalPostRequest('user/login', $login_edit, 'Log in');
+    $this->assertWantedText(t('Sorry. Unrecognized username or password.'), 'Test for failed Login');
+    $url = user_pass_reset_url($user);
+    /* TODO: find a better way, we currently have to do it that way, see user.module line 987. */
+    sleep(1);
+    $this->_browser->get($url);
+    $this->assertWantedText(t("You have used a one-time login, which won't be valid anymore"), "Check for one time login notice ($url)");
+    
+    /* now lets change our password */
+    $new_pass = user_password();
+    $this->_browser->setField('edit[pass1]', $new_pass);
+    $this->_browser->setField('edit[pass2]', $new_pass);
+    $this->_browser->clickSubmit();
+    $this->assertWantedText(t('The changes have been saved.'), "Changed password to '$new_pass'");
+    
+    /* Check if the password changes are present in db */
+    $user = user_load(array('uid' => $user->uid));
+    $this->assertEqual($user->pass, md5($new_pass), 'Correct password in database');
+    
+    /* logout */
+    $this->_browser->clickLink(t('log out')); 
+    $this->assertNoUnwantedText($user->name, 'Logged out');
+    
+    /* login again */
+    $login_edit['pass'] = $new_pass;
+    $this->drupalPostRequest('user/login', $login_edit, 'Log in');
+    
+    /** $pname = theme('placeholder', $user->name); /** @TODO: this one messes html tags->search fails */
+    $pname = $user->name;
+
+    $this->assertWantedText($pname, 'Logged in (name found)');
+    $this->assertNoUnwantedText(t('Sorry. Unrecognized username or password.'), 'Logged in (not sorry)');
+    $this->assertNoUnwantedText(t('User login'), 'Logged in (no user login form present)');
+    $this->assertNoUnwantedText(t('The username %name has been blocked.', array('%name' => $pname)), 'Not blocked');
+    $this->assertNoUnwantedText(t('The name %name is a reserved username.', array('%name' => $pname)), 'Access granted');
+
+    /* delete test user, roles and maybe authmap */
+    db_query('DELETE FROM {users} WHERE uid = %d', $user->uid);
+    db_query('DELETE FROM {users_roles} WHERE uid = %d', $user->uid);
+    db_query('DELETE FROM {authmap} WHERE uid = %d', $user->uid);
+   
+    /* Cleanup of user_register variable */
+    if ($user_register_backup != variable_get('user_register', 1)) {
+      variable_set('user_register', $user_register_backup);   
+    }
+  }
+}
+?>
