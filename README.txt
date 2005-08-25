@@ -1,16 +1,18 @@
 Description
-------------------
+-----------------------
 A framework for running unit tests in Drupal.
 
 Status
-------------------
-One test suite has been written - 'user validation'. We need more.
+-----------------------
+Some tests have been written
+We need more, especially for contributed modules.
 
 Requirements
-----------------
+-----------------------
 
-- Install the simpletest framework to a new directory called 'simpletest' right under Drupal root.
+- Install the simpletest framework to a new directory called 'simpletest' right under Drupal/modules directory.
 You can find it at http://www.lastcraft.com/simple_test.php
+- At least Version 1.0.1 of the simpletest framework is required (for upload tests).
 
 Install
 -----------------------
@@ -28,7 +30,14 @@ point to test files. These paths should be relative to the /simpletest directory
 Writing Tests
 -----------------------
 Please write some tests.
+See http://drupal.org/simpletest
 
-Author
----------------------
-<Moshe Weitzman < weitzman at tejasa dot com >
+Authors
+-----------------------
+Moshe Weitzman < weitzman at tejasa dot com >
+Kuba Zygmunt   < kuba.zygmunt at gmail dot com >
+Thomas Ilsche  < ThomasIlsche at gmx dot de >
+
+Thanks
+-----------------------
+to Google for sponsoring the testsuite Summer of Code project.
