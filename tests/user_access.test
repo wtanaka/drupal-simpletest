@@ -26,10 +26,7 @@ class UserAccessTest extends DrupalTestCase {
   
   function testAccess() {
     /* To avoid conflicts with non allowed account creations */
-    $user_register_backup = variable_get('user_register', 1);
-    if ((variable_get('user_register', 1)) != 1) {
-      variable_set('user_register', 1);
-    }
+    $this->drupalVariableSet('user_register', 1);
     
     $this->_addMask('simpletest_block%', 'user');
     $this->_addMask('simpletest_block_allow%', 'user', 1);
@@ -68,11 +65,6 @@ class UserAccessTest extends DrupalTestCase {
       db_query('DELETE FROM {users} WHERE uid = %d', $user->uid);
       db_query('DELETE FROM {users_roles} WHERE uid = %d', $user->uid);
       db_query('DELETE FROM {authmap} WHERE uid = %d', $user->uid);
-    }
-   
-    /* Cleanup of user_register variable */
-    if ($user_register_backup != variable_get('user_register', 1)) {
-      variable_set('user_register', $user_register_backup);   
     }
   }
 }

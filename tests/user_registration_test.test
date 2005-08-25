@@ -1,5 +1,5 @@
 <?php
-// $Id: user_registration_test.test,v 1.1 2005/08/24 19:10:02 thomasilsche Exp $
+// $Id: user_registration_test.test,v 1.2 2005/08/25 13:30:08 thomasilsche Exp $
 /**
  * Class to test the user registration process,
  * - based on initial version by Kuba Zygmunt -
@@ -11,10 +11,7 @@ class UserRegistrationTest extends DrupalTestCase {
   
   function testUserRegistration() {
     /* We first allow every user to login instantly. */
-    $user_register_backup = variable_get('user_register', 1);
-    if ((variable_get('user_register', 1)) != 1) {
-      variable_set('user_register', 1);
-    }
+    $this->drupalVariableSet('user_register', 1);
     
     /* make sure the profiles module is disabled to avoid conflicts */
     $this->drupalModuleDisable('profiles');
@@ -36,10 +33,6 @@ class UserRegistrationTest extends DrupalTestCase {
     $this->assertTrue(isset($user->uid), 'user->uid set');
     $this->assertTrue(($user->uid > 0), 'uid > 0');
     if (!isset($user->uid) || ($user->uid == 0)) {
-      /* Don't forget cleanup */
-      if ($user_register_backup != variable_get('user_register', 1)) {
-        variable_set('user_register', $user_register_backup);   
-      }
       return FALSE;
     }
 
@@ -99,11 +92,6 @@ class UserRegistrationTest extends DrupalTestCase {
     db_query('DELETE FROM {users} WHERE uid = %d', $user->uid);
     db_query('DELETE FROM {users_roles} WHERE uid = %d', $user->uid);
     db_query('DELETE FROM {authmap} WHERE uid = %d', $user->uid);
-   
-    /* Cleanup of user_register variable */
-    if ($user_register_backup != variable_get('user_register', 1)) {
-      variable_set('user_register', $user_register_backup);   
-    }
   }
 }
 ?>

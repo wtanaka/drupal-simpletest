@@ -1,5 +1,5 @@
 <?php
-// $Id: page_creation.test,v 1.1 2005/08/24 19:10:02 thomasilsche Exp $
+// $Id: page_creation.test,v 1.2 2005/08/25 13:30:08 thomasilsche Exp $
 class PageCreationTest extends  DrupalTestCase {
   var $_cleanup_roles = array();
   var $_cleanup_users = array();
@@ -102,13 +102,7 @@ class PageCreationTest extends  DrupalTestCase {
 
   function testPageCreation() {
     /* Prepare settings */
-    $node_options_page = variable_get('node_options_page', array('status', 'promote'));
-    if ($node_options_page != array('status', 'promote')) {
-      variable_set('node_options_page', array('status', 'promote'));
-      $this->pass('setting node_options_page');
-    } else {
-      $node_options_page = FALSE; 
-    }
+    $this->drupalVariableSet('node_options_page', array('status', 'promote'));
    
     /* Prepare a user to do the stuff */
     $user = $this->_createUserRolePerm(array('access content', 'create pages'));
@@ -127,12 +121,6 @@ class PageCreationTest extends  DrupalTestCase {
     $this->assertWantedText($edit['body'], 'Page body found');
     
     db_query('DELETE FROM {node} WHERE nid = %d', $node->nid);
-    
-    /* Reset settings if necesary */
-    if ($node_options_page !== FALSE) {
-      variable_set('node_options_page', $node_options_page);
-      $this->pass('resetting node_options_page');
-    }
   }
 }
 ?>

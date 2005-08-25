@@ -1,5 +1,5 @@
 <?php
-// $Id: xmlrpc_drupal.test,v 1.1 2005/08/24 19:10:02 thomasilsche Exp $
+// $Id: xmlrpc_drupal.test,v 1.2 2005/08/25 13:30:08 thomasilsche Exp $
 class XMLRPCDrupalTest extends DrupalTestCase {
   function get_info() {
     return array('name'  => 'Drupal.module',
@@ -9,6 +9,10 @@ class XMLRPCDrupalTest extends DrupalTestCase {
   
   function testDrupalPing() {
     $this->drupalModuleEnable('drupal');
+    $this->drupalVariableSet('site_name',    'simpletest_ping_site_name');
+    $this->drupalVariableSet('site_mail',    'simpletest_ping_site_mail@example.com');
+    $this->drupalVariableSet('site_slogan',  'simpletest_ping_site_slogan');
+    $this->drupalVariableSet('site_mission', 'simpletest_ping_site_mission');
     /* Pinging itsself */
     $time = time();
     drupal_notify(url(NULL, NULL, NULL, TRUE) . 'xmlrpc.php');
@@ -17,6 +21,7 @@ class XMLRPCDrupalTest extends DrupalTestCase {
   }
   
   function testDrupalDA() {
+    $this->drupalModuleEnable('drupal');
     /* first a simple connection test */
     $h = fsockopen('drupal.org', 80);
     $this->assertNotIdentical(FALSE, $h, 'connection test to drupal.org:80 successful');
