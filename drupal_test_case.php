@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.1 2005/08/24 19:10:02 thomasilsche Exp $ */
+/* $Id: drupal_test_case.php,v 1.2 2005/08/25 13:27:38 thomasilsche Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -9,7 +9,9 @@
  */
 class DrupalTestCase extends WebTestCase {
   var $_content;
-  var $_cleanupModules = array();
+  var $_cleanupModules   = array();
+  var $_cleanupVariables = array();
+
 
   function DrupalTestCase($label = NULL) {
     if (! $label) {
@@ -99,7 +101,7 @@ class DrupalTestCase extends WebTestCase {
    * @param integer $number   number of characters
    * @return ransom string
    */
-  function randomName($number = 5, $ret = 'simpletest_') {
+  function randomName($number = 4, $ret = 'simpletest_') {
     $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';
     for ($x = 0; $x < $number; $x++) {
         $ret .= $chars{mt_rand(0, strlen($chars)-1)};
@@ -178,8 +180,26 @@ class DrupalTestCase extends WebTestCase {
     $this->fail(" [module] $name could not be disabled for unknown reason");
     return FALSE;
   }
+  
+  
+  /**
+   * Set a druapl variable and keep track of the changes for tearDown()
+   * @param string $name name of the value
+   * @param mixed  $value value 
+   */
+  function drupalVariableSet($name, $value) {
+    /* NULL variables would anyways result in default because of isset */
+    $old_value = variable_get($name, NULL);
+    if ($value !== $old_value) {
+      variable_set($name, $value);
+      /* Use array_key_exists instead of isset so NULL values do not get overwritten */
+      if (!array_key_exists($name, $this->_cleanupVariables)) {
+        $this->_cleanupVariables[$name] = $old_value;
+      }
+    }
+  }
+  
 
-   
   /**
    * tearDown implementation, setting back switched modules etc
    */
@@ -187,6 +207,16 @@ class DrupalTestCase extends WebTestCase {
     foreach ($this->_cleanupModules as $name => $status) {
       db_query("UPDATE {system} SET status = %d WHERE name = '%s' AND type = 'module'", $status, $name); 
     }
+    $this->_cleanupModules = array();
+    
+    foreach ($this->_cleanupVariables as $name => $value) {
+      if (is_null($value)) {
+        variable_del($name); 
+      } else {
+        variable_set($name, $value);
+      }
+    }
+    $this->_cleanupVariables = array();
   }
   
   /* Taken from UnitTestCase */
