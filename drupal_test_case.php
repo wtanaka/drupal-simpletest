@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.2 2005/08/25 13:27:38 thomasilsche Exp $ */
+/* $Id: drupal_test_case.php,v 1.3 2005/08/25 13:28:47 thomasilsche Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -204,6 +204,7 @@ class DrupalTestCase extends WebTestCase {
    * tearDown implementation, setting back switched modules etc
    */
   function tearDown() {
+    parent::tearDown();
     foreach ($this->_cleanupModules as $name => $status) {
       db_query("UPDATE {system} SET status = %d WHERE name = '%s' AND type = 'module'", $status, $name); 
     }
