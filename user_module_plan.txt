@@ -6,31 +6,34 @@ Intro
 
 Version 1
 ---------------
-navigate to user/register
+* navigate to user/register
 
 submit a few bad usernames and email addresses.
 assert that they are rejected
 
-submit register form with timestamp as email address and name
-assert that all bits hit the users table
+* submit register form with timestamp as email address and name
+* assert that all bits hit the users table
 
-view the user
-assert all is well
+* view the user
+* assert all is well
 
-edit user
-assert edits took
+* edit user
+* assert edits took
 
-logout
-assert we aren't logged in anymore
+* logout
+* assert we aren't logged in anymore
 
-login
-assert we are logged in
+* login
+* assert we are logged in
 
-delete our test user from users table
+* delete our test user from users table
 
 Version 2
 -------------------
-- Add a 'deny' mask. Verify it works
-- Distributed Auth
+* - Add a 'deny' mask. Verify it works
+* - Distributed Auth
 - user_access()
 - user administration
+
+
+* - Implemented by soc project: user_*.test
