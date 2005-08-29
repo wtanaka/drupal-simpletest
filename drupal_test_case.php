@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.4 2005/08/29 16:23:46 thomasilsche Exp $ */
+/* $Id: drupal_test_case.php,v 1.5 2005/08/29 16:29:42 thomasilsche Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -91,15 +91,15 @@ class DrupalTestCase extends WebTestCase {
    * @param integer $number   number of characters
    * @return ransom string
    */
-  function randomName($number = 4, $ret = 'simpletest_') {
+  function randomName($number = 4, $prefix = 'simpletest_') {
     $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';
     for ($x = 0; $x < $number; $x++) {
-        $ret .= $chars{mt_rand(0, strlen($chars)-1)};
+        $prefix .= $chars{mt_rand(0, strlen($chars)-1)};
         if ($x == 0) {
             $chars .= '0123456789';
         }
     }
-    return $ret;
+    return $prefix;
   }
 
   /**
