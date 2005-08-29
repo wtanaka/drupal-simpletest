@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.5 2005/08/29 16:29:42 thomasilsche Exp $ */
+/* $Id: drupal_test_case.php,v 1.6 2005/08/29 16:37:17 thomasilsche Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -101,21 +101,7 @@ class DrupalTestCase extends WebTestCase {
     }
     return $prefix;
   }
-
-  /**
-   * Just some info for the reporter
-   */
-  function run(&$reporter) {
-    $arr = array('class' => get_class($this));
-    if (method_exists($this, 'get_info')) {
-      $arr = array_merge($arr, $this->get_info());
-    }
-    $reporter->test_info_stack[] = $arr;
-    parent::run($reporter);
-    array_pop($reporter->test_info_stack);
-  }
-
-  
+ 
   /**
    * Enables a drupal module
    * @param string $name name of the module
@@ -209,6 +195,21 @@ class DrupalTestCase extends WebTestCase {
     }
     $this->_cleanupVariables = array();
   }
+
+  
+  /**
+   * Just some info for the reporter
+   */
+  function run(&$reporter) {
+    $arr = array('class' => get_class($this));
+    if (method_exists($this, 'get_info')) {
+      $arr = array_merge($arr, $this->get_info());
+    }
+    $reporter->test_info_stack[] = $arr;
+    parent::run($reporter);
+    array_pop($reporter->test_info_stack);
+  }
+  
   
   /* Taken from UnitTestCase */
         /**
