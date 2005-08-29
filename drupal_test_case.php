@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.3 2005/08/25 13:28:47 thomasilsche Exp $ */
+/* $Id: drupal_test_case.php,v 1.4 2005/08/29 16:23:46 thomasilsche Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -34,22 +34,16 @@ class DrupalTestCase extends WebTestCase {
    * @param string  $submit    name of the submit button, untranslated
    * @param boolean $reporting assertations or not
    */
-  function drupalPostRequest($path, $edit, $submit, $reporting = TRUE) {
+  function drupalPostRequest($path, $edit, $submit) {
     $url = url($path, NULL, NULL, TRUE);
     $ret = $this->_browser->get($url);
-    if ($reporting) {
-      $this->assertTrue($ret, " [browser] GET $url");
-    }
+    $this->assertTrue($ret, " [browser] GET $url");
     foreach ($edit as $field_name => $field_value) {
       $ret = $this->_browser->setField("edit[$field_name]", $field_value);
-      if ($reporting) {
-        $this->assertTrue($ret, " [browser] Setting edit[$field_name]=\"$field_value\"");
-      }
+      $this->assertTrue($ret, " [browser] Setting edit[$field_name]=\"$field_value\"");
     }
     $ret = $this->_browser->clickSubmit(t($submit));
-    if ($reporting) {
-      $this->assertTrue($ret, ' [browser] POST by click on ' . t($submit));
-    }
+    $this->assertTrue($ret, ' [browser] POST by click on ' . t($submit));
     $this->_content = $this->_browser->getContent();
   }
 
@@ -69,22 +63,18 @@ class DrupalTestCase extends WebTestCase {
    *
    *    @access public
    */
-  function clickLink($label, $index = 0, $reporting = true) {
-    if ($reporting) {
-      $url_before = $this->getUrl();
-      $urls = $this->_browser->_page->getUrlsByLabel($label);
-      if (count($urls) < $index + 1) {
-        $url_target = 'URL NOT FOUND!';
-      } else {
-        $url_target = $urls[$index]->asString();
-      }
+  function clickLink($label, $index = 0) {
+    $url_before = $this->getUrl();
+    $urls = $this->_browser->_page->getUrlsByLabel($label);
+    if (count($urls) < $index + 1) {
+      $url_target = 'URL NOT FOUND!';
+    } else {
+      $url_target = $urls[$index]->asString();
     }
     
     $ret = parent::clickLink(t($label), $index);
     
-    if ($reporting) {
-      $this->assertTrue($ret, ' [browser] clicked link '. t($label) . " ($url_target) from $url_before");
-    }
+    $this->assertTrue($ret, ' [browser] clicked link '. t($label) . " ($url_target) from $url_before");
     
     return $ret;
   }
