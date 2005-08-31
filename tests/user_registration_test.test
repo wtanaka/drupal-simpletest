@@ -1,5 +1,5 @@
 <?php
-// $Id: user_registration_test.test,v 1.2 2005/08/25 13:30:08 thomasilsche Exp $
+// $Id: user_registration_test.test,v 1.3 2005/08/31 13:54:52 thomasilsche Exp $
 /**
  * Class to test the user registration process,
  * - based on initial version by Kuba Zygmunt -
@@ -20,7 +20,6 @@ class UserRegistrationTest extends DrupalTestCase {
     $mail = "$name@example.com";
     $edit = array('name' => $name,
                   'mail' => $mail);
-    
     $this->drupalPostRequest('user/register', $edit, 'Create new account');
     
     $this->assertWantedText(t('Your password and further instructions have been sent to your e-mail address.'), 'Your password and further instructions ... found');
@@ -72,7 +71,7 @@ class UserRegistrationTest extends DrupalTestCase {
     $this->assertEqual($user->pass, md5($new_pass), 'Correct password in database');
     
     /* logout */
-    $this->_browser->clickLink(t('log out')); 
+    $this->clickLink('log out'); 
     $this->assertNoUnwantedText($user->name, 'Logged out');
     
     /* login again */
