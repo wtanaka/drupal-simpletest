@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.6 2005/08/24 19:10:02 thomasilsche Exp $
+// $Id: simpletest.module,v 1.7 2005/08/31 13:51:39 thomasilsche Exp $
 
 /**
  * Implementation of hook_help().
@@ -32,6 +32,12 @@ function simpletest_menu($may_cache) {
   }
 }
 
+/**
+ * Implementation of hook_perm().
+ */
+function simpletest_perm() {
+  return array('admister unit tests'); 
+}
 
 /**
  * Try to load the simepletest
