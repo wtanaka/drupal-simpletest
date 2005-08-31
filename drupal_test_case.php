@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.8 2005/08/31 16:45:05 thomasilsche Exp $ */
+/* $Id: drupal_test_case.php,v 1.9 2005/08/31 16:48:42 thomasilsche Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -182,8 +182,12 @@ class DrupalTestCase extends WebTestCase {
    * @param  array $permissions Array of the permission strings
    * @return integer role-id
    */
-  function drupalCreateRolePerm($permissions) {
-    $permstring = implode(', ', $permissions);
+  function drupalCreateRolePerm($permissions = NULL) {
+    if ($permissions === NULL) {
+      $permstring = 'access comments, access content, post comments, post comments without approval';
+    } else {
+      $permstring = implode(', ', $permissions);
+    }
     /* Create role */
     $role_name = $this->randomName();
     db_query("INSERT INTO {role} (name) VALUES ('%s')", $role_name);
@@ -206,7 +210,7 @@ class DrupalTestCase extends WebTestCase {
    * @param  array $permissions Array of the permission strings
    * @return array/boolean false if fails. fully loaded user object with added pass_raw property
    */
-  function drupalCreateUserRolePerm($permissions) {
+  function drupalCreateUserRolePerm($permissions = NULL) {
     /* Create role */
     $rid = $this->drupalCreateRolePerm($permissions);
     if (!$rid) {
