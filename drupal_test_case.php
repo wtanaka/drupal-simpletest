@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.6 2005/08/29 16:37:17 thomasilsche Exp $ */
+/* $Id: drupal_test_case.php,v 1.7 2005/08/31 13:55:48 thomasilsche Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -175,12 +175,82 @@ class DrupalTestCase extends WebTestCase {
     }
   }
   
+  
+  /**
+   * Create a role / perm combination specified by persmissions
+   *
+   * @return integer role-id
+   */
+  function drupalCreateRolePerm($permissions) {
+    $permstring = implode(', ', $permissions);
+    /* Create role */
+    $role_name = $this->randomName();
+    db_query("INSERT INTO {role} (name) VALUES ('%s')", $role_name);
+    $role = db_fetch_object(db_query("SELECT * FROM {role} WHERE name = '%s'", $role_name));
+    $this->assertTrue($role, " [role] created name: $role_name, id: " . (isset($role->rid) ? $role->rid : '-n/a-'));
+    if ($role && !empty($role->rid)) {
+      /* Create permissions */
+      db_query("INSERT INTO {permission} (rid, perm) VALUES (%d, '%s')", $role->rid, $permstring);
+      $this->assertTrue(db_affected_rows(), ' [role] created permissions: ' . $permstring);
+      $this->_cleanup_roles[] = $role->rid;
+      return $role->rid;
+    } else {
+      return false;
+    }
+  }
+  
+  /**
+   * Creates a user / role / permissions combination specified by permissions
+   *
+   * @return array/boolean false if fails. fully loaded user object with added pass_raw property
+   */
+  function drupalCreateUserRolePerm($permissions) {
+    /* Create role */
+    $rid = $this->drupalCreateRolePerm($permissions);
+    if (!$rid) {
+      return FALSE; 
+    }
+    /* Create user */
+    $ua = array();
+    $ua['name']   = $this->randomName();
+    $ua['mail']   = $ua['name'] . '@example.com';
+    $ua['roles']  = array($rid);
+    $ua['pass']   = user_password();
+    $ua['status'] = 1;
+    
+    $u = user_save('', $ua);
+    
+    $this->assertTrue(!empty($u->uid), " [user] name: $ua[name] pass: $ua[pass] created");
+    if (empty($u->uid)) {
+      return FALSE; 
+    }
+    
+    /* Add to cleanup list */
+    $this->_cleanup_users[] = $u->uid;
+    
+    /* Add the raw password */
+    $u->pass_raw = $ua['pass'];
+    return $u;
+  }
+  
+  /**
+   * Logs in a user with the internal browser
+   *
+   * @param object user object with pass_raw property!
+   */
+  function drupalLoginUser($user) {
+    $edit = array('name' => $user->name, 'pass' => $user->pass_raw);
+    $this->drupalPostRequest('user/login', $edit, 'Log in');
 
+    $this->assertWantedText($user->name, ' [login] found name: ' . $user->name);
+    $this->assertNoUnwantedText(t('The username %name has been blocked.', array('%name' => $user->name)), ' [login] not blocked');
+    $this->assertNoUnwantedText(t('The name %name is a reserved username.', array('%name' => $user->name)), ' [login] not reserved');
+  }
+  
   /**
    * tearDown implementation, setting back switched modules etc
    */
   function tearDown() {
-    parent::tearDown();
     foreach ($this->_cleanupModules as $name => $status) {
       db_query("UPDATE {system} SET status = %d WHERE name = '%s' AND type = 'module'", $status, $name); 
     }
@@ -194,6 +264,20 @@ class DrupalTestCase extends WebTestCase {
       }
     }
     $this->_cleanupVariables = array();
+    
+    while (sizeof($this->_cleanup_roles) > 0) {
+      $rid = array_pop($this->_cleanup_roles);
+      db_query("DELETE FROM {role} WHERE rid = %d",       $rid);
+      db_query("DELETE FROM {permission} WHERE rid = %d", $rid);
+    }
+    
+    while (sizeof($this->_cleanup_users) > 0) {
+      $uid = array_pop($this->_cleanup_users);
+      db_query('DELETE FROM {users} WHERE uid = %d',       $uid);
+      db_query('DELETE FROM {users_roles} WHERE uid = %d', $uid);
+      db_query('DELETE FROM {authmap} WHERE uid = %d',     $uid);
+    }
+    parent::tearDown();
   }
 
   
