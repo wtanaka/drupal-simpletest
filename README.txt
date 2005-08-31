@@ -14,6 +14,7 @@ Requirements
 - Install the simpletest framework to a new directory Drupal/modules/simpletest/simpletest directory.
   You can find it at https://sourceforge.net/project/showfiles.php?group_id=76550
 - At least Version 1.0.1 alpta of the simpletest framework is required (for upload tests).
+  Other Versions of simpletest have not been tested yet, 1.0.0 does not support browser upload.
 
 Install
 -----------------------
