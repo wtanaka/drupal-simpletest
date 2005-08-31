@@ -1,5 +1,5 @@
 <?php
-/* $Id: taxonomy.module.test,v 1.1 2005/08/24 19:10:02 thomasilsche Exp $ */
+/* $Id: taxonomy.module.test,v 1.2 2005/08/31 13:05:28 kubazygmunt Exp $ */
 class TaxonomyTestFunctions extends DrupalTestCase {
   function get_info() {
     return array('name' => 'Test taxonomy\'s functions', 'desc' => "Testing save/edit/delete vocabularies, terms<br/>Checking database fields" , 'group' => 'Taxonomy Module');
@@ -256,8 +256,7 @@ class TaxonomyTermFunctions extends DrupalTestCase {
 class TaxonomyTestNodeApi extends DrupalTestCase {
   function get_info() {
     $modules = (module_list());
-    $mod_info = (array_key_exists('story', $modules)) ? 'Story module loaded' : '<b>You need to load story module</b>';
-    return array('name' => 'Taxonomy NodeApi test', 'desc' => "Testing taxonomy module with save/load nodeapi functions<br/>Requirement: <br/>* $mod_info" , 'group' => 'Taxonomy Module');
+    return array('name' => 'Taxonomy NodeApi test', 'desc' => "Testing taxonomy module with save/load nodeapi functions<br/>(uses Story module)" , 'group' => 'Taxonomy Module');
   }
 
   function _rolesApi($op, $edit) {
@@ -298,283 +297,276 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
   }
 
   function testTaxonomyNode() {
-     global $base_url;
     // check if we can do test
-    $modules = (module_list());
-    if (array_key_exists('story', $modules)) {
-       //preparing data
-      // vocabulary hierarchy->single, multiple -> on
-      $edit = array();
-      $_t = array('vid', 'name', 'description', 'help', 'relations', 'hierarchy', 'multiple',
-          'required', 'tags', 'module', 'weight', 'nodes');
-      foreach($_t as $key )
-        $edit[$key] = 0;
+    // get status of module story
+    $module = 'story';
+    $story_status = db_result(db_query("SELECT status FROM {system} WHERE name = '%s'", $module));
+    if (!$story_status) {
+      db_query("UPDATE {system} SET status = 1 WHERE name = '%s'", $module);
+    }
+    //preparing data
+    // vocabulary hierarchy->single, multiple -> on
+    $edit = array();
+    $_t = array('vid', 'name', 'description', 'help', 'relations', 'hierarchy', 'multiple',
+        'required', 'tags', 'module', 'weight', 'nodes');
+    foreach($_t as $key )
+      $edit[$key] = 0;
 
-      $name = $this->randomName(20);
-      $edit['hierarchy'] = 1;
-      $edit['multiple'] = 1;
-      $edit['name'] = $name;
-      $edit['nodes'] = array('story' => 'story');
-      taxonomy_save_vocabulary($edit);
-      // create term
+    $name = $this->randomName(20);
+    $edit['hierarchy'] = 1;
+    $edit['multiple'] = 1;
+    $edit['name'] = $name;
+    $edit['nodes'] = array('story' => 'story');
+    taxonomy_save_vocabulary($edit);
+    // create term
 
-      $vocabularies = taxonomy_get_vocabularies();
-        foreach($vocabularies as $voc) {
-          if ($voc->name == $name) {
-            $vid = $voc->vid;
-            break;
-          }
+    $vocabularies = taxonomy_get_vocabularies();
+      foreach($vocabularies as $voc) {
+        if ($voc->name == $name) {
+          $vid = $voc->vid;
+          break;
         }
-      $parent = array();
-      $patternArray = array();
-      // create 1st term
-      $termname = $this->randomName(20);
-      $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0);
-      taxonomy_save_term($data);
-      $_tArray = taxonomy_get_term_by_name($termname);
-      $parent[] = $_tArray[0]->tid;
-      $patternArray['term name 1'] = $termname;
-      // create 2nd term
-      $termname = $this->randomName(20);
-      $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0);
-      taxonomy_save_term($data);
-      $_tArray = taxonomy_get_term_by_name($termname);
-      $parent[] = $_tArray[0]->tid;
-      $patternArray['term name 2'] = $termname;
-
-      // create test user
-      $edit['name'] = 'Taxonomy Simpletest Role';
-      $edit['perm'] = 'access content, create stories, edit own stories';
-      $rid = $this->_rolesApi('add', $edit );
-
-      $name = $this->randomName();
-      $pass = $this->randomName();
-      $mail = "$name@example.com";
-      unset($edit);
-      $edit['roles'] = array($rid);
-      $user = user_save('', array('name' => $name, 'pass' => $pass, 'init' => $mail, 'mail' => $mail, 'roles' => $edit['roles'], 'status' => 1));
-      //log in
-      $edit = array('name' => $name, 'pass' => $pass);
-      $this->drupalPostRequest('user', $edit, 'Log in' );
-
-      // try to create story
-      $title = $this->randomName();
-      $body = $this->randomName(100);
-      $edit = array('title' => $title, 'body' => $body, 'taxonomy][' => $parent);
-      $this->drupalPostRequest('node/add/story', $edit, 'Submit' );
-      $patternArray['body text'] = $title;
-      $patternArray['title'] = $title;
-
-      $node = array2object(node_load(array('title' => $title)));
-      $this->_browser->get("$base_url/?q=node/".$node->nid);
-      $content = $this->_browser->getContent();
-      foreach($patternArray as $name => $termPattern) {
-        $pattern = '/'. $termPattern .'/i';
-        $this->assertWantedPattern($pattern, $content, "Checking $name");
       }
-      // checking database fields
-      $result = db_query('SELECT tid FROM {term_node} WHERE nid = %d', $node->nid);
-      while ($nodeRow = db_fetch_array($result))
-        $this->assertTrue(in_array($nodeRow['tid'], $parent), 'Checking database field');
-      // ok, lets create new terms, and change this node
-      //pop array
-      array_pop($parent);
+    $parent = array();
+    $patternArray = array();
+    // create 1st term
+    $termname = $this->randomName(20);
+    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0);
+    taxonomy_save_term($data);
+    $_tArray = taxonomy_get_term_by_name($termname);
+    $parent[] = $_tArray[0]->tid;
+    $patternArray['term name 1'] = $termname;
+    // create 2nd term
+    $termname = $this->randomName(20);
+    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0);
+    taxonomy_save_term($data);
+    $_tArray = taxonomy_get_term_by_name($termname);
+    $parent[] = $_tArray[0]->tid;
+    $patternArray['term name 2'] = $termname;
 
-      // create 1st term
-      $termname = $this->randomName(20);
-      $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0);
-      taxonomy_save_term($data);
-      $_tArray = taxonomy_get_term_by_name($termname);
-      $parent[] = $_tArray[0]->tid;
-      $patternArray['term name 2'] = $termname;
-      // create 2nd term
-      $termname = $this->randomName(20);
-      $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0);
-      taxonomy_save_term($data);
-      $_tArray = taxonomy_get_term_by_name($termname);
-      $parent[] = $_tArray[0]->tid;
-      $patternArray['term name 3'] = $termname;
+    // create test user
+    $edit['name'] = 'Taxonomy Simpletest Role';
+    $edit['perm'] = 'access content, create stories, edit own stories';
+    $rid = $this->_rolesApi('add', $edit );
 
-      $edit = array('title' => $title, 'body' => $body, 'taxonomy][' => $parent);
-      $this->drupalPostRequest('node/'. $node->nid .'/edit', $edit, 'Submit' );
+    $name = $this->randomName();
+    $pass = $this->randomName();
+    $mail = "$name@example.com";
+    unset($edit);
+    $edit['roles'] = array($rid);
+    $user = user_save('', array('name' => $name, 'pass' => $pass, 'init' => $mail, 'mail' => $mail, 'roles' => $edit['roles'], 'status' => 1));
+    //log in
+    $edit = array('name' => $name, 'pass' => $pass);
+    $this->drupalPostRequest('user', $edit, 'Log in' );
 
-      $content = $this->_browser->getContent();
-      $patternArray['information message'] = t('The story was updated');
-      foreach($patternArray as $name => $termPattern) {
-        $pattern = '/'. $termPattern .'/i';
-        $this->assertWantedPattern($pattern, $content, "Checking $name");
-      }
-      // checking database fields
-      $result = db_query('SELECT tid FROM {term_node} WHERE nid = %d', $node->nid);
-      while ($nodeRow = db_fetch_array($result))
-        $this->assertTrue(in_array($nodeRow['tid'], $parent), 'Checking database field');
+    // try to create story
+    $title = $this->randomName();
+    $body = $this->randomName(100);
+    $edit = array('title' => $title, 'body' => $body, 'taxonomy][' => $parent);
+    $this->drupalPostRequest('node/add/story', $edit, 'Submit' );
+    $patternArray['body text'] = $title;
+    $patternArray['title'] = $title;
 
-
-      // delete node
-      // node_delete(array('nid' => $node->nid, 'confirm' => 1));
-      // delete through browser
-      $this->drupalPostRequest('node/'. $node->nid .'/delete', array(), 'Delete' );
-      // checking after delete
-      $this->_browser->get("$base_url/?q=node/".$node->nid);
-      $content = $this->_browser->getContent();
-      $pattern = '/'. t('Page not found') .'/i';
-      $this->assertWantedPattern($pattern, $content, "Checking if node exists");
-      // checking database fields
-      $result = db_query('SELECT tid FROM {term_node} WHERE nid = %d', $node->nid);
-      $this->assertEqual(db_num_rows($result), 0, 'Checking database field after deletion');
-
-      // delete vocabulary
-      // to avoid exception messages create array with empty fields
-      $edit = array();
-      foreach($_t as $key )
-        $edit[$key] = 0;
-      $edit['name'] = 0;
-      $edit['vid'] = $vid;
-      taxonomy_save_vocabulary($edit);
-      // delete test user and roles
-
-      if ($user->uid > 0) {
-        db_query('DELETE FROM {users} WHERE uid = %d', $user->uid);
-        db_query('DELETE FROM {users_roles} WHERE uid = %d', $user->uid);
-        module_invoke_all('user', 'delete', '', $user);
-      }
-
-      //delete roles
-      $edit['rid'] = $rid;
-      $this->_rolesApi('delete', $edit);
-
-
-
+    $node = array2object(node_load(array('title' => $title)));
+    $this->_browser->get(url("node/".$node->nid));
+    foreach($patternArray as $name => $termPattern) {
+      $this->assertWantedText($termPattern, "Checking $name");
     }
-    else {
-      //show error
-      $this->assertTrue(false, 'Requirements are not met');
+    // checking database fields
+    $result = db_query('SELECT tid FROM {term_node} WHERE nid = %d', $node->nid);
+    while ($nodeRow = db_fetch_array($result))
+      $this->assertTrue(in_array($nodeRow['tid'], $parent), 'Checking database field');
+    // ok, lets create new terms, and change this node
+    //pop array
+    array_pop($parent);
+
+    // create 1st term
+    $termname = $this->randomName(20);
+    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0);
+    taxonomy_save_term($data);
+    $_tArray = taxonomy_get_term_by_name($termname);
+    $parent[] = $_tArray[0]->tid;
+    $patternArray['term name 2'] = $termname;
+    // create 2nd term
+    $termname = $this->randomName(20);
+    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0);
+    taxonomy_save_term($data);
+    $_tArray = taxonomy_get_term_by_name($termname);
+    $parent[] = $_tArray[0]->tid;
+    $patternArray['term name 3'] = $termname;
+
+    $edit = array('title' => $title, 'body' => $body, 'taxonomy][' => $parent);
+    $this->drupalPostRequest('node/'. $node->nid .'/edit', $edit, 'Submit' );
+
+    $patternArray['information message'] = t('The story was updated');
+    foreach($patternArray as $name => $termPattern) {
+      $this->assertWantedText($termPattern, "Checking $name");
     }
+    // checking database fields
+    $result = db_query('SELECT tid FROM {term_node} WHERE nid = %d', $node->nid);
+    while ($nodeRow = db_fetch_array($result))
+      $this->assertTrue(in_array($nodeRow['tid'], $parent), 'Checking database field');
+
+
+    // delete node
+    // node_delete(array('nid' => $node->nid, 'confirm' => 1));
+    // delete through browser
+    $this->drupalPostRequest('node/'. $node->nid .'/delete', array(), 'Delete' );
+    // checking after delete
+    $this->_browser->get(url("node/".$node->nid));
+    $this->assertNoUnwantedText($termname, "Checking if node exists");
+    // checking database fields
+    $result = db_query('SELECT tid FROM {term_node} WHERE nid = %d', $node->nid);
+    $this->assertEqual(db_num_rows($result), 0, 'Checking database field after deletion');
+
+    // delete vocabulary
+    // to avoid exception messages create array with empty fields
+    $edit = array();
+    foreach($_t as $key )
+      $edit[$key] = 0;
+    $edit['name'] = 0;
+    $edit['vid'] = $vid;
+    taxonomy_save_vocabulary($edit);
+    // delete test user and roles
+
+    if ($user->uid > 0) {
+      db_query('DELETE FROM {users} WHERE uid = %d', $user->uid);
+      db_query('DELETE FROM {users_roles} WHERE uid = %d', $user->uid);
+      module_invoke_all('user', 'delete', '', $user);
+    }
+
+    //delete roles
+    $edit['rid'] = $rid;
+    $this->_rolesApi('delete', $edit);
+
+
+
+    // restoring status
+    if (!$story_status) {
+      db_query("UPDATE {system} SET status = 1 WHERE name = '%s'", $module);
+    }
+
   }
 
 function testTaxonomyNodeFreeTagging() {
     // the same test as above but with free tagging voc.
-     global $base_url;
     // check if we can do test
-    $modules = (module_list());
-    if (array_key_exists('story', $modules)) {
-       //preparing data
-      // vocabulary hierarchy->single, multiple -> on
-      $edit = array();
-      $_t = array('vid', 'name', 'description', 'help', 'relations', 'hierarchy', 'multiple',
-          'required', 'tags', 'module', 'weight', 'nodes');
-      foreach($_t as $key )
-        $edit[$key] = 0;
-
-      $name = $this->randomName(20);
-      $edit['hierarchy'] = 1;
-      $edit['multiple'] = 1;
-      $edit['tags'] = 1;
-      $edit['name'] = $name;
-      $edit['nodes'] = array('story' => 'story');
-      taxonomy_save_vocabulary($edit);
-      // create term
-
-      $vocabularies = taxonomy_get_vocabularies();
-        foreach($vocabularies as $voc) {
-          if ($voc->name == $name) {
-            $vid = $voc->vid;
-            break;
-          }
-        }
-      $parent = array();
-      $patternArray = array();
-      // create 1st term
-      $termname = $this->randomName(20);
-      $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0);
-      taxonomy_save_term($data);
-      $_tArray = taxonomy_get_term_by_name($termname);
-      $parent[] = $_tArray[0]->tid;
-      $patternArray['term name 1'] = $termname;
-      $freeTag = $termname;
-      // create 2nd term (as free tag)
-      $termname = $this->randomName(3). " ".$this->randomName(15);
-      $patternArray['term name 2'] = $termname;
-      $freeTag .= ", $termname";
-
-
-      // create test user
-      $edit['name'] = 'Taxonomy Simpletest Role';
-      $edit['perm'] = 'access content, create stories, edit own stories';
-      $rid = $this->_rolesApi('add', $edit );
-
-      $name = $this->randomName();
-      $pass = $this->randomName();
-      $mail = "$name@example.com";
-      unset($edit);
-      $edit['roles'] = array($rid);
-      $user = user_save('', array('name' => $name, 'pass' => $pass, 'init' => $mail, 'mail' => $mail, 'roles' => $edit['roles'], 'status' => 1));
-      //log in
-      $edit = array('name' => $name, 'pass' => $pass);
-      $this->drupalPostRequest('user', $edit, 'Log in' );
-
-      // try to create story
-      $title = $this->randomName();
-      $body = $this->randomName(100);
-      $taxonomyEdit = 'taxonomy][tags]['.$vid;
-      $edit = array('title' => $title, 'body' => $body, $taxonomyEdit => $freeTag);
-      $this->drupalPostRequest('node/add/story', $edit, 'Submit' );
-      $patternArray['body text'] = $title;
-      $patternArray['title'] = $title;
-
-      $node = array2object(node_load(array('title' => $title)));
-      $this->_browser->get("$base_url/?q=node/".$node->nid);
-      $content = $this->_browser->getContent();
-      foreach($patternArray as $name => $termPattern) {
-        $pattern = '/'. $termPattern .'/i';
-        $this->assertWantedPattern($pattern, $content, "Checking $name");
-      }
-      // get free tag's term tid
-      $tempTerm = taxonomy_get_term_by_name($termname);
-      $parent[] = $tempTerm[0]->tid;
-      // checking database fields
-      $result = db_query('SELECT tid FROM {term_node} WHERE nid = %d', $node->nid);
-      while ($nodeRow = db_fetch_array($result))
-        $this->assertTrue(in_array($nodeRow['tid'], $parent), 'Checking database field');
-            // delete node
-      // node_delete(array('nid' => $node->nid, 'confirm' => 1));
-      // delete through browser
-      $this->drupalPostRequest('node/'. $node->nid .'/delete', array(), 'Delete' );
-      // checking after delete
-      $this->_browser->get("$base_url/?q=node/".$node->nid);
-      $content = $this->_browser->getContent();
-      $pattern = '/'. t('Page not found') .'/i';
-      $this->assertWantedPattern($pattern, $content, "Checking if node exists");
-      // checking database fields
-      $result = db_query('SELECT tid FROM {term_node} WHERE nid = %d', $node->nid);
-      $this->assertEqual(db_num_rows($result), 0, 'Checking database field after deletion');
-
-      // delete vocabulary
-      // to avoid exception messages create array with empty fields
-      $edit = array();
-      foreach($_t as $key )
-        $edit[$key] = 0;
-      $edit['name'] = 0;
-      $edit['vid'] = $vid;
-      taxonomy_save_vocabulary($edit);
-      // delete test user and roles
-
-      if ($user->uid > 0) {
-        db_query('DELETE FROM {users} WHERE uid = %d', $user->uid);
-        db_query('DELETE FROM {users_roles} WHERE uid = %d', $user->uid);
-        module_invoke_all('user', 'delete', '', $user);
-      }
-
-      //delete roles
-      $edit['rid'] = $rid;
-      $this->_rolesApi('delete', $edit);
-
-
-
+    $module = 'story';
+    $story_status = db_result(db_query("SELECT status FROM {system} WHERE name = '%s'", $module));
+    if (!$story_status) {
+      db_query("UPDATE {system} SET status = 1 WHERE name = '%s'", $module);
     }
-    else {
-      //show error
-      $this->assertTrue(false, 'Requirements are not met');
+    //preparing data
+    // vocabulary hierarchy->single, multiple -> on
+    $edit = array();
+    $_t = array('vid', 'name', 'description', 'help', 'relations', 'hierarchy', 'multiple',
+        'required', 'tags', 'module', 'weight', 'nodes');
+    foreach($_t as $key )
+      $edit[$key] = 0;
+
+    $name = $this->randomName(20);
+    $edit['hierarchy'] = 1;
+    $edit['multiple'] = 1;
+    $edit['tags'] = 1;
+    $edit['name'] = $name;
+    $edit['nodes'] = array('story' => 'story');
+    taxonomy_save_vocabulary($edit);
+    // create term
+
+    $vocabularies = taxonomy_get_vocabularies();
+      foreach($vocabularies as $voc) {
+        if ($voc->name == $name) {
+          $vid = $voc->vid;
+          break;
+        }
+      }
+    $parent = array();
+    $patternArray = array();
+    // create 1st term
+    $termname = $this->randomName(20);
+    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0);
+    taxonomy_save_term($data);
+    $_tArray = taxonomy_get_term_by_name($termname);
+    $parent[] = $_tArray[0]->tid;
+    $patternArray['term name 1'] = $termname;
+    $freeTag = $termname;
+    // create 2nd term (as free tag)
+    $termname = $this->randomName(3). " ".$this->randomName(15);
+    $patternArray['term name 2'] = $termname;
+    $freeTag .= ", $termname";
+
+
+    // create test user
+    $edit['name'] = 'Taxonomy Simpletest Role';
+    $edit['perm'] = 'access content, create stories, edit own stories';
+    $rid = $this->_rolesApi('add', $edit );
+
+    $name = $this->randomName();
+    $pass = $this->randomName();
+    $mail = "$name@example.com";
+    unset($edit);
+    $edit['roles'] = array($rid);
+    $user = user_save('', array('name' => $name, 'pass' => $pass, 'init' => $mail, 'mail' => $mail, 'roles' => $edit['roles'], 'status' => 1));
+    //log in
+    $edit = array('name' => $name, 'pass' => $pass);
+    $this->drupalPostRequest('user', $edit, 'Log in' );
+
+    // try to create story
+    $title = $this->randomName();
+    $body = $this->randomName(100);
+    $taxonomyEdit = 'taxonomy][tags]['.$vid;
+    $edit = array('title' => $title, 'body' => $body, $taxonomyEdit => $freeTag);
+    $this->drupalPostRequest('node/add/story', $edit, 'Submit' );
+    $patternArray['body text'] = $title;
+    $patternArray['title'] = $title;
+
+    $node = array2object(node_load(array('title' => $title)));
+    $this->_browser->get(url("node/".$node->nid));
+    foreach($patternArray as $name => $termPattern) {
+      $this->assertWantedText($termPattern, "Checking $name");
+    }
+    // get free tag's term tid
+    $tempTerm = taxonomy_get_term_by_name($termname);
+    $parent[] = $tempTerm[0]->tid;
+    // checking database fields
+    $result = db_query('SELECT tid FROM {term_node} WHERE nid = %d', $node->nid);
+    while ($nodeRow = db_fetch_array($result))
+      $this->assertTrue(in_array($nodeRow['tid'], $parent), 'Checking database field');
+          // delete node
+    // node_delete(array('nid' => $node->nid, 'confirm' => 1));
+    // delete through browser
+    $this->drupalPostRequest('node/'. $node->nid .'/delete', array(), 'Delete' );
+    // checking after delete
+    $this->_browser->get(url("node/".$node->nid));
+    $this->assertNoUnwantedText($termname, "Checking if node exists");
+    // checking database fields
+    $result = db_query('SELECT tid FROM {term_node} WHERE nid = %d', $node->nid);
+    $this->assertEqual(db_num_rows($result), 0, 'Checking database field after deletion');
+
+    // delete vocabulary
+    // to avoid exception messages create array with empty fields
+    $edit = array();
+    foreach($_t as $key )
+      $edit[$key] = 0;
+    $edit['name'] = 0;
+    $edit['vid'] = $vid;
+    taxonomy_save_vocabulary($edit);
+    // delete test user and roles
+
+    if ($user->uid > 0) {
+      db_query('DELETE FROM {users} WHERE uid = %d', $user->uid);
+      db_query('DELETE FROM {users_roles} WHERE uid = %d', $user->uid);
+      module_invoke_all('user', 'delete', '', $user);
+    }
+
+    //delete roles
+    $edit['rid'] = $rid;
+    $this->_rolesApi('delete', $edit);
+
+
+
+     if (!$story_status) {
+      db_query("UPDATE {system} SET status = 0 WHERE name = '%s'", $module);
     }
   }
 
