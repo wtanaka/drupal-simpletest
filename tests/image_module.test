@@ -1,0 +1,157 @@
+<?php
+/* $Id: image_module.test,v 1.1 2005/08/31 13:06:46 kubazygmunt Exp $ */
+class ImageModuleTest extends DrupalTestCase {
+  function get_info() {
+    $modules = (module_list());
+    return array('name' => 'Image Module test', 'desc' => "Testing add/edit/delete image node<br/>( uses image module )" , 'group' => 'Image Module');
+  }
+  function _rolesApi($op, $edit) {
+    if ($op == 'delete') {
+      $id = $edit['rid'];
+      db_query('DELETE FROM {role} WHERE rid = %d', $id);
+      db_query('DELETE FROM {permission} WHERE rid = %d', $id);
+
+      // Update the users who have this role set:
+      $result = db_query('SELECT DISTINCT(ur1.uid) FROM {users_roles} ur1 LEFT JOIN {users_roles} ur2 ON ur2.uid = ur1.uid WHERE ur1.rid = %d AND ur2.rid != ur1.rid', $id);
+      $uid = array();
+
+      while ($u = db_fetch_object($result)) {
+        $uid[] = $u->uid;
+      }
+
+      if ($uid) {
+        db_query('DELETE FROM {users_roles} WHERE rid = %d AND uid IN (%s)', $id, implode(', ', $uid));
+      }
+
+      // Users with only the deleted role are put back in the authenticated users pool.
+      db_query('UPDATE {users_roles} SET rid = %d WHERE rid = %d', _user_authenticated_id(), $id);
+
+    }
+    else if ($op == 'add') {
+      if (isset($edit['name'])) {
+        db_query("INSERT INTO {role} (name) VALUES ('%s')", $edit['name']);
+        $result = db_query("SELECT rid FROM {role} WHERE name = '%s'", $edit['name']);
+        $rid = db_result($result);
+        db_query("INSERT INTO {permission} (rid, perm) VALUES (%d, '%s')", $rid, $edit['perm']);
+        return $rid;
+      }
+      else {
+        return 0;
+      }
+    }
+
+  }
+
+  function testImageNode() {
+    global $base_url;
+    $module = 'image';
+    $result = db_query("SELECT status FROM {system} WHERE name = '%s'", $module);
+    if (!db_num_rows($result)) {
+      //show error
+      $this->assertTrue(false, "You don't have image module");
+    } else {
+      $module_status = db_result($result);
+      if (!$module_status) {
+        db_query("UPDATE {system} SET status = 1 WHERE name = '%s'", $module);
+      }
+      // create test user
+      $edit['name'] = 'Image SR.No'.$this->randomName(5);
+      $edit['perm'] = 'access content, create images';
+      $rid = $this->_rolesApi('add', $edit );
+      $name = $this->randomName();
+      $pass = $this->randomName();
+      $mail = "$name@example.com";
+      unset($edit);
+      $edit['roles'] = array($rid);
+      $user = user_save('', array('name' => $name, 'pass' => $pass, 'init' => $mail, 'mail' => $mail, 'roles' => $edit['roles'], 'status' => 1));
+      //log in
+      $edit = array('name' => $name, 'pass' => $pass);
+      $this->drupalPostRequest('user', $edit, 'Log in' );
+
+      $title = $this->randomName(10);
+      $description = $this->randomName(100);
+      $img_path = realpath("modules/tests/ImageModuleTest.png");
+      $my_size = getimagesize($img_path);
+      if (image_get_toolkit()) {
+        // if we got gd we perform more precise test
+        $temppath = variable_get('image_default_path', 'images') . '/temp';
+        $path = realpath(file_create_path($temppath));
+        $new_image = $path . '/ImageTestGd.png';
+        $width = rand(20,$my_size[0]);
+        $height = rand(20,$my_size[1]);
+        image_crop($img_path, $new_image, 0, 0, $width,$height);
+        $my_size = getimagesize($new_image);
+        $img_path = $new_image;
+      }
+      // Add image
+      unset($edit);
+      $edit = array('title' => $title, 'body' => $description, 'image' => $img_path);
+      $this->drupalPostRequest('node/add/image', $edit, 'Submit' );
+      $content = $this->_browser->getContent();
+      // test message
+      $this->assertWantedText(t('Your image was created.'), "Checking message");
+      // get node nid
+      $node = array2object(node_load(array('title' => $title)));
+      $this->_browser->get(url("node/".$node->nid));
+      $content = $this->_browser->getContent();
+      $this->assertWantedText($title, "Checking title : $title");
+      $this->assertWantedText($description, "Checking body: $description");
+      // sprawdz czy obrazek jest dobry
+      preg_match_all('~<img.*?src="?([^"]*png?)"?[^>]*>~i', $content, $matches);
+      $found = false;
+      foreach($matches[1] as $file) {
+        $size = getimagesize($file);
+        if ($size == $my_size) {
+          $found = true;
+          break;
+        }
+      }
+      $this->assertTrue($found, 'Checking uploaded image');
+      // update
+      $title = $this->randomName(10);
+      $description = $this->randomName(100);
+      $img_path = realpath("modules/tests/ImageModuleTest.png"); // powininem byc inny obrazek
+      // update image
+      unset($edit);
+      $edit = array('title' => $title, 'body' => $description, 'image' => $img_path);
+      $this->drupalPostRequest('node/'. $node->nid .'/edit', $edit, 'Submit' );
+      $content = $this->_browser->getContent();
+      $this->_browser->get(url("node/%d",$node->nid));
+      $this->assertWantedText($title, "Checking title : $title");
+      $this->assertWantedText($description, "Checking body: $description");
+      // sprawdz czy obrazek jest dobry
+
+      // delete image node
+      $this->drupalPostRequest('node/'. $node->nid .'/delete', array(), 'Delete' );
+      // checking after delete
+      $this->_browser->get(url("node/%d",$node->nid));
+      $this->assertNoUnwantedText($title, "Checking if node exists");
+      // checking database fields
+      $result = db_query('SELECT tid FROM {term_node} WHERE nid = %d', $node->nid);
+      $this->assertEqual(db_num_rows($result), 0, 'Checking database field after deletion');
+      if (image_get_toolkit()) {
+        //delete created image
+        file_delete($new_image);
+      }
+
+
+      // delete test user and roles
+      if ($user->uid > 0) {
+        db_query('DELETE FROM {users} WHERE uid =' .
+            ' %d', $user->uid);
+        db_query('DELETE FROM {users_roles} WHERE uid = %d', $user->uid);
+        module_invoke_all('user', 'delete', '', $user);
+      }
+      //delete roles
+      $edit['rid'] = $rid;
+      $this->_rolesApi('delete', $edit);
+      if (!$module_status) {
+        db_query("UPDATE {system} SET status = 1 WHERE name = '%s'", $module);
+      }
+
+     }
+  }
+}
+
+
+?>
