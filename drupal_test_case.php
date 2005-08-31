@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.7 2005/08/31 13:55:48 thomasilsche Exp $ */
+/* $Id: drupal_test_case.php,v 1.8 2005/08/31 16:45:05 thomasilsche Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -179,6 +179,7 @@ class DrupalTestCase extends WebTestCase {
   /**
    * Create a role / perm combination specified by persmissions
    *
+   * @param  array $permissions Array of the permission strings
    * @return integer role-id
    */
   function drupalCreateRolePerm($permissions) {
@@ -202,6 +203,7 @@ class DrupalTestCase extends WebTestCase {
   /**
    * Creates a user / role / permissions combination specified by permissions
    *
+   * @param  array $permissions Array of the permission strings
    * @return array/boolean false if fails. fully loaded user object with added pass_raw property
    */
   function drupalCreateUserRolePerm($permissions) {
