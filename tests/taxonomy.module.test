@@ -1,5 +1,5 @@
 <?php
-/* $Id: taxonomy.module.test,v 1.2 2005/08/31 13:05:28 kubazygmunt Exp $ */
+/* $Id: taxonomy.module.test,v 1.3 2005/08/31 22:11:43 kubazygmunt Exp $ */
 class TaxonomyTestFunctions extends DrupalTestCase {
   function get_info() {
     return array('name' => 'Test taxonomy\'s functions', 'desc' => "Testing save/edit/delete vocabularies, terms<br/>Checking database fields" , 'group' => 'Taxonomy Module');
@@ -299,11 +299,7 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
   function testTaxonomyNode() {
     // check if we can do test
     // get status of module story
-    $module = 'story';
-    $story_status = db_result(db_query("SELECT status FROM {system} WHERE name = '%s'", $module));
-    if (!$story_status) {
-      db_query("UPDATE {system} SET status = 1 WHERE name = '%s'", $module);
-    }
+    $this->drupalModuleEnable('story');
     //preparing data
     // vocabulary hierarchy->single, multiple -> on
     $edit = array();
@@ -442,20 +438,14 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
 
 
     // restoring status
-    if (!$story_status) {
-      db_query("UPDATE {system} SET status = 1 WHERE name = '%s'", $module);
-    }
+    $this->drupalModuleDisable('story');
 
   }
 
 function testTaxonomyNodeFreeTagging() {
     // the same test as above but with free tagging voc.
     // check if we can do test
-    $module = 'story';
-    $story_status = db_result(db_query("SELECT status FROM {system} WHERE name = '%s'", $module));
-    if (!$story_status) {
-      db_query("UPDATE {system} SET status = 1 WHERE name = '%s'", $module);
-    }
+    $this->drupalModuleEnable('story');
     //preparing data
     // vocabulary hierarchy->single, multiple -> on
     $edit = array();
@@ -565,9 +555,7 @@ function testTaxonomyNodeFreeTagging() {
 
 
 
-     if (!$story_status) {
-      db_query("UPDATE {system} SET status = 0 WHERE name = '%s'", $module);
-    }
+    $this->drupalModuleDisable('story');
   }
 
 }
