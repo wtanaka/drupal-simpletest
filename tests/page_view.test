@@ -1,5 +1,5 @@
 <?php
-// $Id: page_view.test,v 1.2 2005/08/31 13:55:59 thomasilsche Exp $
+// $Id: page_view.test,v 1.3 2005/08/31 17:26:04 thomasilsche Exp $
 class PageViewTest extends  DrupalTestCase {
   /**
    * Implementation of get_info() for information
@@ -10,7 +10,7 @@ class PageViewTest extends  DrupalTestCase {
 
   function testPageView() {
     /* Prepare a node to view */
-    global $user, $base_url;
+    global $user;
     $node = new stdClass();
     $node->body      = $this->randomName(32);
     $node->title     = $this->randomName(8);
@@ -37,7 +37,7 @@ class PageViewTest extends  DrupalTestCase {
     $test_user = $this->drupalCreateUserRolePerm(array());
     $this->drupalLoginUser($test_user);
     
-    $this->get($base_url . '/?q=node/view/' . $node->nid);
+    $this->get(url('node/view/' . $node->nid));
     $this->assertWantedText(t('You are not authorized to access this page.'), 'Acess denied for node');
     db_query('DELETE FROM {node} WHERE nid = %d', $node->nid);
   }
