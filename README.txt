@@ -11,9 +11,9 @@ We need more, especially for contributed modules.
 Requirements
 -----------------------
 
-- Install the simpletest framework to a new directory called 'simpletest' right under Drupal/modules directory.
-You can find it at http://www.lastcraft.com/simple_test.php
-- At least Version 1.0.1 of the simpletest framework is required (for upload tests).
+- Install the simpletest framework to a new directory Drupal/modules/simpletest/simpletest directory.
+  You can find it at https://sourceforge.net/project/showfiles.php?group_id=76550
+- At least Version 1.0.1 alpta of the simpletest framework is required (for upload tests).
 
 Install
 -----------------------
