@@ -1,1 +1,1 @@
-These tests belong elsewhere. They should reside with their respective modules. Until this module is accepted into core, some tests will reside here.
+Tests against contributed modules should reside within those module packages in a subdir called tests. The files in this directory test core functioanlity, which does not have a /tests directory. We plan to add this once this testing framework matures a bit more.
