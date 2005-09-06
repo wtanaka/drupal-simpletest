@@ -1,11 +1,15 @@
 <?php
-// $Id: page_view.test,v 1.3 2005/08/31 17:26:04 thomasilsche Exp $
-class PageViewTest extends  DrupalTestCase {
+// $Id: page_view.test,v 1.4 2005/09/06 05:26:29 weitzman Exp $
+class PageViewTest extends DrupalTestCase {
   /**
    * Implementation of get_info() for information
    */
   function get_info() {
-    return array('name' => t('Page view Test'), 'desc' => t('Creates a user that has insufficient access and tries to create and access nodes. Asserts failure.') , 'group' => 'Node Tests');
+    return array('name' => t('Unauthorized node view'), 'desc' => t('Creates a node of type page and then an unpermissioned user attempts to view the node. Asserts failure.') , 'group' => 'Node Tests');
+  }
+  
+  function setUp() {
+    $this->drupalModuleEnable('page');
   }
 
   function testPageView() {
@@ -30,16 +34,18 @@ class PageViewTest extends  DrupalTestCase {
     $node->revisions = NULL;
     $node->changed   = $node->created;
     $node->taxonomy  = NULL;
-    
-    $this->assertTrue(node_save($node), 'Testnode created');
+    node_save($node);
+    $this->assertNotNull(node_load($node->nid), 'Node created');
 
-    /* Prepare a user to do the stuff */
+    /* Prepare a user to request the node view */
     $test_user = $this->drupalCreateUserRolePerm(array());
     $this->drupalLoginUser($test_user);
     
-    $this->get(url('node/view/' . $node->nid));
-    $this->assertWantedText(t('You are not authorized to access this page.'), 'Acess denied for node');
-    db_query('DELETE FROM {node} WHERE nid = %d', $node->nid);
+    $html = $this->get(url("node/$node->nid", NULL, NULL, TRUE));
+    $this->assertResponse(403);
+    
+    $test_user = $this->drupalCreateUserRolePerm(array('administer nodes'));
+    node_delete(array('nid' => $node->nid, 'confirm' => TRUE));
   }
 }
 ?>
