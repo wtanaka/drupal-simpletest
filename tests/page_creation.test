@@ -1,5 +1,5 @@
 <?php
-// $Id: page_creation.test,v 1.4 2005/09/06 05:26:29 weitzman Exp $
+// $Id: page_creation.test,v 1.5 2005/09/07 16:20:19 thomasilsche Exp $
 class PageCreationTest extends  DrupalTestCase {
   var $_cleanup_roles = array();
   var $_cleanup_users = array();
@@ -16,6 +16,7 @@ class PageCreationTest extends  DrupalTestCase {
   }
   
   function testPageCreation() {
+    global $user;
     /* Prepare settings */
     $this->drupalVariableSet('node_options_page', array('status', 'promote'));
    
@@ -32,8 +33,10 @@ class PageCreationTest extends  DrupalTestCase {
     $node = node_load(array('title' => $edit['title']));
     $this->assertNotNull($node, 'Node found in database. %s');
     
-    $test_user = $this->drupalCreateUserRolePerm(array('administer nodes'));
+    $backup_user = $user;
+    $user = $this->drupalCreateUserRolePerm(array('administer nodes'));
     node_delete(array('nid' => $node->nid, 'confirm' => TRUE));
+    $user = $backup_user;
   }
 }
 ?>
