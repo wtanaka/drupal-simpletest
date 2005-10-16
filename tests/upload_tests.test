@@ -1,163 +1,407 @@
 <?php
-/* $Id: upload_tests.test,v 1.2 2005/08/31 13:05:28 kubazygmunt Exp $ */
+/* $Id: upload_tests.test,v 1.3 2005/10/16 11:59:50 kubazygmunt Exp $ */
 class UploadPictureTests extends DrupalTestCase {
+  var $_cleanup_roles = array();
+  var $_cleanup_users = array();
+  var $_directory_test = FALSE;
+
+ function _createRolePerm($permissions) {
+    $permstring = implode(', ', $permissions);
+    /* Create role */
+    $role_name = $this->randomName();
+    db_query("INSERT INTO {role} (name) VALUES ('%s')", $role_name);
+    $role = db_fetch_object(db_query("SELECT * FROM {role} WHERE name = '%s'", $role_name));
+    $this->assertTrue($role, " [role] created name: $role_name, id: " . (isset($role->rid) ? $role->rid : '-n/a-'));
+    if ($role && !empty($role->rid)) {
+      /* Create permissions */
+      db_query("INSERT INTO {permission} (rid, perm) VALUES (%d, '%s')", $role->rid, $permstring);
+      $this->assertTrue(db_affected_rows(), ' [role] created permissions: ' . $permstring);
+      $this->_cleanup_roles[] = $role->rid;
+      return $role->rid;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Creates a user / role / permissions combination specified by permissions
+   *
+   * @return array/boolean false if fails. fully loaded user object with added pass_raw property
+   */
+  function _createUserRolePerm($permissions) {
+    /* Create role */
+    $rid = $this->_createRolePerm($permissions);
+    if (!$rid) {
+      return FALSE;
+    }
+    /* Create user */
+    $ua = array();
+    $ua['name']   = $this->randomName();
+    $ua['mail']   = $ua['name'] . '@example.com';
+    $ua['roles']  = array($rid);
+    $ua['pass']   = user_password();
+    $ua['status'] = 1;
+
+    $u = user_save('', $ua);
+
+    $this->assertTrue(!empty($u->uid), " [user] name: $ua[name] pass: $ua[pass] created");
+    if (empty($u->uid)) {
+      return FALSE;
+    }
+
+    /* Add to cleanup list */
+    $this->_cleanup_users[] = $u->uid;
+
+    /* Add the raw password */
+    $u->pass_raw = $ua['pass'];
+    return $u;
+  }
+
+  /**
+   * Logs in a user with the internal browser
+   *
+   * @param object user object with pass_raw property!
+   */
+  function _loginUser($user) {
+    $edit = array('name' => $user->name, 'pass' => $user->pass_raw);
+    $this->drupalPostRequest('?q=user/login', $edit, 'Log in');
+
+    $this->assertWantedText($user->name, ' [login] found name: ' . $user->name);
+    $this->assertNoUnwantedText(t('The username %name has been blocked.', array('%name' => $user->name)), ' [login] not blocked');
+    $this->assertNoUnwantedText(t('The name %name is a reserved username.', array('%name' => $user->name)), ' [login] not reserved');
+  }
+
+  /**
+   * Implementation of tearDown, cleaning up created users/roles in db
+   */
+  function tearDown() {
+    while (sizeof($this->_cleanup_roles) > 0) {
+      $rid = array_pop($this->_cleanup_roles);
+      db_query("DELETE FROM {role} WHERE rid = %d",       $rid);
+      db_query("DELETE FROM {permission} WHERE rid = %d", $rid);
+    }
+    while (sizeof($this->_cleanup_users) > 0) {
+      $uid = array_pop($this->_cleanup_users);
+      db_query('DELETE FROM {users} WHERE uid = %d',       $uid);
+      db_query('DELETE FROM {users_roles} WHERE uid = %d', $uid);
+      db_query('DELETE FROM {authmap} WHERE uid = %d',     $uid);
+    }
+    parent::tearDown();
+  }
+
   function get_info() {
      return array('name' => 'Testing Uploading Picture', 'desc' => 'Testing Uploading Picture Process. Uploading picture doesn\'t have to be allowed' , 'group' => 'Upload Tests');
   }
 
-  function testUploadPicture() {
+  /*
+   * Test if directories specified in settings exist in filesystem
+   */
+
+  function testDirectories() {
+    // test if filepath is proper
+    $file_dir = variable_get('file_directory_path', 'files');
+    $picture_dir = variable_get('user_picture_path', 'pictures');
+    $file_check = file_check_directory($file_dir, FILE_CREATE_DIRECTORY, 'file_directory_path');
+    $picture_path = $file_dir .'/'.$picture_dir;
+    $pic_check = file_check_directory($picture_path, FILE_CREATE_DIRECTORY, 'user_picture_path');
+    // check directories
+    //$this->assertTrue($file_check,"The directory $file_dir doesn't exist or cannot be created.");
+    //$this->assertTrue($pic_check,"The directory $picture_path doesn't exist or cannot be created.");
+    $this->_directory_test = is_writable($picture_path);
+    $this->assertTrue($this->_directory_test, "The directory $picture_path doesn't exist or is not writable. Further tests won't be made.");
+  }
+
+  function testNoPicture() {
     $old_pic_set = variable_get('user_pictures', 0);
     variable_set('user_pictures', 1);
 
-    // create test user
-    $name = $this->randomName();
-    $pass = $this->randomName();
-    $mail = "$name@example.com";
-    $edit['roles'] = array(_user_authenticated_id() => 'authenticated user');
-    $user = user_save('', array('name' => $name, 'pass' => $pass, 'init' => $mail, 'mail' => $mail, 'roles' => $edit['roles'], 'status' => 1));
-    //log in
-    $edit = array('name' => $name, 'pass' => $pass);
-    $this->drupalPostRequest('user', $edit, 'Log in' );
+    /* Prepare a user to do the stuff */
+    $user = $this->_createUserRolePerm(array('access content'));
+    $this->_loginUser($user);
+
     // not a image
-    unset($edit);
     $img_path = realpath("modules/tests/upload_tests.test");
     $edit = array('picture' => $img_path);
     $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
     $this->assertWantedText(t('The uploaded file was not an image.'), 'The uploaded file was not an image.');
-
-    // changing actual setting;
-    $old_dim = variable_get('user_picture_dimensions', '85x85');
-    $old_size = variable_get('user_picture_file_size', '30');
-    $img_path = realpath("modules/tests/pictureTesting.jpg");
-    $info = image_get_info($img_path);
-    // set new variables;
-    $test_size = floor(filesize($img_path) / 1000) + 1;
-    $test_dim = ($info['width'] - 10) . 'x' . ($info['height'] - 10);
-    variable_set('user_picture_dimensions', $test_dim);
-    variable_set('user_picture_file_size', $test_size);
-
-     if (image_get_toolkit()) {
-      // if we have gd installed drupal will scale our picture
-      // invalid dimensions
-      unset($edit);
-      $edit = array('picture' => $img_path);
-      $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
-
-      $content = $this->_browser->getContent();
-      echo $content;
-
-      preg_match_all('~<img.*?src="?([^"]*?)"?[^>]*>~i', $content, $matches);
-      $hitted = false;
-      foreach ($matches[0] as $field) {
-        $pos = strpos($field, 'picture-'.$user->uid.'.jpg');
-        if( $pos != false) {
-          $hitted = true;
-          break;
-        }
-      }
-
-      $this->assertEqual($hitted, true, 'Checking response on proper image');
-      // check filepath
-
-      // invalid size
-      // restore one and set another
-      $test_dim = ($info['width'] + 10) . 'x' . ($info['height'] + 10);
-      $test_size = floor(filesize($img_path) / 1000) - 1;
-      variable_set('user_picture_dimensions', $test_dim);
-      variable_set('user_picture_file_size', $test_size);
-
-      unset($edit);
-      $edit = array('picture' => $img_path);
-      $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
-      $content = $this->_browser->getContent();
-
-      // echo $content;
-      preg_match_all('~<img.*?src="?([^"]*?)"?[^>]*>~i', $content, $matches);
-      $hitted = false;
-      foreach ($matches[0] as $field) {
-        $pos = strpos($field, 'picture-'.$user->uid.'.jpg');
-        if( $pos != false) {
-          $hitted = true;
-          break;
-        }
-      }
-
-      $this->assertEqual($hitted, true, 'Checking response on proper image');
-      // check filepath
-
-    }
-    else {
-      // invalid dimensions
-      unset($edit);
-      $edit = array('picture' => $img_path);
-      $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
-      $text = t('The uploaded image is too large; the maximum dimensions are %dimensions pixels.', array('%dimensions' => variable_get('user_picture_dimensions', '85x85')));
-      $this->assertWantedText($text, 'Checking response on invalid image (dimensions).');
-
-      // invalid size
-      // restore one and set another
-      $test_dim = ($info['width'] + 10) . 'x' . ($info['height'] + 10);
-      $test_size = floor(filesize($img_path) / 1000) - 1;
-      variable_set('user_picture_dimensions', $test_dim);
-      variable_set('user_picture_file_size', $test_size);
-
-      unset($edit);
-      $edit = array('picture' => $img_path);
-      $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
-      $text = t('The uploaded image is too large; the maximum file size is %size kB.', array('%size' => variable_get('user_picture_file_size', '30')));
-      $this->assertWantedText($text, 'Checking response on invalid image size.');
-    }
-    // valid size & dimensions
-    // restore one and set another
-    $test_dim = ($info['width'] + 10) . 'x' . ($info['height'] + 10);
-    $test_size = floor(filesize($img_path) / 1000) + 1;
-    variable_set('user_picture_dimensions', $test_dim);
-    variable_set('user_picture_file_size', $test_size);
-
-    unset($edit);
-    $edit = array('picture' => $img_path);
-    $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
-    $content = $this->_browser->getContent();
-    preg_match_all('~<img.*?src="?([^"]*?)"?[^>]*>~i', $content, $matches);
-    $hitted = false;
-    foreach ($matches[0] as $field) {
-      $pos = strpos($field, 'picture-'.$user->uid.'.jpg');
-      if( $pos != false) {
-        $hitted = true;
-        break;
-      }
-    }
-    $this->assertEqual($hitted, true, 'Checking response on proper image');
-    // check filepath
-    // deleting picture
-    unset($edit);
-    $edit = array('picture_delete' => 1);
-    $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
-    $content = $this->_browser->getContent();
-    preg_match_all('~<img.*?src="?([^"]*?)"?[^>]*>~i', $content, $matches);
-    $hitted = false;
-
-    foreach ($matches[0] as $field) {
-      $pos = strpos($field, 'picture-'.$user->uid.'.jpg');
-      if( $pos != false) {
-        $hitted = true;
-        break;
-      }
-    }
-    $this->assertEqual($hitted, false, "User's image deleted");
-
-    // restore variables;
-    variable_set('user_picture_file_size', $old_size);
-    variable_set('user_picture_dimensions', $old_dim);
-
-    variable_set('user_pictures', $old_pic_set);
+     variable_set('user_pictures', $old_pic_set);
 
     // do we have to check users roles?
     // delete test user and roles
 
-    if ($user->uid > 0) {
-      db_query('DELETE FROM {users} WHERE uid = %d', $user->uid);
-      db_query('DELETE FROM {users_roles} WHERE uid = %d', $user->uid);
+  }
+
+  /*
+   * Do one test if ImageGDToolkit is installed
+   */
+
+  /*
+   * Do the test:
+   *  GD Toolkit is installed
+   *  Picture has invalid dimension
+   *
+   * results: The image should be uploaded because ImageGDToolkit resizes the picture
+   */
+  function testWithGDinvalidDimension() {
+    if ($this->_directory_Test)
+      if (image_get_toolkit()) {
+
+        // PREPARE:
+        $old_pic_set = variable_get('user_pictures', 0);
+        variable_set('user_pictures', 1);
+
+        /* Prepare a user to do the stuff */
+        $user = $this->_createUserRolePerm(array('access content'));
+        $this->_loginUser($user);
+
+        // changing actual setting;
+        $old_dim = variable_get('user_picture_dimensions', '85x85');
+        $old_size = variable_get('user_picture_file_size', '30');
+        $img_path = realpath("modules/tests/pictureTesting.jpg");
+        $info = image_get_info($img_path);
+
+        // set new variables;
+        $test_size = floor(filesize($img_path) / 1000) + 1;
+        $test_dim = ($info['width'] - 10) . 'x' . ($info['height'] - 10);
+        variable_set('user_picture_dimensions', $test_dim);
+        variable_set('user_picture_file_size', $test_size);
+
+        // TEST:
+        $edit = array('picture' => $img_path);
+        $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
+        $file_dir = variable_get('file_directory_path', 'files');
+        $picture_dir = variable_get('user_picture_path', 'pictures');
+        $pic_path = $file_dir .'/'.$picture_dir .'/picture-'.$user->uid.'.jpg';
+
+        // get full url to the user's image
+        $picture = file_create_url($pic_path);
+
+        // check if image is displayed in user's profile page
+        $content = $this->_browser->getContent();
+        $this->assertTrue(strpos($content,$picture), "Image is displayed in user's profile page");
+
+        // check if file is located in proper directory
+        $this->assertTrue(is_file($pic_path), "File is located in proper directory");
+
+        // RESTORING:
+        variable_set('user_picture_file_size', $old_size);
+        variable_set('user_picture_dimensions', $old_dim);
+
+        variable_set('user_pictures', $old_pic_set);
+      }
+
+  }
+
+  /*
+   * Do the test:
+   *  GD Toolkit is installed
+   *  Picture has invalid size
+   *
+   * results: The image should be uploaded because ImageGDToolkit resizes the picture
+   */
+
+  function testWithGDinvalidSize() {
+    if ($this->_directory_Test)
+      if (image_get_toolkit()) {
+        // PREPARE:
+        $old_pic_set = variable_get('user_pictures', 0);
+        variable_set('user_pictures', 1);
+
+        /* Prepare a user to do the stuff */
+        $user = $this->_createUserRolePerm(array('access content'));
+        $this->_loginUser($user);
+
+        // changing actual setting;
+        $old_dim = variable_get('user_picture_dimensions', '85x85');
+        $old_size = variable_get('user_picture_file_size', '30');
+        $img_path = realpath("modules/tests/pictureTesting.jpg");
+        $info = image_get_info($img_path);
+        // set new variables;
+
+        $test_dim = ($info['width'] + 10) . 'x' . ($info['height'] + 10);
+        $test_size = floor(filesize($img_path) / 1000) - 1;
+        variable_set('user_picture_dimensions', $test_dim);
+        variable_set('user_picture_file_size', $test_size);
+
+        // TEST:
+        $edit = array('picture' => $img_path);
+        $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
+        $file_dir = variable_get('file_directory_path', 'files');
+        $picture_dir = variable_get('user_picture_path', 'pictures');
+        $pic_path = $file_dir .'/'.$picture_dir .'/picture-'.$user->uid.'.jpg';
+
+        // get full url to the user's image
+        $picture = file_create_url($pic_path);
+
+        // check if image is displayed in user's profile page
+        $content = $this->_browser->getContent();
+        $this->assertTrue(strpos($content,$picture), "Image is displayed in user's profile page");
+
+        // check if file is located in proper directory
+        $this->assertTrue(is_file($pic_path), "File is located in proper directory");
+
+        // RESTORING:
+        variable_set('user_picture_file_size', $old_size);
+        variable_set('user_picture_dimensions', $old_dim);
+
+        variable_set('user_pictures', $old_pic_set);
+      }
+  }
+
+  /*
+   * Do the test:
+   *  GD Toolkit is not installed
+   *  Picture has invalid size
+   *
+   * results: The image shouldn't be uploaded
+   */
+
+   function testWithoutGDinvalidDimension() {
+    if ($this->_directory_test)
+      if (!image_get_toolkit()) {
+        // PREPARE:
+        $old_pic_set = variable_get('user_pictures', 0);
+        variable_set('user_pictures', 1);
+
+        /* Prepare a user to do the stuff */
+        $user = $this->_createUserRolePerm(array('access content'));
+        $this->_loginUser($user);
+
+        // changing actual setting;
+        $old_dim = variable_get('user_picture_dimensions', '85x85');
+        $old_size = variable_get('user_picture_file_size', '30');
+        $img_path = realpath("modules/tests/pictureTesting.jpg");
+        $info = image_get_info($img_path);
+        // set new variables;
+        $test_size = floor(filesize($img_path) / 1000) + 1;
+        $test_dim = ($info['width'] - 10) . 'x' . ($info['height'] - 10);
+        variable_set('user_picture_dimensions', $test_dim);
+        variable_set('user_picture_file_size', $test_size);
+
+        // TEST:
+        $edit = array('picture' => $img_path);
+        $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
+        $text = t('The uploaded image is too large; the maximum dimensions are %dimensions pixels.', array('%dimensions' => variable_get('user_picture_dimensions', '85x85')));
+        $this->assertWantedText($text, 'Checking response on invalid image (dimensions).');
+
+        // check if file is not uploaded
+        $file_dir = variable_get('file_directory_path', 'files');
+        $picture_dir = variable_get('user_picture_path', 'pictures');
+        $pic_path = $file_dir .'/'.$picture_dir .'/picture-'.$user->uid.'.jpg';
+        $this->assertFalse(is_file($pic_path), "File is not uploaded");
+
+        // restore variables;
+        variable_set('user_picture_file_size', $old_size);
+        variable_set('user_picture_dimensions', $old_dim);
+
+        variable_set('user_pictures', $old_pic_set);
+      }
+   }
+/*
+   * Do the test:
+   *  GD Toolkit is not installed
+   *  Picture has invalid size
+   *
+   * results: The image shouldn't be uploaded
+   */
+
+   function testWithoutGDinvalidSize() {
+    if ($this->_directory_test)
+      if (!image_get_toolkit()) {
+        // PREPARE:
+        $old_pic_set = variable_get('user_pictures', 0);
+        variable_set('user_pictures', 1);
+
+        /* Prepare a user to do the stuff */
+        $user = $this->_createUserRolePerm(array('access content'));
+        $this->_loginUser($user);
+
+        // changing actual setting;
+        $old_dim = variable_get('user_picture_dimensions', '85x85');
+        $old_size = variable_get('user_picture_file_size', '30');
+        $img_path = realpath("modules/tests/pictureTesting.jpg");
+        $info = image_get_info($img_path);
+        // invalid size
+        // restore one and set another
+        $test_dim = ($info['width'] + 10) . 'x' . ($info['height'] + 10);
+        $test_size = floor(filesize($img_path) / 1000) - 1;
+        variable_set('user_picture_dimensions', $test_dim);
+        variable_set('user_picture_file_size', $test_size);
+
+        $edit = array('picture' => $img_path);
+        $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
+        $text = t('The uploaded image is too large; the maximum file size is %size kB.', array('%size' => variable_get('user_picture_file_size', '30')));
+        $this->assertWantedText($text, 'Checking response on invalid image size.');
+
+        // check if file is not uploaded
+        $file_dir = variable_get('file_directory_path', 'files');
+        $picture_dir = variable_get('user_picture_path', 'pictures');
+        $pic_path = $file_dir .'/'.$picture_dir .'/picture-'.$user->uid.'.jpg';
+        $this->assertFalse(is_file($pic_path), "File is not uploaded");
+        // restore variables;
+        variable_set('user_picture_file_size', $old_size);
+        variable_set('user_picture_dimensions', $old_dim);
+
+        variable_set('user_pictures', $old_pic_set);
+      }
+  }
+
+  /*
+   * Do the test:
+   *  Picture is valid (proper size and dimension)
+   *
+   * results: The image should be uploaded
+   */
+
+
+  function testPictureIsValid() {
+    if ($this->_directory_test) {
+      // PREPARE:
+      $old_pic_set = variable_get('user_pictures', 0);
+      variable_set('user_pictures', 1);
+
+      /* Prepare a user to do the stuff */
+      $user = $this->_createUserRolePerm(array('access content'));
+      $this->_loginUser($user);
+
+      // changing actual setting;
+      $old_dim = variable_get('user_picture_dimensions', '85x85');
+      $old_size = variable_get('user_picture_file_size', '30');
+      $img_path = realpath("modules/tests/pictureTesting.jpg");
+      $info = image_get_info($img_path);
+
+      // valid size & dimensions
+      // restore one and set another
+      $test_dim = ($info['width'] + 10) . 'x' . ($info['height'] + 10);
+      $test_size = floor(filesize($img_path) / 1000) + 1;
+      variable_set('user_picture_dimensions', $test_dim);
+      variable_set('user_picture_file_size', $test_size);
+
+
+      // TEST:
+      $edit = array('picture' => $img_path);
+      $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
+      $file_dir = variable_get('file_directory_path', 'files');
+      $picture_dir = variable_get('user_picture_path', 'pictures');
+      $pic_path = $file_dir .'/'.$picture_dir .'/picture-'.$user->uid.'.jpg';
+
+      // get full url to the user's image
+      $picture = file_create_url($pic_path);
+
+      // check if image is displayed in user's profile page
+      $content = $this->_browser->getContent();
+      $this->assertTrue(strpos($content,$picture), "Image is displayed in user's profile page");
+
+      // check if file is located in proper directory
+      $this->assertTrue(is_file($pic_path), "File is located in proper directory");
+
+      // RESTORING:
+      variable_set('user_picture_file_size', $old_size);
+      variable_set('user_picture_dimensions', $old_dim);
+
+      variable_set('user_pictures', $old_pic_set);
+
+
     }
 
 
