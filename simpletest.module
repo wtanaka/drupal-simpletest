@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.8 2005/09/07 16:14:59 thomasilsche Exp $
+// $Id: simpletest.module,v 1.9 2005/11/01 22:41:25 thomasilsche Exp $
 
 /**
  * Implementation of hook_help().
@@ -85,7 +85,6 @@ function simpletest_entrypoint() {
   }  
 	$op = $_POST['op'];
 	$edit = $_POST['edit'];
-	
 	if (empty($op)) {
 		$op = arg(2);
 	}
@@ -97,9 +96,9 @@ function simpletest_entrypoint() {
   		break;
 		
 		case t('Run Selected Tests'):
-			$tests_list = array();
+		  $tests_list = array();
 			foreach($edit as $test => $checked) {
-				if ($checked) {
+				if ($checked && ($test != 'form_id') && ($test != 'op')) {
 					$tests_list[] = $test;
 				}
 			}
@@ -123,23 +122,27 @@ function simpletest_entrypoint() {
  * Create menu 
  */
 function simpletest_overview() {
-  
+  $output = array();
   $total_test = &simpletest_get_total_test();
   
   $test_instances = $total_test->getTestInstances();
   foreach ($test_instances as $group_test) {
-    $group = '';
+    $group = array();
     $tests = $group_test->getTestInstances();
     foreach($tests as $test) {
       $test_info = $test->get_info();
       $desc = $test_info['desc'];
-      $group .= form_checkbox($test_info['name'], get_class($test), 1, 0, $desc);
+      $group[get_class($test)] = array('#type' => 'checkbox', '#title' => $test_info['name'], '#default_value' => 0,
+                                                   '#description' => $desc);
+      
     }
-    $output .= form_group_collapsible($group_test->getLabel(), $group, FALSE);
+    $output[] = array_merge($group,
+                    array('#type' => 'fieldset', '#collapsible' => TRUE, '#collapsed' => FALSE,
+                          '#title' => $group_test->getLabel()));
   }
-  $output .= form_submit(t('Run All Tests'));
-  $output .= form_submit(t('Run Selected Tests'));
-  return form($output);
+  $output[] = array('#type' => 'submit', '#value' => t('Run All Tests'));
+  $output[] = array('#type' => 'submit', '#value' => t('Run Selected Tests'));
+  return drupal_get_form('simpletest', $output);
 }
 
 /**
