@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.10 2005/08/31 17:18:40 thomasilsche Exp $ */
+/* $Id: drupal_test_case.php,v 1.11 2005/11/01 22:46:41 thomasilsche Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -39,10 +39,12 @@ class DrupalTestCase extends WebTestCase {
     $ret = $this->_browser->get($url);
     $this->assertTrue($ret, " [browser] GET $url");
     foreach ($edit as $field_name => $field_value) {
-      $ret = $this->_browser->setField("edit[$field_name]", $field_value);
+      $ret = $this->_browser->setFieldByName("edit[$field_name]", $field_value);
+//          || $this->_browser->setFieldById("edit-$field_name", $field_value);
       $this->assertTrue($ret, " [browser] Setting edit[$field_name]=\"$field_value\"");
     }
     $ret = $this->_browser->clickSubmit(t($submit));
+//    $ret = $this->_browser->clickSubmitByName('op');
     $this->assertTrue($ret, ' [browser] POST by click on ' . t($submit));
     $this->_content = $this->_browser->getContent();
   }
