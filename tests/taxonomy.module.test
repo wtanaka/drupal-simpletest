@@ -1,8 +1,9 @@
 <?php
-/* $Id: taxonomy.module.test,v 1.3 2005/08/31 22:11:43 kubazygmunt Exp $ */
-class TaxonomyTestFunctions extends DrupalTestCase {
+/* $Id: taxonomy.module.test,v 1.4 2005/11/06 04:58:59 weitzman Exp $ */
+
+class TaxonomyVocabularyFunctions extends DrupalTestCase {
   function get_info() {
-    return array('name' => 'Test taxonomy\'s functions', 'desc' => "Testing save/edit/delete vocabularies, terms<br/>Checking database fields" , 'group' => 'Taxonomy Module');
+    return array('name' => 'Vocabulary functions', 'desc' => "Create/Edit/Delete a vocabulary and assert that all fields were properly saved" , 'group' => 'Taxonomy');
   }
 
   function testVocabularyFunctions() {
@@ -18,7 +19,7 @@ class TaxonomyTestFunctions extends DrupalTestCase {
     $tags = rand(0,1);
     $weight = rand(-9,9);
     $module = 'taxonomy';
-    $nodesList = array_values(node_list());
+    $nodesList = array_keys(node_get_types());
     $maxNodes = rand(1, count($nodesList));
     $nodes = array();
     for($i = 0; $i < $maxNodes; $i++) {
@@ -29,6 +30,7 @@ class TaxonomyTestFunctions extends DrupalTestCase {
     $edit = array();
     foreach($_t as $key )
       $edit[$key] = $$key;
+   
     // exec save function
     taxonomy_save_vocabulary($edit);
     $vocabularies = taxonomy_get_vocabularies();
@@ -46,7 +48,7 @@ class TaxonomyTestFunctions extends DrupalTestCase {
     }
 
     // delete vocabulary
-    // to avoid exception messages we create array with emptye fields
+    // to avoid exception messages we create array with empty fields
     $deleteArray = array();
     foreach($getEdit as $key => $v)
       $deleteArray[$key] = 0;
@@ -69,7 +71,7 @@ class TaxonomyTestFunctions extends DrupalTestCase {
 
 class TaxonomyTermFunctions extends DrupalTestCase {
   function get_info() {
-    return array('name' => 'Terms API function test', 'desc' => "Testing save/update/delete terms" , 'group' => 'Taxonomy Module');
+    return array('name' => 'Term functions', 'desc' => "Testing save/update/delete terms" , 'group' => 'Taxonomy');
   }
 
   function testTermsFunctions() {
@@ -78,40 +80,36 @@ class TaxonomyTermFunctions extends DrupalTestCase {
     $edit = array();
     $_t = array('vid', 'name', 'description', 'help', 'relations', 'hierarchy', 'multiple',
         'required', 'tags', 'module', 'weight', 'nodes');
-    foreach($_t as $key )
+    foreach($_t as $key ) {
       $edit[$key] = 0;
-
-    $name = $this->randomName(200);
+    }
+    $name = $this->randomName(20);
     $relation = 1;
     $edit['name'] = $name;
     taxonomy_save_vocabulary($edit);
+    
     // create term
     $termname = $this->randomName(20);
     $termdesc = $this->randomName(200);
-    $termweight = rand(-9,9);
+    $termweight = rand(-9, 9);
     $randSyn = rand(0, 9);
     $synonyms = array();
-    for($i = 0; $i < $randSyn; $i++)
+    for($i = 0; $i < $randSyn; $i++) {
       $synonyms[] = $this->randomName(20);
-    $termsyn = implode('\n', $synonyms);
-    $vocabularies = taxonomy_get_vocabularies();
-      foreach($vocabularies as $voc) {
-        if ($voc->name == $name) {
-          $vid = $voc->vid;
-          break;
-        }
-      }
-
-
-    $data = array('name' => $termname, 'description' => $termdesc, 'weight' => $termweight, 'synonyms' => $termsyn, 'vid' => $vid, 'tid' => 0, 'relations' => 0);
+    }
+    $termsyn = implode("\n", $synonyms);
+    $data = array('name' => $termname, 'description' => $termdesc, 'weight' => $termweight, 'synonyms' => $termsyn, 'vid' => $edit['vid'], 'tid' => 0, 'relations' => 0);
     taxonomy_save_term($data);
+    
+    // retrieve term and check all fields
     $_tArray = taxonomy_get_term_by_name($termname);
     $getTerm = $_tArray[0];
     $checkField = array('name', 'description', 'weight', 'vid');
-    foreach($checkField as $v)
+    foreach($checkField as $v) {
       $this->assertEqual($data[$v], $getTerm->$v, "Checking value of the term ($v)");
+    }
     $getSynonyms = taxonomy_get_synonyms($getTerm->tid);
-    $this->assertEqual($data['synonyms'], $getSynonyms[0], 'Checking synonyms');
+    $this->assertEqual(sort($synonyms), sort($getSynonyms), 'Checking synonyms');
 
     // creating related terms
     $relations = array();
@@ -131,70 +129,59 @@ class TaxonomyTermFunctions extends DrupalTestCase {
     $_tArray = taxonomy_get_term_by_name($termname);
     $getTerm = $_tArray[0];
 
-    // checking
+    // check related terms
     $related = taxonomy_get_related($getTerm->tid);
-    foreach($relations as $rTid)
+    foreach($relations as $rTid) {
       $this->assertTrue(array_key_exists($rTid, $related), "Checking relations ($rTid)");
+    }
+    
     // delete vocabulary
     $edit['name'] = 0;
-    $edit['vid'] = $vid;
     taxonomy_save_vocabulary($edit);
-
-
-
-
   }
-  function testTermsFunctionsSingle() {
+  
+  function testTermsFunctionsSingleHierarchy() {
     //preparing data
     // vocabulary hierarchy->single
     $edit = array();
     $_t = array('vid', 'name', 'description', 'help', 'relations', 'hierarchy', 'multiple',
         'required', 'tags', 'module', 'weight', 'nodes');
-    foreach($_t as $key )
+    foreach($_t as $key ) {
       $edit[$key] = 0;
+    }
 
+    // create vocab
     $name = $this->randomName(20);
     $edit['hierarchy'] = 1;
     $edit['name'] = $name;
     taxonomy_save_vocabulary($edit);
-    // create term
-    $termname = $this->randomName(20);
-
-    $vocabularies = taxonomy_get_vocabularies();
-      foreach($vocabularies as $voc) {
-        if ($voc->name == $name) {
-          $vid = $voc->vid;
-          break;
-        }
-      }
-
+    
     // create 1st term
-    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0);
+    $termname = $this->randomName(20);
+    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $edit['vid'], 'tid' => 0, 'relations' => 0);
     taxonomy_save_term($data);
     $_tArray = taxonomy_get_term_by_name($termname);
     $parent = $_tArray[0];
+    
     // create 2nd term as a child
     $termname = $this->randomName(20);
-    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0, 'parent' => array($parent->tid));
+    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $edit['vid'], 'tid' => 0, 'relations' => 0, 'parent' => array($parent->tid));
     taxonomy_save_term($data);
     $_tArray = taxonomy_get_term_by_name($termname);
     $children = $_tArray[0];
 
+    // check hierarchy
     $getChildren = taxonomy_get_children($parent->tid);
     $getParent = taxonomy_get_parents($children->tid);
     $this->assertEqual($parent,$getParent[$parent->tid], 'Checking parents');
     $this->assertEqual($children,$getChildren[$children->tid], 'Checking children');
+    
     // delete vocabulary
     $edit['name'] = 0;
-    $edit['vid'] = $vid;
     taxonomy_save_vocabulary($edit);
-
-
-
-
   }
 
-  function testTermsFunctionsMultiple() {
+  function testTermsFunctionsMultipleHierarchy() {
     //preparing data
     // vocabulary hierarchy->single
     $edit = array();
@@ -207,106 +194,58 @@ class TaxonomyTermFunctions extends DrupalTestCase {
     $edit['hierarchy'] = 1;
     $edit['name'] = $name;
     taxonomy_save_vocabulary($edit);
-    // create term
-
-    $vocabularies = taxonomy_get_vocabularies();
-      foreach($vocabularies as $voc) {
-        if ($voc->name == $name) {
-          $vid = $voc->vid;
-          break;
-        }
-      }
-    $parent = array();
+    
     // create 1st term
+    $parent = array();
     $termname = $this->randomName(20);
-    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0);
+    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $edit['vid'], 'tid' => 0, 'relations' => 0);
     taxonomy_save_term($data);
     $_tArray = taxonomy_get_term_by_name($termname);
     $parent[] = $_tArray[0]->tid;
+    
     // create 2nd term
     $termname = $this->randomName(20);
-    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0);
+    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $edit['vid'], 'tid' => 0, 'relations' => 0);
     taxonomy_save_term($data);
     $_tArray = taxonomy_get_term_by_name($termname);
     $parent[] = $_tArray[0]->tid;
 
     // create 3rd term as a child
     $termname = $this->randomName(20);
-    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0, 'parent' => array($parent));
+    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $edit['vid'], 'tid' => 0, 'relations' => 0, 'parent' => array($parent));
     taxonomy_save_term($data);
     $_tArray = taxonomy_get_term_by_name($termname);
     $children = $_tArray[0];
 
     $getParent = taxonomy_get_parents($children->tid);
-    foreach($parent as $p)
+    foreach($parent as $p) {
       $this->assertTrue(array_key_exists($p, $getParent), "Checking parents ($p)");
-    //$this->assertEqual($parent,$getParent[$parent->tid], 'Checking parents');
+      //$this->assertEqual($parent,$getParent[$parent->tid], 'Checking parents');
+    }
+    
     // delete vocabulary
     $edit['name'] = 0;
-    $edit['vid'] = $vid;
     taxonomy_save_vocabulary($edit);
-
-
-
-
   }
 
 }
 
 class TaxonomyTestNodeApi extends DrupalTestCase {
   function get_info() {
-    $modules = (module_list());
-    return array('name' => 'Taxonomy NodeApi test', 'desc' => "Testing taxonomy module with save/load nodeapi functions<br/>(uses Story module)" , 'group' => 'Taxonomy Module');
-  }
-
-  function _rolesApi($op, $edit) {
-    if ($op == 'delete') {
-      $id = $edit['rid'];
-      db_query('DELETE FROM {role} WHERE rid = %d', $id);
-      db_query('DELETE FROM {permission} WHERE rid = %d', $id);
-
-      // Update the users who have this role set:
-      $result = db_query('SELECT DISTINCT(ur1.uid) FROM {users_roles} ur1 LEFT JOIN {users_roles} ur2 ON ur2.uid = ur1.uid WHERE ur1.rid = %d AND ur2.rid != ur1.rid', $id);
-      $uid = array();
-
-      while ($u = db_fetch_object($result)) {
-        $uid[] = $u->uid;
-      }
-
-      if ($uid) {
-        db_query('DELETE FROM {users_roles} WHERE rid = %d AND uid IN (%s)', $id, implode(', ', $uid));
-      }
-
-      // Users with only the deleted role are put back in the authenticated users pool.
-      db_query('UPDATE {users_roles} SET rid = %d WHERE rid = %d', _user_authenticated_id(), $id);
-
-    }
-    else if ($op == 'add') {
-      if (isset($edit['name'])) {
-        db_query("INSERT INTO {role} (name) VALUES ('%s')", $edit['name']);
-        $result = db_query("SELECT rid FROM {role} WHERE name = '%s'", $edit['name']);
-        $rid = db_result($result);
-        db_query("INSERT INTO {permission} (rid, perm) VALUES (%d, '%s')", $rid, $edit['perm']);
-        return $rid;
-      }
-      else {
-        return 0;
-      }
-    }
-
+    return array('name' => 'Taxonomy nodeapi', 'desc' => "Save & edit a node and assert that taxonomy terms are saved/loaded properly." , 'group' => 'Taxonomy');
   }
 
   function testTaxonomyNode() {
-    // check if we can do test
-    // get status of module story
     $this->drupalModuleEnable('story');
+    
     //preparing data
     // vocabulary hierarchy->single, multiple -> on
     $edit = array();
     $_t = array('vid', 'name', 'description', 'help', 'relations', 'hierarchy', 'multiple',
         'required', 'tags', 'module', 'weight', 'nodes');
-    foreach($_t as $key )
+    foreach($_t as $key) {
       $edit[$key] = 0;
+    }
 
     $name = $this->randomName(20);
     $edit['hierarchy'] = 1;
@@ -314,64 +253,66 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
     $edit['name'] = $name;
     $edit['nodes'] = array('story' => 'story');
     taxonomy_save_vocabulary($edit);
-    // create term
-
-    $vocabularies = taxonomy_get_vocabularies();
-      foreach($vocabularies as $voc) {
-        if ($voc->name == $name) {
-          $vid = $voc->vid;
-          break;
-        }
-      }
+    $vid = $edit['vid']; // we need to persist vid after $edit is unset()
+    
     $parent = array();
     $patternArray = array();
+    
     // create 1st term
     $termname = $this->randomName(20);
-    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0);
+    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $edit['vid'], 'tid' => 0, 'relations' => 0);
     taxonomy_save_term($data);
     $_tArray = taxonomy_get_term_by_name($termname);
     $parent[] = $_tArray[0]->tid;
     $patternArray['term name 1'] = $termname;
+    
     // create 2nd term
     $termname = $this->randomName(20);
-    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0);
+    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $edit['vid'], 'tid' => 0, 'relations' => 0);
     taxonomy_save_term($data);
     $_tArray = taxonomy_get_term_by_name($termname);
     $parent[] = $_tArray[0]->tid;
     $patternArray['term name 2'] = $termname;
 
-    // create test user
-    $edit['name'] = 'Taxonomy Simpletest Role';
-    $edit['perm'] = 'access content, create stories, edit own stories';
-    $rid = $this->_rolesApi('add', $edit );
-
-    $name = $this->randomName();
-    $pass = $this->randomName();
-    $mail = "$name@example.com";
-    unset($edit);
-    $edit['roles'] = array($rid);
-    $user = user_save('', array('name' => $name, 'pass' => $pass, 'init' => $mail, 'mail' => $mail, 'roles' => $edit['roles'], 'status' => 1));
-    //log in
-    $edit = array('name' => $name, 'pass' => $pass);
-    $this->drupalPostRequest('user', $edit, 'Log in' );
+    // create test user and login
+    $perm = array('access content', 'create stories', 'edit own stories');
+    $account = $this->drupalCreateUserRolePerm($perm);
+    $this->drupalLoginUser($account);
+    
+    // why is this printing out the user profile page?
+    // go to node/add/story
+    $this->_browser->get(url('node/add/story', NULL, NULL, TRUE));
+    $req = $this->_browser->getRequest();
+    dprint_r($req);
+    $headers = $this->_browser->getHeaders();
+    dprint_r($headers);
+    $content = $this->drupalGetContent();
+    print($content). "\n\n\n all done \n\n";
 
     // try to create story
     $title = $this->randomName();
     $body = $this->randomName(100);
-    $edit = array('title' => $title, 'body' => $body, 'taxonomy][' => $parent);
-    $this->drupalPostRequest('node/add/story', $edit, 'Submit' );
-    $patternArray['body text'] = $title;
+    $edit = array('edit[title]' => $title, 'edit[body]' => $body, 'edit[taxonomy][]' => $parent);
+    // multiple slect box was failing through drupalPostRequest. Use raw POST instead
+    $action = url('node/add/story', NULL, NULL, TRUE);
+    $this->post($action, $edit);
+    $content = $this->drupalGetContent();
+    die('fff   '. $content);
+    $patternArray['body text'] = $body;
     $patternArray['title'] = $title;
 
     $node = array2object(node_load(array('title' => $title)));
-    $this->_browser->get(url("node/".$node->nid));
+    $this->_browser->get(url("node/$node->nid"));
     foreach($patternArray as $name => $termPattern) {
       $this->assertWantedText($termPattern, "Checking $name");
     }
+    
     // checking database fields
     $result = db_query('SELECT tid FROM {term_node} WHERE nid = %d', $node->nid);
-    while ($nodeRow = db_fetch_array($result))
-      $this->assertTrue(in_array($nodeRow['tid'], $parent), 'Checking database field');
+    while ($nodeRow = db_fetch_array($result)) {
+      $this->assertTrue(in_array($nodeRow['tid'], $parent), 'Checking database record');
+    }
+    
     // ok, lets create new terms, and change this node
     //pop array
     array_pop($parent);
@@ -383,6 +324,7 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
     $_tArray = taxonomy_get_term_by_name($termname);
     $parent[] = $_tArray[0]->tid;
     $patternArray['term name 2'] = $termname;
+    
     // create 2nd term
     $termname = $this->randomName(20);
     $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0);
@@ -398,11 +340,12 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
     foreach($patternArray as $name => $termPattern) {
       $this->assertWantedText($termPattern, "Checking $name");
     }
+    
     // checking database fields
     $result = db_query('SELECT tid FROM {term_node} WHERE nid = %d', $node->nid);
-    while ($nodeRow = db_fetch_array($result))
+    while ($nodeRow = db_fetch_array($result)) {
       $this->assertTrue(in_array($nodeRow['tid'], $parent), 'Checking database field');
-
+    }
 
     // delete node
     // node_delete(array('nid' => $node->nid, 'confirm' => 1));
@@ -418,143 +361,14 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
     // delete vocabulary
     // to avoid exception messages create array with empty fields
     $edit = array();
-    foreach($_t as $key )
+    foreach($_t as $key ) {
       $edit[$key] = 0;
+    }
     $edit['name'] = 0;
     $edit['vid'] = $vid;
     taxonomy_save_vocabulary($edit);
-    // delete test user and roles
-
-    if ($user->uid > 0) {
-      db_query('DELETE FROM {users} WHERE uid = %d', $user->uid);
-      db_query('DELETE FROM {users_roles} WHERE uid = %d', $user->uid);
-      module_invoke_all('user', 'delete', '', $user);
-    }
-
-    //delete roles
-    $edit['rid'] = $rid;
-    $this->_rolesApi('delete', $edit);
-
-
 
     // restoring status
-    $this->drupalModuleDisable('story');
-
-  }
-
-function testTaxonomyNodeFreeTagging() {
-    // the same test as above but with free tagging voc.
-    // check if we can do test
-    $this->drupalModuleEnable('story');
-    //preparing data
-    // vocabulary hierarchy->single, multiple -> on
-    $edit = array();
-    $_t = array('vid', 'name', 'description', 'help', 'relations', 'hierarchy', 'multiple',
-        'required', 'tags', 'module', 'weight', 'nodes');
-    foreach($_t as $key )
-      $edit[$key] = 0;
-
-    $name = $this->randomName(20);
-    $edit['hierarchy'] = 1;
-    $edit['multiple'] = 1;
-    $edit['tags'] = 1;
-    $edit['name'] = $name;
-    $edit['nodes'] = array('story' => 'story');
-    taxonomy_save_vocabulary($edit);
-    // create term
-
-    $vocabularies = taxonomy_get_vocabularies();
-      foreach($vocabularies as $voc) {
-        if ($voc->name == $name) {
-          $vid = $voc->vid;
-          break;
-        }
-      }
-    $parent = array();
-    $patternArray = array();
-    // create 1st term
-    $termname = $this->randomName(20);
-    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0);
-    taxonomy_save_term($data);
-    $_tArray = taxonomy_get_term_by_name($termname);
-    $parent[] = $_tArray[0]->tid;
-    $patternArray['term name 1'] = $termname;
-    $freeTag = $termname;
-    // create 2nd term (as free tag)
-    $termname = $this->randomName(3). " ".$this->randomName(15);
-    $patternArray['term name 2'] = $termname;
-    $freeTag .= ", $termname";
-
-
-    // create test user
-    $edit['name'] = 'Taxonomy Simpletest Role';
-    $edit['perm'] = 'access content, create stories, edit own stories';
-    $rid = $this->_rolesApi('add', $edit );
-
-    $name = $this->randomName();
-    $pass = $this->randomName();
-    $mail = "$name@example.com";
-    unset($edit);
-    $edit['roles'] = array($rid);
-    $user = user_save('', array('name' => $name, 'pass' => $pass, 'init' => $mail, 'mail' => $mail, 'roles' => $edit['roles'], 'status' => 1));
-    //log in
-    $edit = array('name' => $name, 'pass' => $pass);
-    $this->drupalPostRequest('user', $edit, 'Log in' );
-
-    // try to create story
-    $title = $this->randomName();
-    $body = $this->randomName(100);
-    $taxonomyEdit = 'taxonomy][tags]['.$vid;
-    $edit = array('title' => $title, 'body' => $body, $taxonomyEdit => $freeTag);
-    $this->drupalPostRequest('node/add/story', $edit, 'Submit' );
-    $patternArray['body text'] = $title;
-    $patternArray['title'] = $title;
-
-    $node = array2object(node_load(array('title' => $title)));
-    $this->_browser->get(url("node/".$node->nid));
-    foreach($patternArray as $name => $termPattern) {
-      $this->assertWantedText($termPattern, "Checking $name");
-    }
-    // get free tag's term tid
-    $tempTerm = taxonomy_get_term_by_name($termname);
-    $parent[] = $tempTerm[0]->tid;
-    // checking database fields
-    $result = db_query('SELECT tid FROM {term_node} WHERE nid = %d', $node->nid);
-    while ($nodeRow = db_fetch_array($result))
-      $this->assertTrue(in_array($nodeRow['tid'], $parent), 'Checking database field');
-          // delete node
-    // node_delete(array('nid' => $node->nid, 'confirm' => 1));
-    // delete through browser
-    $this->drupalPostRequest('node/'. $node->nid .'/delete', array(), 'Delete' );
-    // checking after delete
-    $this->_browser->get(url("node/".$node->nid));
-    $this->assertNoUnwantedText($termname, "Checking if node exists");
-    // checking database fields
-    $result = db_query('SELECT tid FROM {term_node} WHERE nid = %d', $node->nid);
-    $this->assertEqual(db_num_rows($result), 0, 'Checking database field after deletion');
-
-    // delete vocabulary
-    // to avoid exception messages create array with empty fields
-    $edit = array();
-    foreach($_t as $key )
-      $edit[$key] = 0;
-    $edit['name'] = 0;
-    $edit['vid'] = $vid;
-    taxonomy_save_vocabulary($edit);
-    // delete test user and roles
-
-    if ($user->uid > 0) {
-      db_query('DELETE FROM {users} WHERE uid = %d', $user->uid);
-      db_query('DELETE FROM {users_roles} WHERE uid = %d', $user->uid);
-      module_invoke_all('user', 'delete', '', $user);
-    }
-
-    //delete roles
-    $edit['rid'] = $rid;
-    $this->_rolesApi('delete', $edit);
-
-
-
     $this->drupalModuleDisable('story');
   }
 

@@ -1,10 +1,10 @@
 <?php
 
-/* $Id: image_module.test,v 1.2 2005/08/31 22:11:43 kubazygmunt Exp $ */
+/* $Id: image_module.test,v 1.3 2005/11/06 04:58:59 weitzman Exp $ */
 class ImageModuleTest extends DrupalTestCase {
   function get_info() {
     $modules = (module_list());
-    return array('name' => 'Image Module test', 'desc' => "Testing add/edit/delete image node<br/>( uses image module )" , 'group' => 'Image Module');
+    return array('name' => 'Image Module', 'desc' => "Testing add/edit/delete image node. If GD tooklit is found, perform image crop test. Requires image.module" , 'group' => 'Image');
   }
   function _rolesApi($op, $edit) {
     if ($op == 'delete') {
@@ -46,23 +46,17 @@ class ImageModuleTest extends DrupalTestCase {
   function testImageNode() {
     global $base_url;
     $this->drupalModuleEnable('image');
-    // create test user
-    $edit['name'] = 'Image SR.No'.$this->randomName(5);
-    $edit['perm'] = 'access content, create images';
-    $rid = $this->_rolesApi('add', $edit );
-    $name = $this->randomName();
-    $pass = $this->randomName();
-    $mail = "$name@example.com";
-    unset($edit);
-    $edit['roles'] = array($rid);
-    $user = user_save('', array('name' => $name, 'pass' => $pass, 'init' => $mail, 'mail' => $mail, 'roles' => $edit['roles'], 'status' => 1));
-    //log in
-    $edit = array('name' => $name, 'pass' => $pass);
-    $this->drupalPostRequest('user', $edit, 'Log in' );
+    
+    //TODO: make sure image.module (and file api) is configured properly
+    
+    // create and login a new user
+    $perm = array('access content', 'create images', 'administer nodes');
+    $account = $this->drupalCreateUserRolePerm($perm);
+    $this->drupalLoginUser($account);
 
     $title = $this->randomName(10);
     $description = $this->randomName(100);
-    $img_path = realpath("modules/tests/ImageModuleTest.png");
+    $img_path = dirname(__FILE__). '/ImageModuleTest.png';
     $my_size = getimagesize($img_path);
     if (image_get_toolkit()) {
       // if we got gd we perform more precise test
@@ -75,19 +69,22 @@ class ImageModuleTest extends DrupalTestCase {
       $my_size = getimagesize($new_image);
       $img_path = $new_image;
     }
+    
     // Add image
     unset($edit);
     $edit = array('title' => $title, 'body' => $description, 'image' => $img_path);
-    $this->drupalPostRequest('node/add/image', $edit, 'Submit' );
+    $this->drupalPostRequest('node/add/image', $edit, 'Submit');
     $content = $this->_browser->getContent();
     // test message
     $this->assertWantedText(t('Your image was created.'), "Checking message");
+    
     // get node nid
-    $node = array2object(node_load(array('title' => $title)));
-    $this->_browser->get(url("node/".$node->nid));
+    $node = node_load(array('title' => $title));
+    $this->_browser->get(url("node/$node->nid", NULL, NULL, TRUE));
     $content = $this->_browser->getContent();
     $this->assertWantedText($title, "Checking title : $title");
     $this->assertWantedText($description, "Checking body: $description");
+    
     // sprawdz czy obrazek jest dobry
     preg_match_all('~<img.*?src="?([^"]*png?)"?[^>]*>~i', $content, $matches);
     $found = false;
@@ -98,46 +95,23 @@ class ImageModuleTest extends DrupalTestCase {
         break;
       }
     }
-    $this->assertTrue($found, 'Checking uploaded image');
-    // update
+    $this->assertTrue($found, 'Checking for presence and size of uploaded image');
+    
+    // update image node
+    // TODO: upload a different file so we know that updating image files works
     $title = $this->randomName(10);
     $description = $this->randomName(100);
-    $img_path = realpath("modules/tests/ImageModuleTest.png"); // powininem byc inny obrazek
-    // update image
+    $img_path = dirname(__FILE__). '/ImageModuleTest.png'; // powininem byc inny obrazek
     unset($edit);
     $edit = array('title' => $title, 'body' => $description, 'image' => $img_path);
     $this->drupalPostRequest('node/'. $node->nid .'/edit', $edit, 'Submit' );
     $content = $this->_browser->getContent();
-    $this->_browser->get(url("node/%d",$node->nid));
+    $this->_browser->get(url("node/$node->nid"));
     $this->assertWantedText($title, "Checking title : $title");
     $this->assertWantedText($description, "Checking body: $description");
-    // sprawdz czy obrazek jest dobry
 
     // delete image node
-    $this->drupalPostRequest('node/'. $node->nid .'/delete', array(), 'Delete' );
-    // checking after delete
-    $this->_browser->get(url("node/%d",$node->nid));
-    $this->assertNoUnwantedText($title, "Checking if node exists");
-    // checking database fields
-    $result = db_query('SELECT tid FROM {term_node} WHERE nid = %d', $node->nid);
-    $this->assertEqual(db_num_rows($result), 0, 'Checking database field after deletion');
-    if (image_get_toolkit()) {
-      //delete created image
-      file_delete($new_image);
-    }
-
-
-    // delete test user and roles
-    if ($user->uid > 0) {
-      db_query('DELETE FROM {users} WHERE uid =' .
-          ' %d', $user->uid);
-      db_query('DELETE FROM {users_roles} WHERE uid = %d', $user->uid);
-      module_invoke_all('user', 'delete', '', $user);
-    }
-    //delete roles
-    $edit['rid'] = $rid;
-    $this->_rolesApi('delete', $edit);
-    $this->drupalModuleDisable('image');
+    node_delete(array('nid' => $node->nid, 'confirm' => 1));
   }
 }
 

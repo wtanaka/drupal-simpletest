@@ -1,5 +1,5 @@
 <?php
-/* $Id: upload_tests.test,v 1.3 2005/10/16 11:59:50 kubazygmunt Exp $ */
+/* $Id: upload_tests.test,v 1.4 2005/11/06 04:58:59 weitzman Exp $ */
 class UploadPictureTests extends DrupalTestCase {
   var $_cleanup_roles = array();
   var $_cleanup_users = array();
@@ -90,7 +90,7 @@ class UploadPictureTests extends DrupalTestCase {
   }
 
   function get_info() {
-     return array('name' => 'Testing Uploading Picture', 'desc' => 'Testing Uploading Picture Process. Uploading picture doesn\'t have to be allowed' , 'group' => 'Upload Tests');
+     return array('name' => 'Upload user picture', 'desc' => 'Assure that dimension check, extension check and image scaling work as designed.' , 'group' => 'Upload Tests');
   }
 
   /*
