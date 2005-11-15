@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.11 2005/11/01 22:46:41 thomasilsche Exp $ */
+/* $Id: drupal_test_case.php,v 1.12 2005/11/15 23:02:38 thomasilsche Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -114,8 +114,8 @@ class DrupalTestCase extends WebTestCase {
       $this->pass(" [module] $name already enabled");
       return TRUE; 
     }
-    /* Refreshes the system table */
-    system_module_listing();
+    /* Refreshes the system table, formerly system_module_listing() */
+    system_modules();
     /* Update table */
     db_query("UPDATE {system} SET status = 1 WHERE name = '%s' AND type = 'module'", $name);
     if (db_affected_rows()) {
@@ -251,7 +251,7 @@ class DrupalTestCase extends WebTestCase {
       $user = $this->drupalCreateUserRolePerm();
     }
     $edit = array('name' => $user->name, 'pass' => $user->pass_raw);
-    $this->drupalPostRequest('user/login', $edit, 'Log in');
+    $this->drupalPostRequest('user', $edit, 'Log in');
 
     $this->assertWantedText($user->name, ' [login] found name: ' . $user->name);
     $this->assertNoUnwantedText(t('The username %name has been blocked.', array('%name' => $user->name)), ' [login] not blocked');
