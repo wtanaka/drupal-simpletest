@@ -1,5 +1,5 @@
 <?php
-// $Id: page_creation.test,v 1.5 2005/09/07 16:20:19 thomasilsche Exp $
+// $Id: page_creation.test,v 1.6 2005/11/15 22:51:17 thomasilsche Exp $
 class PageCreationTest extends  DrupalTestCase {
   var $_cleanup_roles = array();
   var $_cleanup_users = array();
@@ -16,27 +16,25 @@ class PageCreationTest extends  DrupalTestCase {
   }
   
   function testPageCreation() {
-    global $user;
     /* Prepare settings */
     $this->drupalVariableSet('node_options_page', array('status', 'promote'));
    
     /* Prepare a user to do the stuff */
-    $user = $this->drupalCreateUserRolePerm(array('access content', 'create pages'));
-    $this->drupalLoginUser($user);
+    $web_user = $this->drupalCreateUserRolePerm(array('access content', 'create pages'));
+    $this->drupalLoginUser($web_user);
     
     $edit = array();
     $edit['title']    = '!SimpleTest test node! ' . $this->randomName(10);
     $edit['body']     = '!SimpleTest test body! ' . $this->randomName(32) . ' ' . $this->randomName(32);
     $this->drupalPostRequest('node/add/page', $edit, 'Submit');
+    
+    // see: http://drupal.org/node/37754 why this currently fails
     $this->assertWantedText(t('Your %post was created.', array ('%post' => 'page')), 'Page created');
     
     $node = node_load(array('title' => $edit['title']));
     $this->assertNotNull($node, 'Node found in database. %s');
     
-    $backup_user = $user;
-    $user = $this->drupalCreateUserRolePerm(array('administer nodes'));
-    node_delete(array('nid' => $node->nid, 'confirm' => TRUE));
-    $user = $backup_user;
+    node_delete(array('nid' => $node->nid));
   }
 }
 ?>
