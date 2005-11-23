@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.12 2005/11/15 23:02:38 thomasilsche Exp $ */
+/* $Id: drupal_test_case.php,v 1.13 2005/11/23 23:19:20 thomasilsche Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -11,6 +11,8 @@ class DrupalTestCase extends WebTestCase {
   var $_content;
   var $_cleanupModules   = array();
   var $_cleanupVariables = array();
+  var $_cleanupUsers     = array();
+  var $_cleanupRoles     = array();
 
 
   function DrupalTestCase($label = NULL) {
@@ -199,7 +201,7 @@ class DrupalTestCase extends WebTestCase {
       /* Create permissions */
       db_query("INSERT INTO {permission} (rid, perm) VALUES (%d, '%s')", $role->rid, $permstring);
       $this->assertTrue(db_affected_rows(), ' [role] created permissions: ' . $permstring);
-      $this->_cleanup_roles[] = $role->rid;
+      $this->_cleanupRoles[] = $role->rid;
       return $role->rid;
     } else {
       return false;
@@ -234,7 +236,7 @@ class DrupalTestCase extends WebTestCase {
     }
     
     /* Add to cleanup list */
-    $this->_cleanup_users[] = $u->uid;
+    $this->_cleanupUsers[] = $u->uid;
     
     /* Add the raw password */
     $u->pass_raw = $ua['pass'];
@@ -278,14 +280,14 @@ class DrupalTestCase extends WebTestCase {
     }
     $this->_cleanupVariables = array();
     
-    while (sizeof($this->_cleanup_roles) > 0) {
-      $rid = array_pop($this->_cleanup_roles);
+    while (sizeof($this->_cleanupRoles) > 0) {
+      $rid = array_pop($this->_cleanupRoles);
       db_query("DELETE FROM {role} WHERE rid = %d",       $rid);
       db_query("DELETE FROM {permission} WHERE rid = %d", $rid);
     }
     
-    while (sizeof($this->_cleanup_users) > 0) {
-      $uid = array_pop($this->_cleanup_users);
+    while (sizeof($this->_cleanupUsers) > 0) {
+      $uid = array_pop($this->_cleanupUsers);
       db_query('DELETE FROM {users} WHERE uid = %d',       $uid);
       db_query('DELETE FROM {users_roles} WHERE uid = %d', $uid);
       db_query('DELETE FROM {authmap} WHERE uid = %d',     $uid);
