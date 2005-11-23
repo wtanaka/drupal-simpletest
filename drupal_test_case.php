@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.13 2005/11/23 23:19:20 thomasilsche Exp $ */
+/* $Id: drupal_test_case.php,v 1.14 2005/11/23 23:21:43 thomasilsche Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -75,14 +75,14 @@ class DrupalTestCase extends WebTestCase {
     } else {
       $url_target = $urls[$index]->asString();
     }
-    
+
     $ret = parent::clickLink(t($label), $index);
-    
+
     $this->assertTrue($ret, ' [browser] clicked link '. t($label) . " ($url_target) from $url_before");
-    
+
     return $ret;
   }
-  
+
   /**
    * @TODO: needs documention
    */
@@ -105,7 +105,7 @@ class DrupalTestCase extends WebTestCase {
     }
     return $prefix;
   }
- 
+
   /**
    * Enables a drupal module
    * @param string $name name of the module
@@ -114,7 +114,7 @@ class DrupalTestCase extends WebTestCase {
   function drupalModuleEnable($name) {
     if (module_exist($name)) {
       $this->pass(" [module] $name already enabled");
-      return TRUE; 
+      return TRUE;
     }
     /* Refreshes the system table, formerly system_module_listing() */
     system_modules();
@@ -128,13 +128,13 @@ class DrupalTestCase extends WebTestCase {
       /* refresh module_list */
       module_list(TRUE);
       $this->pass(" [module] $name enabled");
-      return TRUE; 
+      return TRUE;
     }
     $this->fail(" [module] $name could not be enbled, probably file not exists");
     return FALSE;
   }
 
-  
+
   /**
    * Disables a drupal module
    * @param string $name name of the module
@@ -143,7 +143,7 @@ class DrupalTestCase extends WebTestCase {
   function drupalModuleDisable($name) {
     if (!module_exist($name)) {
       $this->pass(" [module] $name already disabled");
-      return TRUE; 
+      return TRUE;
     }
     /* Update table */
     db_query("UPDATE {system} SET status = 0 WHERE name = '%s' AND type = 'module'", $name);
@@ -155,17 +155,17 @@ class DrupalTestCase extends WebTestCase {
       /* refresh module_list */
       module_list(TRUE);
       $this->pass(" [module] $name disabled");
-      return TRUE; 
+      return TRUE;
     }
     $this->fail(" [module] $name could not be disabled for unknown reason");
     return FALSE;
   }
-  
-  
+
+
   /**
    * Set a druapl variable and keep track of the changes for tearDown()
    * @param string $name name of the value
-   * @param mixed  $value value 
+   * @param mixed  $value value
    */
   function drupalVariableSet($name, $value) {
     /* NULL variables would anyways result in default because of isset */
@@ -178,8 +178,8 @@ class DrupalTestCase extends WebTestCase {
       }
     }
   }
-  
-  
+
+
   /**
    * Create a role / perm combination specified by persmissions
    *
@@ -207,7 +207,7 @@ class DrupalTestCase extends WebTestCase {
       return false;
     }
   }
-  
+
   /**
    * Creates a user / role / permissions combination specified by permissions
    *
@@ -218,7 +218,7 @@ class DrupalTestCase extends WebTestCase {
     /* Create role */
     $rid = $this->drupalCreateRolePerm($permissions);
     if (!$rid) {
-      return FALSE; 
+      return FALSE;
     }
     /* Create user */
     $ua = array();
@@ -227,22 +227,22 @@ class DrupalTestCase extends WebTestCase {
     $ua['roles']  = array($rid);
     $ua['pass']   = user_password();
     $ua['status'] = 1;
-    
+
     $u = user_save('', $ua);
-    
+
     $this->assertTrue(!empty($u->uid), " [user] name: $ua[name] pass: $ua[pass] created");
     if (empty($u->uid)) {
-      return FALSE; 
+      return FALSE;
     }
-    
+
     /* Add to cleanup list */
     $this->_cleanupUsers[] = $u->uid;
-    
+
     /* Add the raw password */
     $u->pass_raw = $ua['pass'];
     return $u;
   }
-  
+
   /**
    * Logs in a user with the internal browser
    *
@@ -258,34 +258,34 @@ class DrupalTestCase extends WebTestCase {
     $this->assertWantedText($user->name, ' [login] found name: ' . $user->name);
     $this->assertNoUnwantedText(t('The username %name has been blocked.', array('%name' => $user->name)), ' [login] not blocked');
     $this->assertNoUnwantedText(t('The name %name is a reserved username.', array('%name' => $user->name)), ' [login] not reserved');
-    
+
     return $user;
   }
-  
+
   /**
    * tearDown implementation, setting back switched modules etc
    */
   function tearDown() {
     foreach ($this->_cleanupModules as $name => $status) {
-      db_query("UPDATE {system} SET status = %d WHERE name = '%s' AND type = 'module'", $status, $name); 
+      db_query("UPDATE {system} SET status = %d WHERE name = '%s' AND type = 'module'", $status, $name);
     }
     $this->_cleanupModules = array();
-    
+
     foreach ($this->_cleanupVariables as $name => $value) {
       if (is_null($value)) {
-        variable_del($name); 
+        variable_del($name);
       } else {
         variable_set($name, $value);
       }
     }
     $this->_cleanupVariables = array();
-    
+
     while (sizeof($this->_cleanupRoles) > 0) {
       $rid = array_pop($this->_cleanupRoles);
       db_query("DELETE FROM {role} WHERE rid = %d",       $rid);
       db_query("DELETE FROM {permission} WHERE rid = %d", $rid);
     }
-    
+
     while (sizeof($this->_cleanupUsers) > 0) {
       $uid = array_pop($this->_cleanupUsers);
       db_query('DELETE FROM {users} WHERE uid = %d',       $uid);
@@ -295,7 +295,7 @@ class DrupalTestCase extends WebTestCase {
     parent::tearDown();
   }
 
-  
+
   /**
    * Just some info for the reporter
    */
@@ -308,8 +308,8 @@ class DrupalTestCase extends WebTestCase {
     parent::run($reporter);
     array_pop($reporter->test_info_stack);
   }
-  
-  
+
+
   /* Taken from UnitTestCase */
         /**
          *    Will be true if the value is null.
