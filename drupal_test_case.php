@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.14 2005/11/23 23:21:43 thomasilsche Exp $ */
+/* $Id: drupal_test_case.php,v 1.15 2006/02/04 19:37:44 thomasilsche Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -127,6 +127,7 @@ class DrupalTestCase extends WebTestCase {
       }
       /* refresh module_list */
       module_list(TRUE);
+      menu_rebuild();
       $this->pass(" [module] $name enabled");
       return TRUE;
     }

@@ -1,5 +1,5 @@
 <?php
-// $Id: xmlrpc_drupal.test,v 1.3 2005/11/15 22:51:17 thomasilsche Exp $
+// $Id: xmlrpc_drupal.test,v 1.4 2006/02/04 19:37:44 thomasilsche Exp $
 class XMLRPCDrupalTest extends DrupalTestCase {
   function get_info() {
     return array('name'  => 'Drupal.module',
@@ -13,10 +13,11 @@ class XMLRPCDrupalTest extends DrupalTestCase {
     $this->drupalVariableSet('site_mail',    'simpletest_ping_site_mail@example.com');
     $this->drupalVariableSet('site_slogan',  'simpletest_ping_site_slogan');
     $this->drupalVariableSet('site_mission', 'simpletest_ping_site_mission');
+    $this->drupalVariableSet('drupal_client_service', TRUE);
     /* Pinging itsself */
     $time = time();
     drupal_notify(url(NULL, NULL, NULL, TRUE) . 'xmlrpc.php');
-    $r = db_result(db_query("SELECT COUNT(*) FROM {watchdog} WHERE timestamp >= %d AND type = 'directory ping'", $time));
+    $r = db_result(db_query("SELECT COUNT(*) FROM {watchdog} WHERE timestamp >= %d AND type = 'client ping'", $time));
     $this->assertTrue(($r > 0), 'selfping successful');
   }
   

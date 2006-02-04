@@ -1,11 +1,15 @@
 <?php
-// $Id: page_view.test,v 1.5 2005/11/15 22:51:17 thomasilsche Exp $
+// $Id: page_view.test,v 1.6 2006/02/04 19:37:44 thomasilsche Exp $
 class PageViewTest extends DrupalTestCase {
   /**
    * Implementation of get_info() for information
    */
   function get_info() {
-    return array('name' => t('Unauthorized node view'), 'desc' => t('Creates a node of type page and then an unpermissioned user attempts to view the node. Asserts failure.') , 'group' => 'Node Tests');
+    return array('name' => t('Unauthorized node view'), 'desc' => t(
+      'Creates a node of type page and then an unpermissioned user attempts to edit the node, '
+    . 'before tries with an anonymous user. Asserts failure.'
+    . '</ br>WARNING: This is based on default registered user permuissions (no administer nodes).')
+    , 'group' => 'Node Tests');
   }
   
   function setUp() {
@@ -37,11 +41,15 @@ class PageViewTest extends DrupalTestCase {
     node_save($node);
     $this->assertNotNull(node_load($node->nid), 'Node created');
 
+    /* Tries to edit with anonymous user */
+    $html = $this->get(url("node/$node->nid/edit", NULL, NULL, TRUE));
+    $this->assertResponse(403);
+    
     /* Prepare a user to request the node view */
-    $test_user = $this->drupalCreateUserRolePerm(array());
+    $test_user = $this->drupalCreateUserRolePerm(array('access content'));
     $this->drupalLoginUser($test_user);
     
-    $html = $this->get(url("node/$node->nid", NULL, NULL, TRUE));
+    $html = $this->get(url("node/$node->nid/edit", NULL, NULL, TRUE));
     $this->assertResponse(403);
     
     $test_user = $this->drupalCreateUserRolePerm(array('administer nodes'));
