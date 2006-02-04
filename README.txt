@@ -2,6 +2,13 @@ Description
 -----------------------
 A framework for running unit tests in Drupal.
 
+USAGE WARNING
+-----------------------
+Since all registered users have the registered users role this role
+MUST have the default settings for current tests to run correct.
+This also applies for anonymous user.
+
+
 Status
 -----------------------
 Some core tests have been written - see the /tests subdirectory. We need more,
