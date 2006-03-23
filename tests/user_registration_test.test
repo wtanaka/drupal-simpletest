@@ -1,5 +1,5 @@
 <?php
-// $Id: user_registration_test.test,v 1.5 2006/02/04 19:37:44 thomasilsche Exp $
+// $Id: user_registration_test.test,v 1.6 2006/03/23 05:10:25 thomasilsche Exp $
 /**
  * Class to test the user registration process,
  * - based on initial version by Kuba Zygmunt -
@@ -57,7 +57,13 @@ class UserRegistrationTest extends DrupalTestCase {
     /* TODO: find a better way, we currently have to do it that way, see user.module line 1041. */
     sleep(1);
     $this->_browser->get($url);
-    $this->assertWantedText(t("You have just used your one-time login link."), "Check for one time login notice ($url)");
+    
+    // Will proabaly not work localised as the text is sent to tranlate wrapped in <p> usually
+
+    $this->assertWantedText(t('This login can be used only once.'), "Check for 'used only once' notice");
+ 
+    $this->_browser->clickSubmit(t('Log in'));
+    $this->assertWantedText(t('You have just used your one-time login link. It is no longer necessary to use this link to login. Please change your password.'), "Check for one time login notice after clicking Login button.");
     
     /* now lets change our password */
     $new_pass = user_password();
