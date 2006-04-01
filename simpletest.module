@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.10 2005/12/07 02:20:13 drewish Exp $
+// $Id: simpletest.module,v 1.11 2006/04/01 22:46:15 thomasilsche Exp $
 
 /**
  * Implementation of hook_help().
@@ -48,11 +48,16 @@ function simpletest_load() {
   if ($loaded) {
     return true; 
   }
+  global $user;
+  if ($user->uid != 1) {
+    drupal_set_message(t('We strongly suggest running the simpletests with uid=1!'));
+  }
+  
   $loaded = true;
   if (!defined('SIMPLE_TEST')) {
     define('SIMPLE_TEST', drupal_get_path('module', 'simpletest'). '/simpletest'); 
   } 
-  if (!is_dir(SIMPLE_TEST) ){
+  if (!is_dir(SIMPLE_TEST)){
     $output = t('Sorry but the simpletest cannot be found in the current installation. Please notice that simpletest.module needs Simpletest framework. '
               . 'Please download it from %simpletest_link and place it into the same directory as simpletest.module: %simpletest_directory',
                 array('%simpletest_link' => l('Simpletest on SourceForge', 'https://sourceforge.net/project/showfiles.php?group_id=76550'),
@@ -60,11 +65,23 @@ function simpletest_load() {
     drupal_set_message($output, 'error');
     return false;
   }
-
+  
   /* We currently use only the web tester that DrupalTestCase is built upon */
   require_once(SIMPLE_TEST . '/web_tester.php');
   require_once(SIMPLE_TEST . '/reporter.php');
 
+  if (version_compare(SimpleTest::getVersion() , '1.0.1alpha3') < 0) {
+    $output = t('Due to a recently discovered %bug_link the drupal simpletest module is not compatible with versions prior to 1.0.1alpha3. '
+              . 'Please download the latest version from %simpletest_link and place it into the same directory as simpletest.module: %simpletest_directory',
+                array('%bug_link' => l('bug', 'http://sourceforge.net/tracker/?group_id=76550&atid=547455&func=detail&aid=1365193'),
+                      '%simpletest_link' => l('Simpletest on SourceForge', 'https://sourceforge.net/project/showfiles.php?group_id=76550'),
+                      '%simpletest_directory' => SIMPLE_TEST));
+    drupal_set_message($output, 'error');
+    return false;
+  }
+  
+
+  
   $path = drupal_get_path('module', 'simpletest'). '/';
   require_once($path . 'drupal_test_case.php');
   require_once($path . 'drupal_unit_tests.php');
@@ -83,9 +100,9 @@ function simpletest_entrypoint() {
      */
     return '&nbsp;';  
   }  
-	$op = $_POST['op'];
-	$edit = $_POST['edit'];
-	if (empty($op)) {
+  $op = $_POST['op'];
+  $edit = $_POST['edit'];
+  if (empty($op)) {
 		$op = arg(2);
 	}
 	switch ($op) {
@@ -192,4 +209,3 @@ function &simpletest_get_total_test($classes = NULL) {
   }
   return $total_test;
 }
-?>
