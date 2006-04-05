@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.11 2006/04/01 22:46:15 thomasilsche Exp $
+// $Id: simpletest.module,v 1.12 2006/04/05 00:36:42 thomasilsche Exp $
 
 /**
  * Implementation of hook_help().
@@ -171,6 +171,7 @@ function simpletest_run_tests($testlist = NULL) {
     define("TEST_RUNNING", true);
     $test = simpletest_get_total_test($testlist);
     if (SimpleReporter::inCli()) {
+      cache_clear_all();
       exit ($test->run(new TextReporter()) ? 0 : 1);
     }
     $reporter = &new HtmlReporter();
