@@ -1,6 +1,6 @@
 <?php
 
-// $Id: run_all_tests.php,v 1.2 2006/04/05 00:35:00 thomasilsche Exp $
+// $Id: run_all_tests.php,v 1.3 2006/04/05 00:44:32 thomasilsche Exp $
 
 
 
@@ -11,10 +11,9 @@
  * Run all unit tests for all enabled modules.
 
  */
+chdir(realpath(dirname(__FILE__) . '/../../'));
 
-chdir('../../');
-
-include_once './includes/bootstrap.inc';
+require_once './includes/bootstrap.inc';
 
 drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
 
