@@ -7,7 +7,7 @@ function simpletest_xmlrpc_help($section) {
 
   switch ($section) {
     case 'admin/modules#description':
-      $output = t("test module for the simpltest suite");
+      $output = t("test module for the simpletest suite");
       break;
     case 'admin/settings/simpletest':
       $output = '';
