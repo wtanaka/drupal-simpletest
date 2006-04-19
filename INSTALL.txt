@@ -1,8 +1,8 @@
 Install
 -----------------------
 
-- Copy this module package to your /modules directory
-- Install the simpletest framework to a new directory Drupal/modules/simpletest/simpletest directory.
+- Copy this module package to your modules directory
+- Install the simpletest framework to a new subdirectory of simpletest module: modules/simpletest/simpletest
   You can find it at https://sourceforge.net/project/showfiles.php?group_id=76550
 - At least Version 1.0.1 alpha3 of the simpletest framework is required (for upload tests).
 - Activate the simpletest.module
