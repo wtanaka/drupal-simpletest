@@ -1,5 +1,5 @@
 <?php
-/* $Id: taxonomy.module.test,v 1.4 2005/11/06 04:58:59 weitzman Exp $ */
+/* $Id: taxonomy.module.test,v 1.5 2006/04/20 02:36:12 weitzman Exp $ */
 
 class TaxonomyVocabularyFunctions extends DrupalTestCase {
   function get_info() {
@@ -283,9 +283,9 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
     // go to node/add/story
     $this->_browser->get(url('node/add/story', NULL, NULL, TRUE));
     $req = $this->_browser->getRequest();
-    dprint_r($req);
+
     $headers = $this->_browser->getHeaders();
-    dprint_r($headers);
+
     $content = $this->drupalGetContent();
     print($content). "\n\n\n all done \n\n";
 
