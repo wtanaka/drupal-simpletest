@@ -1,5 +1,5 @@
 <?php
-/* $Id: upload_tests.test,v 1.4 2005/11/06 04:58:59 weitzman Exp $ */
+/* $Id: upload_tests.test,v 1.5 2006/04/20 02:26:28 weitzman Exp $ */
 class UploadPictureTests extends DrupalTestCase {
   var $_cleanup_roles = array();
   var $_cleanup_users = array();
@@ -120,8 +120,8 @@ class UploadPictureTests extends DrupalTestCase {
     $this->_loginUser($user);
 
     // not a image
-    $img_path = realpath("modules/tests/upload_tests.test");
-    $edit = array('picture' => $img_path);
+    $img_path = realpath(drupal_get_path('module', 'simpletest'). "/tests/upload_tests.test");
+    $edit = array('picture_upload' => $img_path);
     $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
     $this->assertWantedText(t('The uploaded file was not an image.'), 'The uploaded file was not an image.');
      variable_set('user_pictures', $old_pic_set);
@@ -367,7 +367,7 @@ class UploadPictureTests extends DrupalTestCase {
       // changing actual setting;
       $old_dim = variable_get('user_picture_dimensions', '85x85');
       $old_size = variable_get('user_picture_file_size', '30');
-      $img_path = realpath("modules/tests/pictureTesting.jpg");
+      $img_path = realpath(drupal_get_path('module', 'simpletest'). "/tests/pictureTesting.jpg");
       $info = image_get_info($img_path);
 
       // valid size & dimensions
@@ -379,18 +379,19 @@ class UploadPictureTests extends DrupalTestCase {
 
 
       // TEST:
-      $edit = array('picture' => $img_path);
+      $edit = array('picture_upload' => $img_path);
       $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
-      $file_dir = variable_get('file_directory_path', 'files');
       $picture_dir = variable_get('user_picture_path', 'pictures');
-      $pic_path = $file_dir .'/'.$picture_dir .'/picture-'.$user->uid.'.jpg';
+      $pic_path = file_directory_path() .'/'.$picture_dir .'/picture-'.$user->uid.'.jpg';
 
       // get full url to the user's image
       $picture = file_create_url($pic_path);
+      print "$picture /n";
 
       // check if image is displayed in user's profile page
-      $content = $this->_browser->getContent();
-      $this->assertTrue(strpos($content,$picture), "Image is displayed in user's profile page");
+      $content = $this->drupalGetContent();
+            print "$content /n";
+      $this->assertTrue(strpos($content, $picture), "Image is displayed in user's profile page");
 
       // check if file is located in proper directory
       $this->assertTrue(is_file($pic_path), "File is located in proper directory");
