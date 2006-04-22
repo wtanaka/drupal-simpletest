@@ -98,7 +98,71 @@ class DrupalUnitTests extends DrupalGroupTest {
    */
   function run(&$reporter) {
     cache_clear_all();
+    @set_time_limit(0);
+    
+    // Disable known problematic modules
+    $this->drupalModuleDisable('devel');
+    
     parent::run($reporter);
+
+    // Restores modules
+    foreach ($this->_cleanupModules as $name => $status) {
+      db_query("UPDATE {system} SET status = %d WHERE name = '%s' AND type = 'module'", $status, $name);
+    }
+    $this->_cleanupModules = array();
+
+  }
+  
+  /**
+   * Enables a drupal module
+   * @param string $name name of the module
+   * @return boolean success
+   */
+  function drupalModuleEnable($name) {
+    if (module_exist($name)) {
+      return TRUE;
+    }
+    /* Refreshes the system table, formerly system_module_listing() */
+    system_modules();
+    /* Update table */
+    db_query("UPDATE {system} SET status = 1 WHERE name = '%s' AND type = 'module'", $name);
+    if (db_affected_rows()) {
+      /* Make sure not overwriting when double switching */
+      if (!isset($this->_cleanupModules[$name])) {
+        $this->_cleanupModules[$name] = 0;
+      }
+      /* refresh module_list */
+      module_list(TRUE);
+      menu_rebuild();
+      return TRUE;
+    }
+    die("required module $name could not be enbled, probably file not exists");
+    return FALSE;
+  }
+
+
+  /**
+   * Disables a drupal module
+   * @param string $name name of the module
+   * @return boolean success
+   */
+  function drupalModuleDisable($name) {
+    if (!module_exist($name)) {
+      return TRUE;
+    }
+    /* Update table */
+    db_query("UPDATE {system} SET status = 0 WHERE name = '%s' AND type = 'module'", $name);
+    if (db_affected_rows()) {
+      /* Make sure not overwriting when double switching */
+      if (!isset($this->_cleanupModules[$name])) {
+        $this->_cleanupModules[$name] = 1;
+      }
+      /* refresh module_list */
+      module_list(TRUE);
+      return TRUE;
+    }
+    die("incompatible module $name could not be disabled for unknown reason");
+    return FALSE;
   }
 }
 ?>
