@@ -3,6 +3,8 @@
  * Implementes getTestInstances to allow access to the test objects from outside
  */
 class DrupalGroupTest extends GroupTest {
+  var $_cleanupModules   = array();
+
   function DrupalGroupTest($label) {
     $this->GroupTest($label);
   }
