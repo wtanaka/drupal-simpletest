@@ -1,5 +1,5 @@
 <?php
-// $Id: page_creation.test,v 1.6 2005/11/15 22:51:17 thomasilsche Exp $
+// $Id: page_creation.test,v 1.7 2006/04/30 16:03:11 thomasilsche Exp $
 class PageCreationTest extends  DrupalTestCase {
   var $_cleanup_roles = array();
   var $_cleanup_users = array();
@@ -34,7 +34,7 @@ class PageCreationTest extends  DrupalTestCase {
     $node = node_load(array('title' => $edit['title']));
     $this->assertNotNull($node, 'Node found in database. %s');
     
-    node_delete(array('nid' => $node->nid));
+    node_delete($node->nid);
   }
 }
 ?>
