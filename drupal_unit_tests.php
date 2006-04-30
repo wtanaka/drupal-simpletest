@@ -101,6 +101,7 @@ class DrupalUnitTests extends DrupalGroupTest {
   function run(&$reporter) {
     cache_clear_all();
     @set_time_limit(0);
+    ignore_user_abort(true);
     
     // Disable known problematic modules
     $this->drupalModuleDisable('devel');
