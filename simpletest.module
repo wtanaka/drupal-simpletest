@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.12 2006/04/05 00:36:42 thomasilsche Exp $
+// $Id: simpletest.module,v 1.13 2006/04/30 16:15:37 thomasilsche Exp $
 
 /**
  * Implementation of hook_help().
@@ -157,8 +157,10 @@ function simpletest_overview() {
                     array('#type' => 'fieldset', '#collapsible' => TRUE, '#collapsed' => FALSE,
                           '#title' => $group_test->getLabel()));
   }
-  $output[] = array('#type' => 'submit', '#value' => t('Run All Tests'));
-  $output[] = array('#type' => 'submit', '#value' => t('Run Selected Tests'));
+  $submit[] = array('#type' => 'submit', '#value' => t('Run All Tests'));
+  $submit[] = array('#type' => 'submit', '#value' => t('Run Selected Tests'));
+  $output[] = array_merge($submit,
+                  array('#type' => 'fieldset', '#collapsible' => FALSE, '#collapsed' => FALSE, '#title' => 'Run tests', '#description' => t('WARNING, this may take a long time.')));
   return drupal_get_form('simpletest', $output);
 }
 
