@@ -4,6 +4,11 @@ A framework for running unit tests in Drupal.
 
 USAGE WARNING
 -----------------------
+DO NOT USE THIS MODULE IN PRODUCTION ENVIRONMENTS! NEVER!
+During running a test this module may (completely) change your Drupal setup.
+It usually recovers the orignal setup at the end of a of the test but there
+is no warranty that it will work, for example if an error occurs or timeout happens.
+
 Since all registered users have the registered users role this role
 MUST have the default settings for current tests to run correct.
 This also applies for anonymous user.
