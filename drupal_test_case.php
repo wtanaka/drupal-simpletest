@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.15 2006/02/04 19:37:44 thomasilsche Exp $ */
+/* $Id: drupal_test_case.php,v 1.16 2006/07/05 08:57:51 thomasilsche Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -225,7 +225,7 @@ class DrupalTestCase extends WebTestCase {
     $ua = array();
     $ua['name']   = $this->randomName();
     $ua['mail']   = $ua['name'] . '@example.com';
-    $ua['roles']  = array($rid);
+    $ua['roles']  = array($rid=>$rid);
     $ua['pass']   = user_password();
     $ua['status'] = 1;
 
