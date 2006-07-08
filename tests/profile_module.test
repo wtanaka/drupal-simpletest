@@ -1,5 +1,5 @@
 <?php
-/* $Id: profile_module.test,v 1.4 2006/07/08 09:42:04 rokZlender Exp $ */
+/* $Id: profile_module.test,v 1.5 2006/07/08 09:45:32 rokZlender Exp $ */
 class ProfileModuleTestSingle extends DrupalTestCase {
   function get_info() {
     $modules = (module_list());
@@ -52,7 +52,7 @@ class ProfileModuleTestSingle extends DrupalTestCase {
     $pass = $this->randomName();
     $mail = "$name@example.com";
     unset($edit);
-    $edit['roles'] = array($rid => 'Role');
+    $edit['roles'] = array($rid => $rid);
     $user = user_save('', array('name' => $name, 'pass' => $pass, 'init' => $mail, 'mail' => $mail, 'roles' => $edit['roles'], 'status' => 1));
     //log in
     $edit = array('name' => $name, 'pass' => $pass);
@@ -173,7 +173,7 @@ class ProfileModuleTestTextarea extends DrupalTestCase {
     $pass = $this->randomName();
     $mail = "$name@example.com";
     unset($edit);
-    $edit['roles'] = array($rid => 'Role');
+    $edit['roles'] = array($rid => $rid);
     $user = user_save('', array('name' => $name, 'pass' => $pass, 'init' => $mail, 'mail' => $mail, 'roles' => $edit['roles'], 'status' => 1));
     //log in
     $edit = array('name' => $name, 'pass' => $pass);
@@ -289,7 +289,7 @@ class ProfileModuleTestFreelist extends DrupalTestCase {
     $pass = $this->randomName();
     $mail = "$name@example.com";
     unset($edit);
-    $edit['roles'] = array($rid => 'Role');
+    $edit['roles'] = array($rid => $rid);
     $user = user_save('', array('name' => $name, 'pass' => $pass, 'init' => $mail, 'mail' => $mail, 'roles' => $edit['roles'], 'status' => 1));
     //log in
     $edit = array('name' => $name, 'pass' => $pass);
@@ -406,7 +406,7 @@ class ProfileModuleTestCheckbox extends DrupalTestCase {
     $pass = $this->randomName();
     $mail = "$name@example.com";
     unset($edit);
-    $edit['roles'] = array($rid => 'Role');
+    $edit['roles'] = array($rid => $rid);
     $user = user_save('', array('name' => $name, 'pass' => $pass, 'init' => $mail, 'mail' => $mail, 'roles' => $edit['roles'], 'status' => 1));
     //log in
     $edit = array('name' => $name, 'pass' => $pass);
@@ -522,7 +522,7 @@ class ProfileModuleTestUrl extends DrupalTestCase {
     $pass = $this->randomName();
     $mail = "$name@example.com";
     unset($edit);
-    $edit['roles'] = array($rid => 'Role');
+    $edit['roles'] = array($rid => $rid);
     $user = user_save('', array('name' => $name, 'pass' => $pass, 'init' => $mail, 'mail' => $mail, 'roles' => $edit['roles'], 'status' => 1));
     //log in
     $edit = array('name' => $name, 'pass' => $pass);
@@ -638,7 +638,7 @@ class ProfileModuleTestSelection extends DrupalTestCase {
     $pass = $this->randomName();
     $mail = "$name@example.com";
     unset($edit);
-    $edit['roles'] = array($rid => 'Role');
+    $edit['roles'] = array($rid => $rid);
     $user = user_save('', array('name' => $name, 'pass' => $pass, 'init' => $mail, 'mail' => $mail, 'roles' => $edit['roles'], 'status' => 1));
     //log in
     $edit = array('name' => $name, 'pass' => $pass);
@@ -764,7 +764,7 @@ class ProfileModuleTestDate extends DrupalTestCase {
     $pass = $this->randomName();
     $mail = "$name@example.com";
     unset($edit);
-    $edit['roles'] = array($rid => 'Role');
+    $edit['roles'] = array($rid => $rid);
     $user = user_save('', array('name' => $name, 'pass' => $pass, 'init' => $mail, 'mail' => $mail, 'roles' => $edit['roles'], 'status' => 1));
     //log in
     $edit = array('name' => $name, 'pass' => $pass);
@@ -895,7 +895,7 @@ class ProfileModuleTest2 extends DrupalTestCase {
     $pass = $this->randomName();
     $mail = "$name@example.com";
     unset($edit);
-    $edit['roles'] = array($rid => 'Role');
+    $edit['roles'] = array($rid => $rid);
     $user = user_save('', array('name' => $name, 'pass' => $pass, 'init' => $mail, 'mail' => $mail, 'roles' => $edit['roles'], 'status' => 1));
     //log in
     $edit = array('name' => $name, 'pass' => $pass);
