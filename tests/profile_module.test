@@ -1,5 +1,5 @@
 <?php
-/* $Id: profile_module.test,v 1.5 2006/07/08 09:45:32 rokZlender Exp $ */
+/* $Id: profile_module.test,v 1.6 2006/07/12 09:00:06 rokZlender Exp $ */
 class ProfileModuleTestSingle extends DrupalTestCase {
   function get_info() {
     $modules = (module_list());
@@ -100,7 +100,7 @@ class ProfileModuleTestSingle extends DrupalTestCase {
     $this->_browser->get(url("admin/settings/profile"));
     $this->assertWantedText($new_title, "Checking updated field");
     // deleting field
-    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Confirm' , 0);
+    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Delete' , 0);
     $this->_browser->get(url("admin/settings/profile"));
     $this->assertNoUnwantedText($new_title, "Checking deleted field $title");
 
@@ -217,7 +217,7 @@ class ProfileModuleTestTextarea extends DrupalTestCase {
     $this->_browser->get(url("admin/settings/profile"));
     $this->assertWantedText($new_title, "Checking updated field");
     // deleting field
-    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Confirm' , 0);
+    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Delete' , 0);
     $this->_browser->get(url("admin/settings/profile"));
     $this->assertNoUnwantedText($new_title, "Checking deleted field $title");
 
@@ -333,7 +333,7 @@ class ProfileModuleTestFreelist extends DrupalTestCase {
     $this->_browser->get(url("admin/settings/profile"));
     $this->assertWantedText($new_title, "Checking updated field");
     // deleting field
-    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Confirm' , 0);
+    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Delete' , 0);
     $this->_browser->get(url("admin/settings/profile"));
     $this->assertNoUnwantedText($new_title, "Checking deleted field $title");
 
@@ -449,7 +449,7 @@ class ProfileModuleTestCheckbox extends DrupalTestCase {
     $this->_browser->get(url("admin/settings/profile"));
     $this->assertWantedText($new_title, "Checking updated field");
     // deleting field
-    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Confirm' , 0);
+    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Delete' , 0);
     $this->_browser->get(url("admin/settings/profile"));
     $this->assertNoUnwantedText($new_title, "Checking deleted field $title");
 
@@ -566,7 +566,7 @@ class ProfileModuleTestUrl extends DrupalTestCase {
     $this->_browser->get(url("admin/settings/profile"));
     $this->assertWantedText($new_title, "Checking updated field");
     // deleting field
-    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Confirm' , 0);
+    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Delete' , 0);
     $this->_browser->get(url("admin/settings/profile"));
     $this->assertNoUnwantedText($new_title, "Checking deleted field $title");
 
@@ -691,7 +691,7 @@ class ProfileModuleTestSelection extends DrupalTestCase {
     $this->_browser->get(url("admin/settings/profile"));
     $this->assertWantedText($new_title, "Checking updated field");
     // deleting field
-    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Confirm' , 0);
+    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Delete' , 0);
     $this->_browser->get(url("admin/settings/profile"));
     $this->assertNoUnwantedText($new_title, "Checking deleted field $title");
 
@@ -821,7 +821,7 @@ class ProfileModuleTestDate extends DrupalTestCase {
     $this->_browser->get(url("admin/settings/profile"));
     $this->assertWantedText($new_title, "Checking updated field");
     // deleting field
-    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Confirm' , 0);
+    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Delete' , 0);
     $this->_browser->get(url("admin/settings/profile"));
     $this->assertNoUnwantedText($new_title, "Checking deleted field $title");
 
@@ -969,7 +969,7 @@ class ProfileModuleTest2 extends DrupalTestCase {
     $delete_fields[] = $fid;
 
     foreach($delete_fields as $delfid) {
-      $this->drupalPostRequest("admin/settings/profile/delete/".$delfid, array(), 'Confirm', 0 );
+      $this->drupalPostRequest("admin/settings/profile/delete/".$delfid, array(), 'Delete', 0 );
     }
     // delete test user and roles
     if ($user->uid > 0) {
