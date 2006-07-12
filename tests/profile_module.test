@@ -1,5 +1,5 @@
 <?php
-/* $Id: profile_module.test,v 1.7 2006/07/12 16:20:24 rokZlender Exp $ */
+/* $Id: profile_module.test,v 1.8 2006/07/12 19:56:40 thomasilsche Exp $ */
 class ProfileModuleTestSingle extends DrupalTestCase {
   function get_info() {
     $modules = (module_list());
@@ -114,9 +114,6 @@ class ProfileModuleTestSingle extends DrupalTestCase {
     //delete roles
     $edit['rid'] = $rid;
     $this->_rolesApi('delete', $edit);
-
-    $this->drupalModuleDisable('profile');
-
   }
 
 }
@@ -231,8 +228,6 @@ class ProfileModuleTestTextarea extends DrupalTestCase {
     //delete roles
     $edit['rid'] = $rid;
     $this->_rolesApi('delete', $edit);
-
-    $this->drupalModuleDisable('profile');
   }
 }
 
@@ -347,8 +342,6 @@ class ProfileModuleTestFreelist extends DrupalTestCase {
     //delete roles
     $edit['rid'] = $rid;
     $this->_rolesApi('delete', $edit);
-
-    $this->drupalModuleDisable('profile');
   }
 
 }
@@ -463,9 +456,6 @@ class ProfileModuleTestCheckbox extends DrupalTestCase {
     //delete roles
     $edit['rid'] = $rid;
     $this->_rolesApi('delete', $edit);
-
-    $this->drupalModuleDisable('profile');
-
    }
 }
 
@@ -580,8 +570,6 @@ class ProfileModuleTestUrl extends DrupalTestCase {
     //delete roles
     $edit['rid'] = $rid;
     $this->_rolesApi('delete', $edit);
-
-    $this->drupalModuleDisable('profile');
 
     }
 }
@@ -706,7 +694,6 @@ class ProfileModuleTestSelection extends DrupalTestCase {
     $edit['rid'] = $rid;
     $this->_rolesApi('delete', $edit);
 
-    $this->drupalModuleDisable('profile');
   }
 
 }
@@ -836,7 +823,6 @@ class ProfileModuleTestDate extends DrupalTestCase {
     $edit['rid'] = $rid;
     $this->_rolesApi('delete', $edit);
 
-    $this->drupalModuleDisable('profile');
   }
 
 }
@@ -981,8 +967,6 @@ class ProfileModuleTest2 extends DrupalTestCase {
     //delete roles
     $edit['rid'] = $rid;
     $this->_rolesApi('delete', $edit);
-
-    $this->drupalModuleDisable('profile');
 
   }
 }
