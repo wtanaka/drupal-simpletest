@@ -1,5 +1,5 @@
 <?php
-/* $Id: profile_module.test,v 1.6 2006/07/12 09:00:06 rokZlender Exp $ */
+/* $Id: profile_module.test,v 1.7 2006/07/12 16:20:24 rokZlender Exp $ */
 class ProfileModuleTestSingle extends DrupalTestCase {
   function get_info() {
     $modules = (module_list());
@@ -802,7 +802,7 @@ class ProfileModuleTestDate extends DrupalTestCase {
     }
 
     list($format) = explode(' - ', variable_get('date_format_short', 'm/d/Y'), 2);
-    $format = substr($format,0,strpos($format,' '));
+
     $replace = array('d' => sprintf('%02d', 9),
                        'j' => 9,
                        'm' => sprintf('%02d', '1'),
