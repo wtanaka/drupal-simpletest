@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.13 2006/04/30 16:15:37 thomasilsche Exp $
+// $Id: simpletest.module,v 1.14 2006/07/17 15:57:28 thomasilsche Exp $
 
 /**
  * Implementation of hook_help().
@@ -125,8 +125,9 @@ function simpletest_entrypoint() {
 			else { 
 				// no test has been selected
 				drupal_set_message(t('No test has been selected.'), 'error');
-				$output = form_submit(t('Back to Menu'));
-				$output = form($output);
+				/** @FIXME!!! */
+//				$output = form_submit(t('Back to Menu'));
+//				$output = form($output);
 			}
 			break;
 		default:
