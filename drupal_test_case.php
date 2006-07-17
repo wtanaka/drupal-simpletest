@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.17 2006/07/17 15:58:09 thomasilsche Exp $ */
+/* $Id: drupal_test_case.php,v 1.18 2006/07/17 16:40:21 thomasilsche Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -127,6 +127,14 @@ class DrupalTestCase extends WebTestCase {
       }
       /* refresh module_list */
       module_list(TRUE, FALSE);
+      
+      include_once './includes/install.inc';
+      $versions = drupal_get_schema_versions($name);
+      if (drupal_get_installed_schema_version($name) == SCHEMA_UNINSTALLED) {
+        drupal_set_installed_schema_version($name, $versions ? max($name) : SCHEMA_INSTALLED);
+        module_invoke($module, 'install');
+      }
+      
       menu_rebuild();
       $this->pass(" [module] $name enabled");
       return TRUE;
