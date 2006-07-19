@@ -1,10 +1,10 @@
 <?php
 
-/* $Id: image_module.test,v 1.3 2005/11/06 04:58:59 weitzman Exp $ */
+/* $Id: image_module.test,v 1.4 2006/07/19 08:51:01 rokZlender Exp $ */
 class ImageModuleTest extends DrupalTestCase {
   function get_info() {
     $modules = (module_list());
-    return array('name' => 'Image Module', 'desc' => "Testing add/edit/delete image node. If GD tooklit is found, perform image crop test. Requires image.module" , 'group' => 'Image');
+    return array('name' => t('Image Module'), 'desc' => t('Testing add/edit/delete image node. If GD tooklit is found, perform image crop test. Requires image.module'), 'group' => 'Image');
   }
   function _rolesApi($op, $edit) {
     if ($op == 'delete') {
@@ -88,11 +88,14 @@ class ImageModuleTest extends DrupalTestCase {
     // sprawdz czy obrazek jest dobry
     preg_match_all('~<img.*?src="?([^"]*png?)"?[^>]*>~i', $content, $matches);
     $found = false;
+    
     foreach($matches[1] as $file) {
-      $size = getimagesize($file);
-      if ($size == $my_size) {
-        $found = true;
-        break;
+      if (strripos($file, "Test")) {
+        $size = getimagesize($file);
+        if ($size == $my_size) {
+          $found = true;
+          break;
+        }
       }
     }
     $this->assertTrue($found, 'Checking for presence and size of uploaded image');
@@ -111,7 +114,7 @@ class ImageModuleTest extends DrupalTestCase {
     $this->assertWantedText($description, "Checking body: $description");
 
     // delete image node
-    node_delete(array('nid' => $node->nid, 'confirm' => 1));
+    node_delete($node->nid);
   }
 }
 
