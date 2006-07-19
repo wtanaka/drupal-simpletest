@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.20 2006/07/18 13:06:07 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.21 2006/07/19 17:34:53 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -132,7 +132,7 @@ class DrupalTestCase extends WebTestCase {
       $versions = drupal_get_schema_versions($name);
       if (drupal_get_installed_schema_version($name, TRUE) == SCHEMA_UNINSTALLED) {
         drupal_set_installed_schema_version($name, $versions ? max($name) : SCHEMA_INSTALLED);
-        module_invoke($name, 'install');
+        drupal_install_modules(array($name));
       }
       
       menu_rebuild();
