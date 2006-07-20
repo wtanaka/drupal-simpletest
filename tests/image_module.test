@@ -1,6 +1,6 @@
 <?php
 
-/* $Id: image_module.test,v 1.4 2006/07/19 08:51:01 rokZlender Exp $ */
+/* $Id: image_module.test,v 1.5 2006/07/20 08:01:48 rokZlender Exp $ */
 class ImageModuleTest extends DrupalTestCase {
   function get_info() {
     $modules = (module_list());
@@ -90,7 +90,7 @@ class ImageModuleTest extends DrupalTestCase {
     $found = false;
     
     foreach($matches[1] as $file) {
-      if (strripos($file, "Test")) {
+      if (strripos($file, "TestGD")) {
         $size = getimagesize($file);
         if ($size == $my_size) {
           $found = true;
