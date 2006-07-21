@@ -1,6 +1,6 @@
 <?php
 
-/* $Id: image_module.test,v 1.6 2006/07/21 09:30:56 rokZlender Exp $ */
+/* $Id: image_module.test,v 1.7 2006/07/21 11:41:06 rokZlender Exp $ */
 class ImageModuleTest extends DrupalTestCase {
   function get_info() {
     $modules = (module_list());
@@ -8,6 +8,7 @@ class ImageModuleTest extends DrupalTestCase {
   }
   
   function setUp() {
+  	parent::setUp();
   	$dir = file_directory_path().'/'.variable_get('image_default_path', 'images');
   	$temp_dir = $dir.'/temp';
   	$dir_created = file_check_directory($dir, TRUE);
