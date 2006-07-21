@@ -1,11 +1,23 @@
 <?php
 
-/* $Id: image_module.test,v 1.5 2006/07/20 08:01:48 rokZlender Exp $ */
+/* $Id: image_module.test,v 1.6 2006/07/21 09:30:56 rokZlender Exp $ */
 class ImageModuleTest extends DrupalTestCase {
   function get_info() {
     $modules = (module_list());
     return array('name' => t('Image Module'), 'desc' => t('Testing add/edit/delete image node. If GD tooklit is found, perform image crop test. Requires image.module'), 'group' => 'Image');
   }
+  
+  function setUp() {
+  	$dir = file_directory_path().'/'.variable_get('image_default_path', 'images');
+  	$temp_dir = $dir.'/temp';
+  	$dir_created = file_check_directory($dir, TRUE);
+  	$temp_dir_created = file_check_directory($temp_dir, TRUE);
+    if(!$dir_created || !$temp_dir_created) {
+      print("Images dir could not be create");
+      exit();
+    }
+  }
+  
   function _rolesApi($op, $edit) {
     if ($op == 'delete') {
       $id = $edit['rid'];
