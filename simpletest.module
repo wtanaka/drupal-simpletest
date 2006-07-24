@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.14 2006/07/17 15:57:28 thomasilsche Exp $
+// $Id: simpletest.module,v 1.15 2006/07/24 13:44:15 thomasilsche Exp $
 
 /**
  * Implementation of hook_help().
@@ -190,7 +190,7 @@ function simpletest_run_tests($testlist = NULL) {
  */
 function simpletest_simpletest() {
 	$dir = drupal_get_path('module', 'simpletest'). '/tests';
-	$tests = file_scan_directory($dir, '\.test');
+	$tests = file_scan_directory($dir, '\.test$');
   return array_keys($tests);
 }
 
