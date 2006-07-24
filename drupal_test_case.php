@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.21 2006/07/19 17:34:53 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.22 2006/07/24 13:54:14 thomasilsche Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -300,9 +300,11 @@ class DrupalTestCase extends WebTestCase {
 
     while (sizeof($this->_cleanupUsers) > 0) {
       $uid = array_pop($this->_cleanupUsers);
-      db_query('DELETE FROM {users} WHERE uid = %d',       $uid);
-      db_query('DELETE FROM {users_roles} WHERE uid = %d', $uid);
-      db_query('DELETE FROM {authmap} WHERE uid = %d',     $uid);
+      $account = user_load(array('uid' => $uid));
+      db_query('DELETE FROM {users} WHERE uid = %d', $account->uid);
+      db_query('DELETE FROM {sessions} WHERE uid = %d', $account->uid);
+      db_query('DELETE FROM {users_roles} WHERE uid = %d', $account->uid);
+      db_query('DELETE FROM {authmap} WHERE uid = %d', $account->uid);
     }
     parent::tearDown();
   }
