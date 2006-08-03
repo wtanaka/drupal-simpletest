@@ -1,5 +1,5 @@
 <?php
-/* $Id: profile_module.test,v 1.8 2006/07/12 19:56:40 thomasilsche Exp $ */
+/* $Id: profile_module.test,v 1.9 2006/08/03 10:15:30 thomasilsche Exp $ */
 class ProfileModuleTestSingle extends DrupalTestCase {
   function get_info() {
     $modules = (module_list());
@@ -46,7 +46,7 @@ class ProfileModuleTestSingle extends DrupalTestCase {
     $this->drupalModuleEnable('profile');
     // create test user
     $edit['name'] = 'Profile '. $this->randomName(5);
-    $edit['perm'] = 'access content, administer users, administer site configuration, access administration pages';
+    $edit['perm'] = 'access content, administer users, administer site configuration, access administration pages, access configuration pages, access user profiles';
     $rid = $this->_rolesApi('add', $edit );
     $name = $this->randomName();
     $pass = $this->randomName();
@@ -69,7 +69,7 @@ class ProfileModuleTestSingle extends DrupalTestCase {
                   'name' => $form_name, 
                   'explanation' => $explanation,
                   );
-    $this->drupalPostRequest('admin/settings/profile/add/textfield', $edit, 'Save field',0);
+    $this->drupalPostRequest('admin/user/profile/add/textfield', $edit, 'Save field',0);
     $fid = db_result(db_query('SELECT fid FROM {profile_fields} WHERE title = "%s"', $title));
     $single_field = array('title' => $title, 'form_name' => $form_name, 'explanation' => $explanation);
 
@@ -96,12 +96,12 @@ class ProfileModuleTestSingle extends DrupalTestCase {
     $this->assertWantedText($title, "Checking $title");
     // update field
     $new_title = $this->randomName(20);
-    $this->drupalPostRequest("admin/settings/profile/edit/$fid", array('title' => $new_title), 'Save field' , 0);
-    $this->_browser->get(url("admin/settings/profile"));
+    $this->drupalPostRequest("admin/user/profile/edit/$fid", array('title' => $new_title), 'Save field' , 0);
+    $this->_browser->get(url("admin/user/profile"));
     $this->assertWantedText($new_title, "Checking updated field");
     // deleting field
-    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Delete' , 0);
-    $this->_browser->get(url("admin/settings/profile"));
+    $this->drupalPostRequest("admin/user/profile/delete/$fid", array(), 'Delete' , 0);
+    $this->_browser->get(url("admin/user/profile"));
     $this->assertNoUnwantedText($new_title, "Checking deleted field $title");
 
     // delete test user and roles
@@ -164,7 +164,7 @@ class ProfileModuleTestTextarea extends DrupalTestCase {
     $this->drupalModuleEnable('profile');
     // create test user
     $edit['name'] = 'Profile '. $this->randomName(5);
-     $edit['perm'] = 'access content, administer users, administer site configuration, access administration pages';
+     $edit['perm'] = 'access content, administer users, administer site configuration, access administration pages, access configuration pages, access user profiles';
     $rid = $this->_rolesApi('add', $edit );
     $name = $this->randomName();
     $pass = $this->randomName();
@@ -183,7 +183,7 @@ class ProfileModuleTestTextarea extends DrupalTestCase {
     $form_name = 'profile_' . $title;
     $explanation = $this->randomName(50);
     $edit = array('category' => $my_category, 'title' => $title, 'name' => $form_name, 'explanation' => $explanation);
-    $this->drupalPostRequest("admin/settings/profile/add/textarea", $edit, 'Save field' , 0);
+    $this->drupalPostRequest("admin/user/profile/add/textarea", $edit, 'Save field' , 0);
     $fid = db_result(db_query('SELECT fid FROM {profile_fields} WHERE title = "%s"', $title));
     $single_field = array('title' => $title, 'form_name' => $form_name, 'explanation' => $explanation);
 
@@ -210,12 +210,12 @@ class ProfileModuleTestTextarea extends DrupalTestCase {
     $this->assertWantedText($title, "Checking $title");
     // update field
     $new_title = $this->randomName(20);
-    $this->drupalPostRequest("admin/settings/profile/edit/$fid", array('title' => $new_title), 'Save field' , 0);
-    $this->_browser->get(url("admin/settings/profile"));
+    $this->drupalPostRequest("admin/user/profile/edit/$fid", array('title' => $new_title), 'Save field' , 0);
+    $this->_browser->get(url("admin/user/profile"));
     $this->assertWantedText($new_title, "Checking updated field");
     // deleting field
-    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Delete' , 0);
-    $this->_browser->get(url("admin/settings/profile"));
+    $this->drupalPostRequest("admin/user/profile/delete/$fid", array(), 'Delete' , 0);
+    $this->_browser->get(url("admin/user/profile"));
     $this->assertNoUnwantedText($new_title, "Checking deleted field $title");
 
     // delete test user and roles
@@ -278,7 +278,7 @@ class ProfileModuleTestFreelist extends DrupalTestCase {
     $this->drupalModuleEnable('profile');
     // create test user
     $edit['name'] = 'Profile '. $this->randomName(5);
-    $edit['perm'] = 'access content, administer users, administer site configuration, access administration pages';
+    $edit['perm'] = 'access content, administer users, administer site configuration, access administration pages, access configuration pages, access user profiles';
     $rid = $this->_rolesApi('add', $edit );
     $name = $this->randomName();
     $pass = $this->randomName();
@@ -297,7 +297,7 @@ class ProfileModuleTestFreelist extends DrupalTestCase {
     $form_name = 'profile_' . $title;
     $explanation = $this->randomName(50);
     $edit = array('category' => $my_category, 'title' => $title, 'name' => $form_name, 'explanation' => $explanation);
-    $this->drupalPostRequest("admin/settings/profile/add/list", $edit, 'Save field' , 0);
+    $this->drupalPostRequest("admin/user/profile/add/list", $edit, 'Save field' , 0);
     $fid = db_result(db_query('SELECT fid FROM {profile_fields} WHERE title = "%s"', $title));
     $single_field = array('title' => $title, 'form_name' => $form_name, 'explanation' => $explanation);
 
@@ -324,12 +324,12 @@ class ProfileModuleTestFreelist extends DrupalTestCase {
     $this->assertWantedText($title, "Checking $title");
     // update field
     $new_title = $this->randomName(20);
-    $this->drupalPostRequest("admin/settings/profile/edit/$fid", array('title' => $new_title), 'Save field' , 0);
-    $this->_browser->get(url("admin/settings/profile"));
+    $this->drupalPostRequest("admin/user/profile/edit/$fid", array('title' => $new_title), 'Save field' , 0);
+    $this->_browser->get(url("admin/user/profile"));
     $this->assertWantedText($new_title, "Checking updated field");
     // deleting field
-    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Delete' , 0);
-    $this->_browser->get(url("admin/settings/profile"));
+    $this->drupalPostRequest("admin/user/profile/delete/$fid", array(), 'Delete' , 0);
+    $this->_browser->get(url("admin/user/profile"));
     $this->assertNoUnwantedText($new_title, "Checking deleted field $title");
 
     // delete test user and roles
@@ -393,7 +393,7 @@ class ProfileModuleTestCheckbox extends DrupalTestCase {
     $this->drupalModuleEnable('profile');
     // create test user
     $edit['name'] = 'Profile '. $this->randomName(5);
-    $edit['perm'] = 'access content, administer users, administer site configuration, access administration pages';
+    $edit['perm'] = 'access content, administer users, administer site configuration, access administration pages, access configuration pages, access user profiles';
     $rid = $this->_rolesApi('add', $edit );
     $name = $this->randomName();
     $pass = $this->randomName();
@@ -412,7 +412,7 @@ class ProfileModuleTestCheckbox extends DrupalTestCase {
     $form_name = 'profile_' . $title;
     $explanation = $this->randomName(50);
     $edit = array('category' => $my_category, 'title' => $title, 'name' => $form_name, 'explanation' => $explanation);
-    $this->drupalPostRequest("admin/settings/profile/add/checkbox", $edit, 'Save field' , 0);
+    $this->drupalPostRequest("admin/user/profile/add/checkbox", $edit, 'Save field' , 0);
     $fid = db_result(db_query('SELECT fid FROM {profile_fields} WHERE title = "%s"', $title));
     $single_field = array('title' => $title, 'form_name' => $form_name, 'explanation' => $explanation);
 
@@ -438,12 +438,12 @@ class ProfileModuleTestCheckbox extends DrupalTestCase {
     $this->assertWantedText($title, "Checking $title");
     // update field
     $new_title = $this->randomName(10);
-    $this->drupalPostRequest("admin/settings/profile/edit/$fid", array('title' => $new_title), 'Save field' , 0);
-    $this->_browser->get(url("admin/settings/profile"));
+    $this->drupalPostRequest("admin/user/profile/edit/$fid", array('title' => $new_title), 'Save field' , 0);
+    $this->_browser->get(url("admin/user/profile"));
     $this->assertWantedText($new_title, "Checking updated field");
     // deleting field
-    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Delete' , 0);
-    $this->_browser->get(url("admin/settings/profile"));
+    $this->drupalPostRequest("admin/user/profile/delete/$fid", array(), 'Delete' , 0);
+    $this->_browser->get(url("admin/user/profile"));
     $this->assertNoUnwantedText($new_title, "Checking deleted field $title");
 
     // delete test user and roles
@@ -506,7 +506,7 @@ class ProfileModuleTestUrl extends DrupalTestCase {
     $this->drupalModuleEnable('profile');
     // create test user
     $edit['name'] = 'Profile '. $this->randomName(5);
-    $edit['perm'] = 'access content, administer users, administer site configuration, access administration pages';
+    $edit['perm'] = 'access content, administer users, administer site configuration, access administration pages, access configuration pages, access user profiles';
     $rid = $this->_rolesApi('add', $edit );
     $name = $this->randomName();
     $pass = $this->randomName();
@@ -525,7 +525,7 @@ class ProfileModuleTestUrl extends DrupalTestCase {
     $form_name = 'profile_' . $title;
     $explanation = $this->randomName(50);
     $edit = array('category' => $my_category, 'title' => $title, 'name' => $form_name, 'explanation' => $explanation);
-    $this->drupalPostRequest("admin/settings/profile/add/url", $edit, 'Save field' , 0);
+    $this->drupalPostRequest("admin/user/profile/add/url", $edit, 'Save field' , 0);
     $fid = db_result(db_query('SELECT fid FROM {profile_fields} WHERE title = "%s"', $title));
     $single_field = array('title' => $title, 'form_name' => $form_name, 'explanation' => $explanation);
 
@@ -552,12 +552,12 @@ class ProfileModuleTestUrl extends DrupalTestCase {
     $this->assertWantedText($title, "Checking $title");
     // update field
     $new_title = $this->randomName(20);
-    $this->drupalPostRequest("admin/settings/profile/edit/$fid", array('title' => $new_title), 'Save field' , 0);
-    $this->_browser->get(url("admin/settings/profile"));
+    $this->drupalPostRequest("admin/user/profile/edit/$fid", array('title' => $new_title), 'Save field' , 0);
+    $this->_browser->get(url("admin/user/profile"));
     $this->assertWantedText($new_title, "Checking updated field");
     // deleting field
-    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Delete' , 0);
-    $this->_browser->get(url("admin/settings/profile"));
+    $this->drupalPostRequest("admin/user/profile/delete/$fid", array(), 'Delete' , 0);
+    $this->_browser->get(url("admin/user/profile"));
     $this->assertNoUnwantedText($new_title, "Checking deleted field $title");
 
     // delete test user and roles
@@ -620,7 +620,7 @@ class ProfileModuleTestSelection extends DrupalTestCase {
     $this->drupalModuleEnable('profile');
     // create test user
     $edit['name'] = 'Profile '. $this->randomName(5);
-    $edit['perm'] = 'access content, administer users, administer site configuration, access administration pages';
+    $edit['perm'] = 'access content, administer users, administer site configuration, access administration pages, access configuration pages, access user profiles';
     $rid = $this->_rolesApi('add', $edit );
     $name = $this->randomName();
     $pass = $this->randomName();
@@ -642,7 +642,7 @@ class ProfileModuleTestSelection extends DrupalTestCase {
     for($i = 0; $i < 3; $i++)
       $options .= $this->randomName(8) . "\n";
     $edit = array('category' => $my_category, 'title' => $title, 'name' => $form_name, 'explanation' => $explanation, 'options' => $options);
-    $this->drupalPostRequest("admin/settings/profile/add/selection", $edit, 'Save field' , 0);
+    $this->drupalPostRequest("admin/user/profile/add/selection", $edit, 'Save field' , 0);
     $fid = db_result(db_query('SELECT fid FROM {profile_fields} WHERE title = "%s"', $title));
     $single_field = array('title' => $title, 'form_name' => $form_name, 'explanation' => $explanation);
 
@@ -675,12 +675,12 @@ class ProfileModuleTestSelection extends DrupalTestCase {
     $this->assertWantedText($title, "Checking $title");
     // update field
     $new_title = $this->randomName(20);
-    $this->drupalPostRequest("admin/settings/profile/edit/$fid", array('title' => $new_title), 'Save field' , 0);
-    $this->_browser->get(url("admin/settings/profile"));
+    $this->drupalPostRequest("admin/user/profile/edit/$fid", array('title' => $new_title), 'Save field' , 0);
+    $this->_browser->get(url("admin/user/profile"));
     $this->assertWantedText($new_title, "Checking updated field");
     // deleting field
-    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Delete' , 0);
-    $this->_browser->get(url("admin/settings/profile"));
+    $this->drupalPostRequest("admin/user/profile/delete/$fid", array(), 'Delete' , 0);
+    $this->_browser->get(url("admin/user/profile"));
     $this->assertNoUnwantedText($new_title, "Checking deleted field $title");
 
     // delete test user and roles
@@ -745,7 +745,7 @@ class ProfileModuleTestDate extends DrupalTestCase {
     $this->drupalModuleEnable('profile');
     // create test user
     $edit['name'] = 'Profile '. $this->randomName(5);
-    $edit['perm'] = 'access content, administer users, administer site configuration, access administration pages';
+    $edit['perm'] = 'access content, administer users, administer site configuration, access administration pages, access configuration pages, access user profiles';
     $rid = $this->_rolesApi('add', $edit );
     $name = $this->randomName();
     $pass = $this->randomName();
@@ -767,7 +767,7 @@ class ProfileModuleTestDate extends DrupalTestCase {
     for($i = 0; $i < 3; $i++)
       $options .= $this->randomName(8) . "\n";*/
     $edit = array('category' => $my_category, 'title' => $title, 'name' => $form_name, 'explanation' => $explanation);
-    $this->drupalPostRequest("admin/settings/profile/add/date", $edit, 'Save field' , 0);
+    $this->drupalPostRequest("admin/user/profile/add/date", $edit, 'Save field' , 0);
     $fid = db_result(db_query('SELECT fid FROM {profile_fields} WHERE title = "%s"', $title));
     $single_field = array('title' => $title, 'form_name' => $form_name, 'explanation' => $explanation);
 
@@ -804,12 +804,12 @@ class ProfileModuleTestDate extends DrupalTestCase {
     $this->assertWantedText($title, "Checking $title");
     // update field
     $new_title = $this->randomName(20);
-    $this->drupalPostRequest("admin/settings/profile/edit/$fid", array('title' => $new_title), 'Save field' , 0);
-    $this->_browser->get(url("admin/settings/profile"));
+    $this->drupalPostRequest("admin/user/profile/edit/$fid", array('title' => $new_title), 'Save field' , 0);
+    $this->_browser->get(url("admin/user/profile"));
     $this->assertWantedText($new_title, "Checking updated field");
     // deleting field
-    $this->drupalPostRequest("admin/settings/profile/delete/$fid", array(), 'Delete' , 0);
-    $this->_browser->get(url("admin/settings/profile"));
+    $this->drupalPostRequest("admin/user/profile/delete/$fid", array(), 'Delete' , 0);
+    $this->_browser->get(url("admin/user/profile"));
     $this->assertNoUnwantedText($new_title, "Checking deleted field $title");
 
     // delete test user and roles
@@ -875,7 +875,7 @@ class ProfileModuleTest2 extends DrupalTestCase {
     $this->drupalModuleEnable('profile');
     // create test user
     $edit['name'] = 'Profile '. $this->randomName(5);
-    $edit['perm'] = 'access content, administer users, access user profiles, administer site configuration, access administration pages';
+    $edit['perm'] = 'access content, administer users, access user profiles, administer site configuration, access administration pages, access configuration pages, access user profiles';
     $rid = $this->_rolesApi('add', $edit );
     $name = $this->randomName();
     $pass = $this->randomName();
@@ -894,7 +894,7 @@ class ProfileModuleTest2 extends DrupalTestCase {
     // weight
     $weight = 3;
     $edit = array('category' => $my_category, 'title' => $title, 'name' => $form_name, 'weight' => $weight, 'required' => 1);
-    $this->drupalPostRequest("admin/settings/profile/add/textfield", $edit, 'Save field', 0);
+    $this->drupalPostRequest("admin/user/profile/add/textfield", $edit, 'Save field', 0);
     $fid = db_result(db_query('SELECT fid FROM {profile_fields} WHERE title = "%s"', $title));
     $sfield1 = array('fid'=> $fid, 'title' => $title);
     //second one line textfield
@@ -903,7 +903,7 @@ class ProfileModuleTest2 extends DrupalTestCase {
     // weight
     $weight = -2;
     $edit = array('category' => $my_category, 'title' => $title, 'name' => $form_name, 'weight' => $weight, 'register' => 1, 'required' => 1);
-    $this->drupalPostRequest("admin/settings/profile/add/textfield", $edit, 'Save field', 0);
+    $this->drupalPostRequest("admin/user/profile/add/textfield", $edit, 'Save field', 0);
     $fid = db_result(db_query('SELECT fid FROM {profile_fields} WHERE title = "%s"', $title));
     $sfield2 = array('fid'=> $fid, 'title' => $title);
     // checking
@@ -941,7 +941,7 @@ class ProfileModuleTest2 extends DrupalTestCase {
     for($i = 0; $i < 3; $i++)
       $options .= $this->randomName(8) . "\n";
     $edit = array('category' => $my_category, 'title' => $title, 'name' => $form_name, 'page' => $page_title, 'options' => $options);
-    $this->drupalPostRequest("admin/settings/profile/add/selection", $edit, 'Save field', 0);
+    $this->drupalPostRequest("admin/user/profile/add/selection", $edit, 'Save field', 0);
     $fid = db_result(db_query('SELECT fid FROM {profile_fields} WHERE title = "%s"', $title));
     $element = rand(0,2);
     $op_tab = explode("\n", $options,3);
@@ -955,7 +955,7 @@ class ProfileModuleTest2 extends DrupalTestCase {
     $delete_fields[] = $fid;
 
     foreach($delete_fields as $delfid) {
-      $this->drupalPostRequest("admin/settings/profile/delete/".$delfid, array(), 'Delete', 0 );
+      $this->drupalPostRequest("admin/user/profile/delete/".$delfid, array(), 'Delete', 0 );
     }
     // delete test user and roles
     if ($user->uid > 0) {
