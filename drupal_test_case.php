@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.22 2006/07/24 13:54:14 thomasilsche Exp $ */
+/* $Id: drupal_test_case.php,v 1.23 2006/08/05 07:45:24 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -112,35 +112,29 @@ class DrupalTestCase extends WebTestCase {
    * @return boolean success
    */
   function drupalModuleEnable($name) {
-    if (module_exist($name)) {
+  	if (module_exist($name)) {
       $this->pass(" [module] $name already enabled");
       return TRUE;
     }
-    /* Refreshes the system table, formerly system_module_listing() */
-    system_modules();
-    /* Update table */
-    db_query("UPDATE {system} SET status = 1 WHERE name = '%s' AND type = 'module'", $name);
-    if (db_affected_rows()) {
-      /* Make sure not overwriting when double switching */
+    include_once './includes/install.inc';
+    if (drupal_get_installed_schema_version($name, TRUE) == SCHEMA_UNINSTALLED) {
+      drupal_install_modules(array($name));
+    }
+    else {
+      module_enable($name);
+    }
+    module_list(TRUE, FALSE);
+    if(module_exist($name)) {
       if (!isset($this->_cleanupModules[$name])) {
         $this->_cleanupModules[$name] = 0;
       }
-      /* refresh module_list */
-      module_list(TRUE, FALSE);
-      
-      include_once './includes/install.inc';
-      $versions = drupal_get_schema_versions($name);
-      if (drupal_get_installed_schema_version($name, TRUE) == SCHEMA_UNINSTALLED) {
-        drupal_set_installed_schema_version($name, $versions ? max($name) : SCHEMA_INSTALLED);
-        drupal_install_modules(array($name));
-      }
-      
-      menu_rebuild();
       $this->pass(" [module] $name enabled");
       return TRUE;
+    } 
+    else {
+      $this->fail(" [module] $name could not be enbled, probably file not exists");
+      return FALSE;
     }
-    $this->fail(" [module] $name could not be enbled, probably file not exists");
-    return FALSE;
   }
 
 
