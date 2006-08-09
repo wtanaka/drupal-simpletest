@@ -1,5 +1,5 @@
 <?php
-// $Id: page_view.test,v 1.6 2006/02/04 19:37:44 thomasilsche Exp $
+// $Id: page_view.test,v 1.7 2006/08/09 11:48:47 rokZlender Exp $
 class PageViewTest extends DrupalTestCase {
   /**
    * Implementation of get_info() for information
@@ -13,7 +13,6 @@ class PageViewTest extends DrupalTestCase {
   }
   
   function setUp() {
-    $this->drupalModuleEnable('page');
   }
 
   function testPageView() {
