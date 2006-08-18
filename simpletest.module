@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.15 2006/07/24 13:44:15 thomasilsche Exp $
+// $Id: simpletest.module,v 1.16 2006/08/18 15:09:55 thomasilsche Exp $
 
 /**
  * Implementation of hook_help().
@@ -68,8 +68,9 @@ function simpletest_load() {
   
   /* We currently use only the web tester that DrupalTestCase is built upon */
   require_once(SIMPLE_TEST . '/web_tester.php');
-  require_once(SIMPLE_TEST . '/reporter.php');
-
+ // require_once(SIMPLE_TEST . '/reporter.php');
+  require_once('drupal_reporter.php');
+ 
   if (version_compare(SimpleTest::getVersion() , '1.0.1alpha3') < 0) {
     $output = t('Due to a recently discovered %bug_link the drupal simpletest module is not compatible with versions prior to 1.0.1alpha3. '
               . 'Please download the latest version from %simpletest_link and place it into the same directory as simpletest.module: %simpletest_directory',
@@ -177,11 +178,12 @@ function simpletest_run_tests($testlist = NULL) {
       cache_clear_all();
       exit ($test->run(new TextReporter()) ? 0 : 1);
     }
-    $reporter = &new HtmlReporter();
-
+    //$reporter = &new HtmlReporter();
+    $reporter = &new DrupalReporter();
     cache_clear_all();
     $test->run($reporter);
-    exit;
+//    exit;
+    return $reporter->getOutput();
   }
 }
 
