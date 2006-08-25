@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.23 2006/08/05 07:45:24 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.24 2006/08/25 18:32:12 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -112,7 +112,7 @@ class DrupalTestCase extends WebTestCase {
    * @return boolean success
    */
   function drupalModuleEnable($name) {
-  	if (module_exist($name)) {
+  	if (module_exists($name)) {
       $this->pass(" [module] $name already enabled");
       return TRUE;
     }
@@ -124,7 +124,7 @@ class DrupalTestCase extends WebTestCase {
       module_enable($name);
     }
     module_list(TRUE, FALSE);
-    if(module_exist($name)) {
+    if(module_exists($name)) {
       if (!isset($this->_cleanupModules[$name])) {
         $this->_cleanupModules[$name] = 0;
       }
@@ -144,7 +144,7 @@ class DrupalTestCase extends WebTestCase {
    * @return boolean success
    */
   function drupalModuleDisable($name) {
-    if (!module_exist($name)) {
+    if (!module_exists($name)) {
       $this->pass(" [module] $name already disabled");
       return TRUE;
     }

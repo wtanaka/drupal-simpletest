@@ -122,7 +122,7 @@ class DrupalUnitTests extends DrupalGroupTest {
    * @return boolean success
    */
   function drupalModuleEnable($name) {
-    if (module_exist($name)) {
+    if (module_exists($name)) {
       return TRUE;
     }
     /* Refreshes the system table, formerly system_module_listing() */
@@ -150,7 +150,7 @@ class DrupalUnitTests extends DrupalGroupTest {
    * @return boolean success
    */
   function drupalModuleDisable($name) {
-    if (!module_exist($name)) {
+    if (!module_exists($name)) {
       return TRUE;
     }
     /* Update table */
