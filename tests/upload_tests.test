@@ -1,5 +1,5 @@
 <?php
-/* $Id: upload_tests.test,v 1.5 2006/04/20 02:26:28 weitzman Exp $ */
+/* $Id: upload_tests.test,v 1.6 2006/08/25 09:28:09 rokZlender Exp $ */
 class UploadPictureTests extends DrupalTestCase {
   var $_cleanup_roles = array();
   var $_cleanup_users = array();
@@ -64,7 +64,7 @@ class UploadPictureTests extends DrupalTestCase {
    */
   function _loginUser($user) {
     $edit = array('name' => $user->name, 'pass' => $user->pass_raw);
-    $this->drupalPostRequest('?q=user/login', $edit, 'Log in');
+    $this->drupalPostRequest('user', $edit, 'Log in');
 
     $this->assertWantedText($user->name, ' [login] found name: ' . $user->name);
     $this->assertNoUnwantedText(t('The username %name has been blocked.', array('%name' => $user->name)), ' [login] not blocked');
@@ -386,11 +386,11 @@ class UploadPictureTests extends DrupalTestCase {
 
       // get full url to the user's image
       $picture = file_create_url($pic_path);
-      print "$picture /n";
+      
 
       // check if image is displayed in user's profile page
       $content = $this->drupalGetContent();
-            print "$content /n";
+
       $this->assertTrue(strpos($content, $picture), "Image is displayed in user's profile page");
 
       // check if file is located in proper directory
