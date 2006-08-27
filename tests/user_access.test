@@ -40,7 +40,7 @@ class UserAccessTest extends DrupalTestCase {
     $this->drupalPostRequest('user/register', $edit, 'Create new account');
     
     $this->assertNoUnWantedText(t('Your password and further instructions have been sent to your e-mail address.'), 'blocked user: Your password and further instructions - not found');
-    $this->assertwantedText(t('The name %name has been denied access.', array('%name' => $name)), 'blocked user: denied access - found');
+    $this->assertwantedText(t('The name @name has been denied access.', array('@name' => $name)), 'blocked user: denied access - found');
     
     /* Lets make a new browser for new cookies */
     $this->setBrowser($this->createBrowser());
@@ -54,7 +54,7 @@ class UserAccessTest extends DrupalTestCase {
     $this->drupalPostRequest('user/register', $edit, 'Create new account');
     
     $this->assertWantedText(t('Your password and further instructions have been sent to your e-mail address.'), 'access user: Your password and further instructions - found');
-    $this->assertNoUnwantedText(t('The name %name has been denied access.', array('%name' => $name)), 'access user: denied access - not found');
+    $this->assertNoUnwantedText(t('The name @name has been denied access.', array('@name' => $name)), 'access user: denied access - not found');
 
     $user = user_load($edit);
     
