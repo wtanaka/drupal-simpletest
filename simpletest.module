@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.16 2006/08/18 15:09:55 thomasilsche Exp $
+// $Id: simpletest.module,v 1.17 2006/08/27 15:07:00 rokZlender Exp $
 
 /**
  * Implementation of hook_help().
@@ -132,15 +132,12 @@ function simpletest_entrypoint() {
 			}
 			break;
 		default:
-			$output = simpletest_overview();
+			$output = drupal_get_form('simpletest_overview_form');
   }
 	print theme('page', $output);	
 }
 
-/**
- * Create menu 
- */
-function simpletest_overview() {
+function simpletest_overview_form() {
   $output = array();
   $total_test = &simpletest_get_total_test();
   
@@ -163,7 +160,7 @@ function simpletest_overview() {
   $submit[] = array('#type' => 'submit', '#value' => t('Run Selected Tests'));
   $output[] = array_merge($submit,
                   array('#type' => 'fieldset', '#collapsible' => FALSE, '#collapsed' => FALSE, '#title' => 'Run tests', '#description' => t('WARNING, this may take a long time.')));
-  return drupal_get_form('simpletest', $output);
+  return $output;
 }
 
 /**
