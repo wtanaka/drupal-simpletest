@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.17 2006/08/27 15:07:00 rokZlender Exp $
+// $Id: simpletest.module,v 1.18 2006/08/27 15:11:17 rokZlender Exp $
 
 /**
  * Implementation of hook_help().
@@ -68,7 +68,7 @@ function simpletest_load() {
   
   /* We currently use only the web tester that DrupalTestCase is built upon */
   require_once(SIMPLE_TEST . '/web_tester.php');
- // require_once(SIMPLE_TEST . '/reporter.php');
+  require_once(SIMPLE_TEST . '/reporter.php');
   require_once('drupal_reporter.php');
  
   if (version_compare(SimpleTest::getVersion() , '1.0.1alpha3') < 0) {
