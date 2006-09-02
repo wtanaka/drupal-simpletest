@@ -1,5 +1,5 @@
 <?php
-/* $Id: upload_tests.test,v 1.6 2006/08/25 09:28:09 rokZlender Exp $ */
+/* $Id: upload_tests.test,v 1.7 2006/09/02 18:03:59 rokZlender Exp $ */
 class UploadPictureTests extends DrupalTestCase {
   var $_cleanup_roles = array();
   var $_cleanup_users = array();
@@ -121,7 +121,7 @@ class UploadPictureTests extends DrupalTestCase {
 
     // not a image
     $img_path = realpath(drupal_get_path('module', 'simpletest'). "/tests/upload_tests.test");
-    $edit = array('picture_upload' => $img_path);
+    $edit = array('files[picture_upload]' => $img_path);
     $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
     $this->assertWantedText(t('The uploaded file was not an image.'), 'The uploaded file was not an image.');
      variable_set('user_pictures', $old_pic_set);
@@ -379,7 +379,7 @@ class UploadPictureTests extends DrupalTestCase {
 
 
       // TEST:
-      $edit = array('picture_upload' => $img_path);
+      $edit = array('files[picture_upload]' => $img_path);
       $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
       $picture_dir = variable_get('user_picture_path', 'pictures');
       $pic_path = file_directory_path() .'/'.$picture_dir .'/picture-'.$user->uid.'.jpg';

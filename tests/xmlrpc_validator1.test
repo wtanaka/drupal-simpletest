@@ -1,9 +1,9 @@
 <?php
-// $Id: xmlrpc_validator1.test,v 1.2 2005/11/15 22:51:17 thomasilsche Exp $
+// $Id: xmlrpc_validator1.test,v 1.3 2006/09/02 18:03:59 rokZlender Exp $
 class XMLRPCValidator1Test extends DrupalTestCase {
   function get_info() {
     return array('name'  => 'XML-RPC validator1',
-                 'desc'  => t('See %validator-link. note: simpletest_xmlrpc.module must be enabled', array('%validator-link' => l('the xmlrpc validator1 specification', 'http://www.xmlrpc.com/validator1Docs'))),
+                 'desc'  => t('See !validator-link. note: simpletest_xmlrpc.module must be enabled', array('!validator-link' => l('the xmlrpc validator1 specification', 'http://www.xmlrpc.com/validator1Docs'))),
                  'group' => 'XML-RPC Tests');
   }
   

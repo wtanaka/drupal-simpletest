@@ -1,5 +1,5 @@
 <?php
-/* $Id: profile_module.test,v 1.9 2006/08/03 10:15:30 thomasilsche Exp $ */
+/* $Id: profile_module.test,v 1.10 2006/09/02 18:03:59 rokZlender Exp $ */
 class ProfileModuleTestSingle extends DrupalTestCase {
   function get_info() {
     $modules = (module_list());
@@ -77,7 +77,7 @@ class ProfileModuleTestSingle extends DrupalTestCase {
     $this->_browser->get(url("user/". $user->uid. "/edit/$my_category"));
 
     // checking field
-    $this->assertField('edit['.$form_name .']', '');
+    $this->assertField($form_name , '');
     // checking name
     $this->assertWantedText($title, "Checking title for ". $title);
     // checking explanation
@@ -191,7 +191,7 @@ class ProfileModuleTestTextarea extends DrupalTestCase {
     $this->_browser->get(url("user/". $user->uid. "/edit/$my_category"));
 
     // checking field
-    $this->assertField('edit['.$form_name .']', '');
+    $this->assertField($form_name, '');
     // checking name
     $this->assertWantedText($title, "Checking title for ". $title);
     // checking explanation
@@ -305,7 +305,7 @@ class ProfileModuleTestFreelist extends DrupalTestCase {
     $this->_browser->get(url("user/". $user->uid. "/edit/$my_category"));
 
     // checking field
-    $this->assertField('edit['.$form_name .']', '');
+    $this->assertField($form_name, '');
     // checking name
     $this->assertWantedText($title, "Checking title for ". $title);
     // checking explanation
@@ -420,7 +420,7 @@ class ProfileModuleTestCheckbox extends DrupalTestCase {
     $this->_browser->get(url("user/". $user->uid. "/edit/$my_category"));
 
     // checking field
-    $this->assertField('edit['.$form_name .']', false);
+    $this->assertField($form_name, false);
     // checking name
     $this->assertWantedText($title, "Checking title for ". $title);
     // checking explanation
@@ -533,7 +533,7 @@ class ProfileModuleTestUrl extends DrupalTestCase {
     $this->_browser->get(url("user/". $user->uid. "/edit/$my_category"));
 
     // checking field
-    $this->assertField('edit['.$form_name .']', '');
+    $this->assertField($form_name, '');
     // checking name
     $this->assertWantedText($title, "Checking title for ". $title);
     // checking explanation
@@ -657,7 +657,7 @@ class ProfileModuleTestSelection extends DrupalTestCase {
     // or can we choose each of our options
     $op_tab = explode("\n", $options,3);
     foreach($op_tab as $option)
-      $this->assertTrue($this->setField('edit['.$form_name .']', $option));
+      $this->assertTrue($this->setField($form_name, $option));
 
 
     // ok, now let put some data
@@ -784,7 +784,7 @@ class ProfileModuleTestDate extends DrupalTestCase {
     // date 9-01-1983
     unset($edit);
     foreach(array('year' => 1983, 'month' => 'Jan', 'day' => 9) as $field => $v) {
-      $key = $form_name.']['.$field;
+      $key = $form_name . '[' . $field . ']';
       $edit[$key] = $v;
     }
 

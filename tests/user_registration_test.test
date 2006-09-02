@@ -1,5 +1,5 @@
 <?php
-// $Id: user_registration_test.test,v 1.7 2006/04/25 19:44:49 thomasilsche Exp $
+// $Id: user_registration_test.test,v 1.8 2006/09/02 18:03:59 rokZlender Exp $
 /**
  * Class to test the user registration process,
  * - based on initial version by Kuba Zygmunt -
@@ -67,8 +67,8 @@ class UserRegistrationTest extends DrupalTestCase {
     
     /* now lets change our password */
     $new_pass = user_password();
-    $this->assertTrue($this->_browser->setField('edit[pass][pass1]', $new_pass), 'Pass1 field set.');
-    $this->assertTrue($this->_browser->setField('edit[pass][pass2]', $new_pass), 'Pass2 field set.');
+    $this->assertTrue($this->_browser->setField('pass[pass1]', $new_pass), 'Pass1 field set.');
+    $this->assertTrue($this->_browser->setField('pass[pass2]', $new_pass), 'Pass2 field set.');
     $this->_browser->clickSubmit();
     $this->assertWantedText(t('The changes have been saved.'), "Changed password to '$new_pass'");
     
