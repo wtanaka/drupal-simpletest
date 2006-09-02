@@ -1,3 +1,3 @@
-// $Id: simpletest_xmlrpc.info,v 1.1 2006/09/02 17:54:31 rokZlender Exp $
+; $Id: simpletest_xmlrpc.info,v 1.2 2006/09/02 18:56:57 rokZlender Exp $
 name = Simpletest_xmlrpc
 description = Supports the simpletest module for the xmlrpc tests. Does not need to manually enabled.
