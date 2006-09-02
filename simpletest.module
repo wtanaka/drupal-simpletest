@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.18 2006/08/27 15:11:17 rokZlender Exp $
+// $Id: simpletest.module,v 1.19 2006/09/02 18:01:14 rokZlender Exp $
 
 /**
  * Implementation of hook_help().
@@ -59,8 +59,8 @@ function simpletest_load() {
   } 
   if (!is_dir(SIMPLE_TEST)){
     $output = t('Sorry but the simpletest cannot be found in the current installation. Please notice that simpletest.module needs Simpletest framework. '
-              . 'Please download it from %simpletest_link and place it into the same directory as simpletest.module: %simpletest_directory',
-                array('%simpletest_link' => l('Simpletest on SourceForge', 'https://sourceforge.net/project/showfiles.php?group_id=76550'),
+              . 'Please download it from !simpletest_link and place it into the same directory as simpletest.module: %simpletest_directory',
+                array('!simpletest_link' => l('Simpletest on SourceForge', 'https://sourceforge.net/project/showfiles.php?group_id=76550'),
                       '%simpletest_directory' => SIMPLE_TEST));
     drupal_set_message($output, 'error');
     return false;
@@ -102,7 +102,7 @@ function simpletest_entrypoint() {
     return '&nbsp;';  
   }  
   $op = $_POST['op'];
-  $edit = $_POST['edit'];
+  $edit = $_POST;
   if (empty($op)) {
 		$op = arg(2);
 	}

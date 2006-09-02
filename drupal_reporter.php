@@ -112,7 +112,7 @@ class DrupalReporter extends SimpleReporter {
     $this->_passes_stack[] = $this->_passes;
     $this->_passes = 0;
     $this->form_depth[] = $test_name;
-    $this->writeToLastField(&$this->form, array(
+    $this->writeToLastField($this->form, array(
       '#type' => 'fieldset',
       '#title' => $test_name,
       '#weight' => $this->weight++,
@@ -165,7 +165,7 @@ class DrupalReporter extends SimpleReporter {
       	$use_grouping = TRUE;
       }
       $write = array('#collapsible' => $use_grouping, '#collapsed' => $collapsed);
-      $this->writeToLastField(&$this->form, $write, $this->form_depth);
+      $this->writeToLastField($this->form, $write, $this->form_depth);
 	  $this->writeContent('<strong>' . $this->getPassCount() . '</strong> passes, <strong>' . $this->getFailCount() . '</strong> fails and <strong>' . $this->getExceptionCount() . '</strong> exceptions.', $parent_weight, $class);
 	  if (count($this->test_stack) != 0) {
         $this->writeContent(theme('table', array(), $this->test_stack));
@@ -198,7 +198,7 @@ class DrupalReporter extends SimpleReporter {
    * Could be extended to show more headeres or whatever?
    **/
   function getOutput() {
-    return drupal_get_form('unit_tests', $this->form);
+    return drupal_get_form('unit_tests', $this);
   }
   
   /**
@@ -235,7 +235,7 @@ class DrupalReporter extends SimpleReporter {
   	  '#value' => '<div class=' . $class .'>' . $msg . '</div>',
   	  '#weight' => $weight,
   	);
-  	$this->writeToLastField(&$this->form, $write, $this->form_depth);
+  	$this->writeToLastField($this->form, $write, $this->form_depth);
   }
   
   /**
@@ -254,5 +254,8 @@ class DrupalReporter extends SimpleReporter {
   	}
   	return $form['#weight'];
   }
+}
+function unit_tests($reporter) {
+  return $reporter->form;	
 }
 ?>
