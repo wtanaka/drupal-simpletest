@@ -1,5 +1,5 @@
 <?php
-// $Id: user_registration_test.test,v 1.8 2006/09/02 18:03:59 rokZlender Exp $
+// $Id: user_registration_test.test,v 1.9 2006/09/06 08:11:50 rokZlender Exp $
 /**
  * Class to test the user registration process,
  * - based on initial version by Kuba Zygmunt -
@@ -52,7 +52,7 @@ class UserRegistrationTest extends DrupalTestCase {
     /* We try to login with a wrong password */
     $login_edit = array('name' => $name, 'pass' => 'foo');
     $this->drupalPostRequest('user', $login_edit, 'Log in');
-    $this->assertWantedText(t('Sorry. Unrecognized username or password.'), 'Test for failed Login');
+    $this->assertWantedText(t('Sorry, unrecognized username or password.'), 'Test for failed Login');
     $url = user_pass_reset_url($user);
     /* TODO: find a better way, we currently have to do it that way, see user.module line 1041. */
     sleep(1);
