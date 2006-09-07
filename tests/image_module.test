@@ -1,6 +1,6 @@
 <?php
 
-/* $Id: image_module.test,v 1.7 2006/07/21 11:41:06 rokZlender Exp $ */
+/* $Id: image_module.test,v 1.8 2006/09/07 21:19:39 rokZlender Exp $ */
 class ImageModuleTest extends DrupalTestCase {
   function get_info() {
     $modules = (module_list());
@@ -85,7 +85,7 @@ class ImageModuleTest extends DrupalTestCase {
     
     // Add image
     unset($edit);
-    $edit = array('title' => $title, 'body' => $description, 'image' => $img_path);
+    $edit = array('title' => $title, 'body' => $description, 'files[image]' => $img_path);
     $this->drupalPostRequest('node/add/image', $edit, 'Submit');
     $content = $this->_browser->getContent();
     // test message
@@ -119,7 +119,7 @@ class ImageModuleTest extends DrupalTestCase {
     $description = $this->randomName(100);
     $img_path = dirname(__FILE__). '/ImageModuleTest.png'; // powininem byc inny obrazek
     unset($edit);
-    $edit = array('title' => $title, 'body' => $description, 'image' => $img_path);
+    $edit = array('title' => $title, 'body' => $description, 'files[image]' => $img_path);
     $this->drupalPostRequest('node/'. $node->nid .'/edit', $edit, 'Submit' );
     $content = $this->_browser->getContent();
     $this->_browser->get(url("node/$node->nid"));
