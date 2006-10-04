@@ -84,10 +84,10 @@ class DrupalReporter extends SimpleReporter {
    * @param string $message        Message is ignored.
    * @access public
    **/
-  function paintException($message) {
-    parent::paintException($message);
+  function paintError($message) {
+    parent::paintError($message);
     $this->test_stack[] = array(
-  	  'data' => array($this->_htmlEntities($message), 'FAIL'),
+  	  'data' => array($this->_htmlEntities($message), 'EXCEPTION'),
   	  'class' => 'simpletest-fail',
   	);
     //$this->writeContent($this->_htmlEntities($message). ' EXCEPTION', NULL, 'simpletest-fail');
