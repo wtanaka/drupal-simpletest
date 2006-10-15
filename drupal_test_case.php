@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.25 2006/09/02 18:01:14 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.26 2006/10/15 04:28:59 thomasilsche Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -41,8 +41,8 @@ class DrupalTestCase extends WebTestCase {
     $ret = $this->_browser->get($url);
     $this->assertTrue($ret, " [browser] GET $url");
     foreach ($edit as $field_name => $field_value) {
-      $ret = $this->_browser->setFieldByName($field_name, $field_value);
-//          || $this->_browser->setFieldById("edit-$field_name", $field_value);
+      $ret = $this->_browser->setFieldByName($field_name, $field_value)
+          || $this->_browser->setFieldById("edit-$field_name", $field_value);
       $this->assertTrue($ret, " [browser] Setting $field_name=\"$field_value\"");
     }
     $ret = $this->_browser->clickSubmit(t($submit));
@@ -317,7 +317,37 @@ class DrupalTestCase extends WebTestCase {
     array_pop($reporter->test_info_stack);
   }
 
+  
+        /**
+         *    Will trigger a pass if the raw text is found on the loaded page
+         *    Fail otherwise.
+         *    @param string $raw        Raw string to look for
+         *    @param string $message    Message to display.
+         *    @return boolean           True on pass
+         *    @access public
+         */
+        function assertWantedRaw($raw, $message = "%s") {
+          return $this->assertExpectation(
+                  new TextExpectation($raw),
+                  $this->_browser->getContent(),
+                  $message);
+        }
 
+          
+        /**
+         *    Will trigger a pass if the raw text is NOT found on the loaded page
+         *    Fail otherwise.
+         *    @param string $raw        Raw string to look for
+         *    @param string $message    Message to display.
+         *    @return boolean           True on pass
+         *    @access public
+         */
+        function assertNoUnwantedRaw($raw, $message = "%s") {
+          return $this->assertExpectation(
+                  new NoTextExpectation($raw),
+                  $this->_browser->getContent(),
+                  $message);
+        }
   /* Taken from UnitTestCase */
         /**
          *    Will be true if the value is null.
