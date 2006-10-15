@@ -1,5 +1,5 @@
 <?php
-/* $Id: taxonomy.module.test,v 1.5 2006/04/20 02:36:12 weitzman Exp $ */
+/* $Id: taxonomy.module.test,v 1.6 2006/10/15 04:26:44 thomasilsche Exp $ */
 
 class TaxonomyVocabularyFunctions extends DrupalTestCase {
   function get_info() {
@@ -287,7 +287,7 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
     $headers = $this->_browser->getHeaders();
 
     $content = $this->drupalGetContent();
-    print($content). "\n\n\n all done \n\n";
+//    print($content). "\n\n\n all done \n\n";
 
     // try to create story
     $title = $this->randomName();
@@ -297,11 +297,12 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
     $action = url('node/add/story', NULL, NULL, TRUE);
     $this->post($action, $edit);
     $content = $this->drupalGetContent();
-    die('fff   '. $content);
+//    die('fff   '. $content);
     $patternArray['body text'] = $body;
     $patternArray['title'] = $title;
 
-    $node = array2object(node_load(array('title' => $title)));
+//    $node = array2object(node_load(array('title' => $title)));
+    $node = node_load(array('title' => $title));
     $this->_browser->get(url("node/$node->nid"));
     foreach($patternArray as $name => $termPattern) {
       $this->assertWantedText($termPattern, "Checking $name");
