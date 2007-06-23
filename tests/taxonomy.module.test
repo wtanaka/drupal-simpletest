@@ -1,5 +1,5 @@
 <?php
-/* $Id: taxonomy.module.test,v 1.6 2006/10/15 04:26:44 thomasilsche Exp $ */
+/* $Id: taxonomy.module.test,v 1.7 2007/06/23 10:23:44 rokZlender Exp $ */
 
 class TaxonomyVocabularyFunctions extends DrupalTestCase {
   function get_info() {
@@ -23,7 +23,8 @@ class TaxonomyVocabularyFunctions extends DrupalTestCase {
     $maxNodes = rand(1, count($nodesList));
     $nodes = array();
     for($i = 0; $i < $maxNodes; $i++) {
-      $nodes[] = $nodesList[$i];
+      $nodes[$nodesList[$i]] = $nodesList[$i];
+      $nodesBak[] = $nodesList[$i];
     }
     $_t = array('vid', 'name', 'description', 'help', 'relations', 'hierarchy', 'multiple',
       'required', 'tags', 'module', 'weight', 'nodes');
@@ -33,6 +34,9 @@ class TaxonomyVocabularyFunctions extends DrupalTestCase {
    
     // exec save function
     taxonomy_save_vocabulary($edit);
+    //after save we use $nodesBak
+    sort($nodesBak);
+    $edit['nodes'] = $nodesBak;
     $vocabularies = taxonomy_get_vocabularies();
     foreach($vocabularies as $voc) {
       if ($voc->name == $name) {
@@ -236,7 +240,6 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
   }
 
   function testTaxonomyNode() {
-    $this->drupalModuleEnable('story');
     
     //preparing data
     // vocabulary hierarchy->single, multiple -> on
@@ -260,28 +263,28 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
     
     // create 1st term
     $termname = $this->randomName(20);
-    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $edit['vid'], 'tid' => 0, 'relations' => 0);
+    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0);
     taxonomy_save_term($data);
     $_tArray = taxonomy_get_term_by_name($termname);
-    $parent[] = $_tArray[0]->tid;
+    $parent[$_tArray[0]->tid] = $_tArray[0]->tid;
     $patternArray['term name 1'] = $termname;
     
     // create 2nd term
     $termname = $this->randomName(20);
-    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $edit['vid'], 'tid' => 0, 'relations' => 0);
+    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => '', 'vid' => $vid, 'tid' => 0, 'relations' => 0);
     taxonomy_save_term($data);
     $_tArray = taxonomy_get_term_by_name($termname);
-    $parent[] = $_tArray[0]->tid;
+    $parent[$_tArray[0]->tid] = $_tArray[0]->tid;
     $patternArray['term name 2'] = $termname;
 
     // create test user and login
-    $perm = array('access content', 'create stories', 'edit own stories');
+    $perm = array('access content', 'create story content', 'edit story content');
     $account = $this->drupalCreateUserRolePerm($perm);
     $this->drupalLoginUser($account);
     
     // why is this printing out the user profile page?
     // go to node/add/story
-    $this->_browser->get(url('node/add/story', NULL, NULL, TRUE));
+    $this->drupalGet(url('node/add/story', NULL, NULL, TRUE));
     $req = $this->_browser->getRequest();
 
     $headers = $this->_browser->getHeaders();
@@ -292,20 +295,26 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
     // try to create story
     $title = $this->randomName();
     $body = $this->randomName(100);
-    $edit = array('edit[title]' => $title, 'edit[body]' => $body, 'edit[taxonomy][]' => $parent);
+    $edit = array('title' => $title, 'body' => $body);
+
+    // Mutli-selects must be handles diffrently
+    // than other form/field types
+    $edit_multi = array('taxonomy-' . $vid => $parent);
+    
     // multiple slect box was failing through drupalPostRequest. Use raw POST instead
+    // Failing because they were being sent/handled wrong (earnest.berry@gmail.com <Souvent22>)
     $action = url('node/add/story', NULL, NULL, TRUE);
-    $this->post($action, $edit);
+    $this->drupalPostRequest($action, $edit, 'Submit', $edit_multi);
     $content = $this->drupalGetContent();
-//    die('fff   '. $content);
     $patternArray['body text'] = $body;
     $patternArray['title'] = $title;
 
 //    $node = array2object(node_load(array('title' => $title)));
     $node = node_load(array('title' => $title));
+    
     $this->_browser->get(url("node/$node->nid"));
     foreach($patternArray as $name => $termPattern) {
-      $this->assertWantedText($termPattern, "Checking $name");
+      $this->assertText($termPattern, "Checking $name");
     }
     
     // checking database fields
@@ -334,12 +343,17 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
     $parent[] = $_tArray[0]->tid;
     $patternArray['term name 3'] = $termname;
 
-    $edit = array('title' => $title, 'body' => $body, 'taxonomy][' => $parent);
-    $this->drupalPostRequest('node/'. $node->nid .'/edit', $edit, 'Submit' );
+    $edit = array('title' => $title, 'body' => $body);
+    // Mutli-selects must be handles diffrently
+    // than other form/field types
+    $edit_multi = array('taxonomy-' . $vid => $parent);
+    
+    $this->drupalPostRequest('node/'. $node->nid .'/edit', $edit, 'Submit', $edit_multi);
 
-    $patternArray['information message'] = t('The story was updated');
+    // TODO Do a MUCH better check here of the information msg
+    $patternArray['information message'] = 'been updated';
     foreach($patternArray as $name => $termPattern) {
-      $this->assertWantedText($termPattern, "Checking $name");
+      $this->assertText($termPattern, "Checking $name");
     }
     
     // checking database fields

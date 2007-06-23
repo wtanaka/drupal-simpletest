@@ -1,5 +1,5 @@
 <?php
-// $Id: page_creation.test,v 1.10 2006/10/15 04:27:14 thomasilsche Exp $
+// $Id: page_creation.test,v 1.11 2007/06/23 10:23:44 rokZlender Exp $
 class PageCreationTest extends  DrupalTestCase {
   var $_cleanup_roles = array();
   var $_cleanup_users = array();
@@ -27,7 +27,7 @@ class PageCreationTest extends  DrupalTestCase {
     $edit['body']     = '!SimpleTest test body! ' . $this->randomName(32) . ' ' . $this->randomName(32);
     $this->drupalPostRequest('node/add/page', $edit, 'Submit');
     
-    $this->assertWantedRaw(t('Your %post has been created.', array ('%post' => 'page')), 'Page created');
+    $this->assertWantedRaw(t('Your %post has been created.', array ('%post' => 'Page')), 'Page created');
     
     $node = node_load(array('title' => $edit['title']));
     $this->assertNotNull($node, 'Node found in database. %s');

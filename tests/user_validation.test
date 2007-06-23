@@ -1,5 +1,5 @@
 <?php
-// $Id: user_validation.test,v 1.1 2005/08/24 19:10:02 thomasilsche Exp $
+// $Id: user_validation.test,v 1.2 2007/06/23 10:23:44 rokZlender Exp $
 /**
  * This class is based on the original Simpletest Module by Moshe Weitzman
  */
@@ -20,7 +20,7 @@ class UserValidationTest extends DrupalTestCase {
     $this->assertNotNull($result, 'Invalid chars in username');
   }
   function testMaxLengthName() {
-    $name = str_repeat('a', 57);
+    $name = str_repeat('a', 61);
     $result = user_validate_name($name);
     $this->assertNotNull($result, 'Excessively long username');
   }

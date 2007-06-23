@@ -1,5 +1,5 @@
 <?php
-// $Id: page_view.test,v 1.7 2006/08/09 11:48:47 rokZlender Exp $
+// $Id: page_view.test,v 1.8 2007/06/23 10:23:44 rokZlender Exp $
 class PageViewTest extends DrupalTestCase {
   /**
    * Implementation of get_info() for information
@@ -41,14 +41,14 @@ class PageViewTest extends DrupalTestCase {
     $this->assertNotNull(node_load($node->nid), 'Node created');
 
     /* Tries to edit with anonymous user */
-    $html = $this->get(url("node/$node->nid/edit", NULL, NULL, TRUE));
+    $html = $this->drupalGet(url("node/$node->nid/edit", NULL, NULL, TRUE));
     $this->assertResponse(403);
     
     /* Prepare a user to request the node view */
     $test_user = $this->drupalCreateUserRolePerm(array('access content'));
     $this->drupalLoginUser($test_user);
     
-    $html = $this->get(url("node/$node->nid/edit", NULL, NULL, TRUE));
+    $html = $this->drupalGet(url("node/$node->nid/edit", NULL, NULL, TRUE));
     $this->assertResponse(403);
     
     $test_user = $this->drupalCreateUserRolePerm(array('administer nodes'));

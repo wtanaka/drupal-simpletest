@@ -1,5 +1,5 @@
 <?php
-/* $Id: upload_tests.test,v 1.7 2006/09/02 18:03:59 rokZlender Exp $ */
+/* $Id: upload_tests.test,v 1.8 2007/06/23 10:23:44 rokZlender Exp $ */
 class UploadPictureTests extends DrupalTestCase {
   var $_cleanup_roles = array();
   var $_cleanup_users = array();
@@ -65,10 +65,11 @@ class UploadPictureTests extends DrupalTestCase {
   function _loginUser($user) {
     $edit = array('name' => $user->name, 'pass' => $user->pass_raw);
     $this->drupalPostRequest('user', $edit, 'Log in');
+    
+    $this->assertText($user->name, ' [login] found name: ' . $user->name);
+    $this->assertNoText(t('The username %name has been blocked.', array('%name' => $user->name)), ' [login] not blocked');
+    $this->assertNoText(t('The name %name is a reserved username.', array('%name' => $user->name)), ' [login] not reserved');
 
-    $this->assertWantedText($user->name, ' [login] found name: ' . $user->name);
-    $this->assertNoUnwantedText(t('The username %name has been blocked.', array('%name' => $user->name)), ' [login] not blocked');
-    $this->assertNoUnwantedText(t('The name %name is a reserved username.', array('%name' => $user->name)), ' [login] not reserved');
   }
 
   /**

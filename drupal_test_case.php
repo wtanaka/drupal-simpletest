@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.26 2006/10/15 04:28:59 thomasilsche Exp $ */
+/* $Id: drupal_test_case.php,v 1.27 2007/06/23 10:23:44 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -24,6 +24,70 @@ class DrupalTestCase extends WebTestCase {
     }
     $this->WebTestCase($label);
   }
+  
+  /**
+   * @abstract Checks to see if we need to send 
+   * a http-auth header to authenticate
+   * when browsing a site.
+   *
+   * @param status Boolean pass true if you want to know if we are using 
+   * HTTP-AUTH
+   * @return void
+   */
+  function drupalCheckAuth($status = false) {
+    $check = variable_get('simpletest_httpauth', false);
+    if( $status ) {
+      return $check;
+    }
+    if( variable_get('simpletest_httpauth', false) ) {
+      $html = $this->authenticate( variable_get('simpletest_httpauth_username', ''), variable_get('simpletest_httpauth_pass', '') );
+    }
+    return $html;
+  }
+
+  /**
+   * @abstract Brokder for the get function
+   * addes the authetnication headers if 
+   * neccessary
+   * @author Earnest Berry III <earnest.berry@gmail.com>
+   *
+   * @param url string Url to retch
+   * @return void
+   */
+  function drupalGet($url) {
+    $html = $this->_browser->get($url);
+    
+    if( $this->drupalCheckAuth(true) ) {
+      $html .= $this->drupalCheckAuth();
+    }
+    
+    $this->_content = $this->_browser->getContent();
+    
+    return $html;
+  }
+
+  /**
+   * @abstract Brokder for the post function
+   * addes the authetnication headers if 
+   * neccessary
+   * @author Earnest Berry III <earnest.berry@gmail.com>
+   *
+   * @param url string Url to retch
+   * @return void
+   */
+  function drupalRawPost($action, $edit = array()) {
+    $html = $this->_browser->post($action, $edit);
+    
+    if( $this->drupalCheckAuth(true) ) {
+      $html .= $this->drupalCheckAuth();
+    }
+    
+    $this->_content = $this->_browser->getContent();
+    
+    return $html;
+  }
+
+  
 
   /**
    * Do a post request on a drupal page.
@@ -36,15 +100,26 @@ class DrupalTestCase extends WebTestCase {
    * @param string  $submit    name of the submit button, untranslated
    * @param boolean $reporting assertations or not
    */
-  function drupalPostRequest($path, $edit, $submit) {
+  function drupalPostRequest($path, $edit = array(), $submit, $edit_multi = array()) {
     $url = url($path, NULL, NULL, TRUE);
-    $ret = $this->_browser->get($url);
+    $ret = $this->drupalGet($url);
+
     $this->assertTrue($ret, " [browser] GET $url");
     foreach ($edit as $field_name => $field_value) {
       $ret = $this->_browser->setFieldByName($field_name, $field_value)
           || $this->_browser->setFieldById("edit-$field_name", $field_value);
       $this->assertTrue($ret, " [browser] Setting $field_name=\"$field_value\"");
     }
+    if ( is_array($edit_multi) )  {
+      // Mutli-values
+      foreach( $edit_multi as $field_name => $field_values) {
+        $ret = $this->assertFieldById( "edit-$field_name") || $this->assertFieldByName( $field_name );
+        $this->assertTrue($ret, " [browser] Asserting multi-field $field_name=\"(" . implode(',', $field_values) . ")\"");
+        $ret = $this->setFieldById( "edit-$field_name", $field_values );
+        $this->assertTrue($ret, " [browser] Setting multi-field $field_name=\"(" . implode(',', $field_values) . ")\"");
+      }
+    }
+    
     $ret = $this->_browser->clickSubmit(t($submit));
 //    $ret = $this->_browser->clickSubmitByName('op');
     $this->assertTrue($ret, ' [browser] POST by click on ' . t($submit));
@@ -117,11 +192,12 @@ class DrupalTestCase extends WebTestCase {
       return TRUE;
     }
     include_once './includes/install.inc';
+    module_rebuild_cache(); // Rebuild the module cache
     if (drupal_get_installed_schema_version($name, TRUE) == SCHEMA_UNINSTALLED) {
       drupal_install_modules(array($name));
     }
     else {
-      module_enable($name);
+      $try = module_enable(array($name));
     }
     module_list(TRUE, FALSE);
     if(module_exists($name)) {
@@ -258,9 +334,9 @@ class DrupalTestCase extends WebTestCase {
     $edit = array('name' => $user->name, 'pass' => $user->pass_raw);
     $this->drupalPostRequest('user', $edit, 'Log in');
 
-    $this->assertWantedText($user->name, ' [login] found name: ' . $user->name);
-    $this->assertNoUnwantedText(t('The username %name has been blocked.', array('%name' => $user->name)), ' [login] not blocked');
-    $this->assertNoUnwantedText(t('The name %name is a reserved username.', array('%name' => $user->name)), ' [login] not reserved');
+    $this->assertText( $user->name, ' [login] found name: ' . $user->name);
+    $this->assertNoText(t('The username %name has been blocked.', array('%name' => $user->name)), ' [login] not blocked');
+    $this->assertNoText(t('The name %name is a reserved username.', array('%name' => $user->name)), ' [login] not reserved');
 
     return $user;
   }

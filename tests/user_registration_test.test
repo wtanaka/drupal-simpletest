@@ -1,5 +1,5 @@
 <?php
-// $Id: user_registration_test.test,v 1.9 2006/09/06 08:11:50 rokZlender Exp $
+// $Id: user_registration_test.test,v 1.10 2007/06/23 10:23:44 rokZlender Exp $
 /**
  * Class to test the user registration process,
  * - based on initial version by Kuba Zygmunt -
@@ -22,8 +22,8 @@ class UserRegistrationTest extends DrupalTestCase {
                   'mail' => $mail);
     $this->drupalPostRequest('user/register', $edit, 'Create new account');
     
-    $this->assertWantedText(t('Your password and further instructions have been sent to your e-mail address.'), 'Your password and further instructions ... found');
-    $this->assertNoUnwantedText(t('The name %name has been denied access.', array('%name' => $name)), 'not denied access');
+    $this->assertText(t('Your password and further instructions have been sent to your e-mail address.'), 'Your password and further instructions ... found');
+    $this->assertNoText(t('The name %name has been denied access.', array('%name' => $name)), 'not denied access');
     
     // now we check database fields
     // we can use an 'edit' array to load user variable
@@ -52,7 +52,7 @@ class UserRegistrationTest extends DrupalTestCase {
     /* We try to login with a wrong password */
     $login_edit = array('name' => $name, 'pass' => 'foo');
     $this->drupalPostRequest('user', $login_edit, 'Log in');
-    $this->assertWantedText(t('Sorry, unrecognized username or password.'), 'Test for failed Login');
+    $this->assertText(t('Sorry, unrecognized username or password. Have you forgotten your password?'), 'Test for failed Login');
     $url = user_pass_reset_url($user);
     /* TODO: find a better way, we currently have to do it that way, see user.module line 1041. */
     sleep(1);
@@ -60,25 +60,25 @@ class UserRegistrationTest extends DrupalTestCase {
     
     // Will proabaly not work localised as the text is sent to tranlate wrapped in <p> usually
 
-    $this->assertWantedText(t('This login can be used only once.'), "Check for 'used only once' notice");
+    $this->assertText(t('This login can be used only once.'), "Check for 'used only once' notice");
  
     $this->_browser->clickSubmit(t('Log in'));
-    $this->assertWantedText(t('You have just used your one-time login link. It is no longer necessary to use this link to login. Please change your password.'), "Check for one time login notice after clicking Login button.");
+    $this->assertText(t('You have just used your one-time login link. It is no longer necessary to use this link to login. Please change your password.'), "Check for one time login notice after clicking Login button.");
     
     /* now lets change our password */
     $new_pass = user_password();
     $this->assertTrue($this->_browser->setField('pass[pass1]', $new_pass), 'Pass1 field set.');
     $this->assertTrue($this->_browser->setField('pass[pass2]', $new_pass), 'Pass2 field set.');
     $this->_browser->clickSubmit();
-    $this->assertWantedText(t('The changes have been saved.'), "Changed password to '$new_pass'");
+    $this->assertText(t('The changes have been saved.'), "Changed password to '$new_pass'");
     
     /* Check if the password changes are present in db */
     $user = user_load(array('uid' => $user->uid));
     $this->assertEqual($user->pass, md5($new_pass), 'Correct password in database');
     
     /* logout */
-    $this->clickLink('log out'); 
-    $this->assertNoUnwantedText($user->name, 'Logged out');
+    $this->clickLink('Log out'); 
+    $this->assertNoText($user->name, 'Logged out');
     
     /* login again */
     $login_edit['pass'] = $new_pass;
@@ -87,11 +87,11 @@ class UserRegistrationTest extends DrupalTestCase {
     /** $pname = theme('placeholder', $user->name); /** @TODO: this one messes html tags->search fails */
     $pname = $user->name;
 
-    $this->assertWantedText($pname, 'Logged in (name found)');
-    $this->assertNoUnwantedText(t('Sorry. Unrecognized username or password.'), 'Logged in (not sorry)');
-    $this->assertNoUnwantedText(t('User login'), 'Logged in (no user login form present)');
-    $this->assertNoUnwantedText(t('The username %name has been blocked.', array('%name' => $pname)), 'Not blocked');
-    $this->assertNoUnwantedText(t('The name %name is a reserved username.', array('%name' => $pname)), 'Access granted');
+    $this->assertText($pname, 'Logged in (name found)');
+    $this->assertNoText(t('Sorry. Unrecognized username or password.'), 'Logged in (not sorry)');
+    $this->assertNoText(t('User login'), 'Logged in (no user login form present)');
+    $this->assertNoText(t('The username %name has been blocked.', array('%name' => $pname)), 'Not blocked');
+    $this->assertNoText(t('The name %name is a reserved username.', array('%name' => $pname)), 'Access granted');
 
     /* delete test user, roles and maybe authmap */
     db_query('DELETE FROM {users} WHERE uid = %d', $user->uid);

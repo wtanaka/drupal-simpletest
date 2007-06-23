@@ -1,6 +1,6 @@
 <?php
 
-/* $Id: image_module.test,v 1.9 2006/10/15 04:27:46 thomasilsche Exp $ */
+/* $Id: image_module.test,v 1.10 2007/06/23 10:23:44 rokZlender Exp $ */
 class ImageModuleTest extends DrupalTestCase {
   function get_info() {
     $modules = (module_list());
@@ -89,11 +89,11 @@ class ImageModuleTest extends DrupalTestCase {
     $this->drupalPostRequest('node/add/image', $edit, 'Submit');
     $content = $this->_browser->getContent();
     // test message
-    $this->assertWantedRaw(t('Your %post has been created.', array('%post' => 'image')), "Checking message");
+    $this->assertWantedRaw(t('Your %post has been created.', array('%post' => 'Image')), "Checking message");
     
     // get node nid
     $node = node_load(array('title' => $title));
-    $this->_browser->get(url("node/$node->nid", NULL, NULL, TRUE));
+    $this->drupalGet(url("node/$node->nid", NULL, NULL, TRUE));
     $content = $this->_browser->getContent();
     $this->assertWantedText($title, "Checking title : $title");
     $this->assertWantedText($description, "Checking body: $description");
@@ -102,6 +102,8 @@ class ImageModuleTest extends DrupalTestCase {
     preg_match_all('~<img.*?src="?([^"]*png?)"?[^>]*>~i', $content, $matches);
     $found = false;
     
+    // TODO Make is to that getimagesize goes green on HTTP-AUTH
+    // right now it will get denied.
     foreach($matches[1] as $file) {
       if (strripos($file, "TestGD")) {
         $size = getimagesize($file);
@@ -122,7 +124,7 @@ class ImageModuleTest extends DrupalTestCase {
     $edit = array('title' => $title, 'body' => $description, 'files[image]' => $img_path);
     $this->drupalPostRequest('node/'. $node->nid .'/edit', $edit, 'Submit' );
     $content = $this->_browser->getContent();
-    $this->_browser->get(url("node/$node->nid"));
+    $this->drupalGet(url("node/$node->nid"));
     $this->assertWantedText($title, "Checking title : $title");
     $this->assertWantedText($description, "Checking body: $description");
 

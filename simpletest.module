@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.21 2006/12/25 11:43:39 rokZlender Exp $
+// $Id: simpletest.module,v 1.22 2007/06/23 10:23:44 rokZlender Exp $
 
 /**
  * Implementation of hook_help().
@@ -28,6 +28,10 @@ function simpletest_menu($may_cache) {
     $items[] = array('path' => 'admin/simpletest', 'title' => 'simpletest',
                      'callback' => 'simpletest_entrypoint',
                      'access' => user_access('administer unit tests'));
+    $items[] = array('path' => 'admin/simpletest/settings', 'title' => t('Simpletest settings'),
+      'callback' => 'drupal_get_form',
+      'callback arguments' => 'simpletest_settings',
+      'access' => user_access('administer unit tests'));
     return $items;
   }
 }
@@ -101,42 +105,67 @@ function simpletest_entrypoint() {
      */
     return '&nbsp;';  
   }  
-  $op = $_POST['op'];
-  $edit = $_POST;
-  if (empty($op)) {
-		$op = arg(2);
+	$output = drupal_get_form('simpletest_overview_form');
+	
+	if (simpletest_running_output()) {
+	  print theme('page',  simpletest_running_output() . $output);
+	} else {
+	  print theme('page', $output);	
 	}
-	switch ($op) {
-		case t('Run All Tests'):
+}
+
+function simpletest_running_output($output = NULL) {
+  static $o;
+  if ($output != NULL) {
+    $o = $output;
+  }
+  return $o;
+}
+
+/**
+ * FAPI form submit for simpletest_overview_form
+ *
+ * @param $form_id 
+ * @param $form_values
+ */
+function simpletest_overview_form_submit($form_id, $form_values) {
+  
+  switch ($form_values['running_options']){
+    
+    case 'all_tests':
       $output  = simpletest_run_tests();
-  		break;
-		
-		case t('Run Selected Tests'):
-		  $tests_list = array();
-			foreach($edit as $test => $checked) {
-				if ($checked && ($test != 'form_id') && ($test != 'op') && ($test != 'form_token')) {
-					$tests_list[] = $test;
-				}
-			}
-			if (count($tests_list) > 0 ) {
-				$output = simpletest_run_tests($tests_list);  	 	 
+    break;    
+    
+    case 'selected_tests':
+      $test_list = array();
+      foreach ($form_values as $test => $checked){
+        if ($checked && ($test != 'running_options' && $test != 'op' && $test != 'form_token' && $test != 'form_id')) {
+          $tests_list[] = $test;
+        }
+      }
+      if (count($tests_list) > 0 ) {
+				$output = simpletest_run_tests($tests_list);
 			}
 			else { 
 				// no test has been selected
 				drupal_set_message(t('No test has been selected.'), 'error');
-				/** @FIXME!!! */
-//				$output = form_submit(t('Back to Menu'));
-//				$output = form($output);
 			}
-			break;
-		default:
-			$output = drupal_get_form('simpletest_overview_form');
+    break;  
+    
+    default:
+      drupal_set_message(t('No test has been selected.'), 'error');
   }
-	print theme('page', $output);	
+  
+  simpletest_running_output($output);
+  return false;
 }
 
+/**
+ * Create simpletest_overview_form 
+ */
 function simpletest_overview_form() {
   $output = array();
+  
   $total_test = &simpletest_get_total_test();
   
   $test_instances = $total_test->getTestInstances();
@@ -154,12 +183,15 @@ function simpletest_overview_form() {
                     array('#type' => 'fieldset', '#collapsible' => TRUE, '#collapsed' => FALSE,
                           '#title' => $group_test->getLabel()));
   }
-  $submit[] = array('#type' => 'submit', '#value' => t('Run All Tests'));
-  $submit[] = array('#type' => 'submit', '#value' => t('Run Selected Tests'));
+  
+  $submit['running_options'] = array('#type' => 'radios', '#default_value' => 'selected_tests', 
+                    '#options' => array('all_tests' => t('Run all tests (WARNING, this may take a long time)'), 'selected_tests' => t('Run selected tests')));
+  $submit['op'] = array('#type' => 'submit', '#value' => t('Begin'));
   $output[] = array_merge($submit,
-                  array('#type' => 'fieldset', '#collapsible' => FALSE, '#collapsed' => FALSE, '#title' => 'Run tests', '#description' => t('WARNING, this may take a long time.')));
+                  array('#type' => 'fieldset', '#collapsible' => FALSE, '#collapsed' => FALSE, '#title' => 'Run tests'));
   return $output;
 }
+
 
 /**
  * Actually runs tests
@@ -209,4 +241,29 @@ function &simpletest_get_total_test($classes = NULL) {
     return new DrupalUnitTests($classes);
   }
   return $total_test;
+}
+
+
+function simpletest_settings() {
+  $from = array();
+
+  $form['http_auth'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('HTTP-AUTH Settings'),
+    '#description' => t('Auth settings'));
+  $form['http_auth']['simpletest_httpauth'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use http-auth'),
+    '#default_value' => variable_get('simpletest_httpauth', false));
+  $form['http_auth']['simpletest_httpauth_username'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Username'),
+    '#default_value' => variable_get('simpletest_httpauth_username', ''));
+  $form['http_auth']['simpletest_httpauth_pass'] = array(
+    '#title' => t('Password'),
+    '#type' => 'password',
+    '#default_value' => variable_get('simpletest_httpauth_pass', ''));
+  
+  return system_settings_form($form);
+
 }

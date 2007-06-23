@@ -1,3 +1,4 @@
-; $Id: simpletest.info,v 1.2 2006/09/02 18:56:57 rokZlender Exp $
-name = Simpletest
-description = Allows to run unit tests on the Drupal codebase.
+; $Id $
+name = "SimpleTest module"
+description = "Provides simpletest classes to developers as well as some standard tests for Drupal"
+package = Simpletest
