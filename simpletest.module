@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.22 2007/06/23 10:23:44 rokZlender Exp $
+// $Id: simpletest.module,v 1.23 2007/06/26 02:42:01 weitzman Exp $
 
 /**
  * Implementation of hook_help().
@@ -25,13 +25,18 @@ function simpletest_help($section) {
 function simpletest_menu($may_cache) {
   if ($may_cache) {
     $items = array();
-    $items[] = array('path' => 'admin/simpletest', 'title' => 'simpletest',
+    $items[] = array('path' => 'admin/build/simpletest', 
+                     'title' => 'Simpletest unit testing',
                      'callback' => 'simpletest_entrypoint',
+                     'description' => t('Run tests against Drupal core and your active modules. These tests help assure that your site code is working as designed.'),
                      'access' => user_access('administer unit tests'));
-    $items[] = array('path' => 'admin/simpletest/settings', 'title' => t('Simpletest settings'),
+    $items[] = array('path' => 'admin/settings/simpletest', 
+      'title' => t('Simpletest settings'), 
+      'description' => t('Configure unit testing framework.'),
       'callback' => 'drupal_get_form',
       'callback arguments' => 'simpletest_settings',
-      'access' => user_access('administer unit tests'));
+      'access' => user_access('administer unit tests')
+    );
     return $items;
   }
 }
@@ -249,20 +254,24 @@ function simpletest_settings() {
 
   $form['http_auth'] = array(
     '#type' => 'fieldset',
-    '#title' => t('HTTP-AUTH Settings'),
-    '#description' => t('Auth settings'));
+    '#title' => t('HTTP authentication'),
+    '#description' => t('If needed, enter a username and password for reaching your web site. This is not a drupal username/password. This
+    is a login presented by your web server. Most sites may leave section empty.'));
   $form['http_auth']['simpletest_httpauth'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Use http-auth'),
-    '#default_value' => variable_get('simpletest_httpauth', false));
+    '#title' => t('Use http authentication'),
+    '#default_value' => variable_get('simpletest_httpauth', false)
+  );
   $form['http_auth']['simpletest_httpauth_username'] = array(
     '#type' => 'textfield',
     '#title' => t('Username'),
-    '#default_value' => variable_get('simpletest_httpauth_username', ''));
+    '#default_value' => variable_get('simpletest_httpauth_username', '')
+  );
   $form['http_auth']['simpletest_httpauth_pass'] = array(
     '#title' => t('Password'),
     '#type' => 'password',
-    '#default_value' => variable_get('simpletest_httpauth_pass', ''));
+    '#default_value' => variable_get('simpletest_httpauth_pass', '')
+  );
   
   return system_settings_form($form);
 
