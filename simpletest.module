@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.23 2007/06/26 02:42:01 weitzman Exp $
+// $Id: simpletest.module,v 1.24 2007/07/02 19:11:12 rokZlender Exp $
 
 /**
  * Implementation of hook_help().
@@ -203,8 +203,9 @@ function simpletest_overview_form() {
  * @param array $testlist list of tests to run or DEFAULT NULL run all tests
  */
 function simpletest_run_tests($testlist = NULL) {
-  if (!defined("TEST_RUNNING")) {
-    define("TEST_RUNNING", true);
+  global $test_running;
+  if (!$test_running) {
+    $test_running = TRUE;
     $test = simpletest_get_total_test($testlist);
     if (SimpleReporter::inCli()) {
       cache_clear_all();
@@ -215,6 +216,7 @@ function simpletest_run_tests($testlist = NULL) {
     cache_clear_all();
     $test->run($reporter);
 //    exit;
+    $test_running = FALSE;
     return $reporter->getOutput();
   }
 }
