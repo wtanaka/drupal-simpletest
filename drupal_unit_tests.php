@@ -125,22 +125,24 @@ class DrupalUnitTests extends DrupalGroupTest {
     if (module_exists($name)) {
       return TRUE;
     }
-    /* Refreshes the system table, formerly system_module_listing() */
-    system_modules();
-    /* Update table */
-    db_query("UPDATE {system} SET status = 1 WHERE name = '%s' AND type = 'module'", $name);
-    if (db_affected_rows()) {
-      /* Make sure not overwriting when double switching */
+    include_once './includes/install.inc';
+    module_rebuild_cache(); // Rebuild the module cache
+    if (drupal_get_installed_schema_version($name, TRUE) == SCHEMA_UNINSTALLED) {
+      drupal_install_modules(array($name));
+    }
+    else {
+      $try = module_enable(array($name));
+    }
+
+    if(module_exists($name)) {
       if (!isset($this->_cleanupModules[$name])) {
         $this->_cleanupModules[$name] = 0;
+        return TRUE;
       }
-      /* refresh module_list */
-      module_list(TRUE);
-      menu_rebuild();
-      return TRUE;
     }
-    die("required module $name could not be enbled, probably file not exists");
-    return FALSE;
+    else {
+      die("required module $name could not be enbled, probably file not exists");
+    }
   }
 
 
@@ -161,11 +163,10 @@ class DrupalUnitTests extends DrupalGroupTest {
         $this->_cleanupModules[$name] = 1;
       }
       /* refresh module_list */
-      module_list(TRUE);
+      module_list(TRUE, FALSE);
       return TRUE;
     }
     die("incompatible module $name could not be disabled for unknown reason");
-    return FALSE;
   }
 }
 ?>

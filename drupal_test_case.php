@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.28 2007/06/24 08:05:07 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.29 2007/07/23 12:14:00 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -199,7 +199,7 @@ class DrupalTestCase extends WebTestCase {
     else {
       $try = module_enable(array($name));
     }
-    module_list(TRUE, FALSE);
+
     if(module_exists($name)) {
       if (!isset($this->_cleanupModules[$name])) {
         $this->_cleanupModules[$name] = 0;
