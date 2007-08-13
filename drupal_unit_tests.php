@@ -2,11 +2,11 @@
 /**
  * Implementes getTestInstances to allow access to the test objects from outside
  */
-class DrupalGroupTest extends GroupTest {
+class DrupalTestSuite extends TestSuite {
   var $_cleanupModules   = array();
 
-  function DrupalGroupTest($label) {
-    $this->GroupTest($label);
+  function DrupalTestSuite($label) {
+    $this->TestSuite($label);
   }
   
   /**
@@ -23,7 +23,7 @@ class DrupalGroupTest extends GroupTest {
   } 
 }
 
-class DrupalUnitTests extends DrupalGroupTest {
+class DrupalUnitTests extends DrupalTestSuite {
   /**
    * Constructor
    * @param array   $class_list  list containing the classes of tests to be processed
@@ -31,7 +31,7 @@ class DrupalUnitTests extends DrupalGroupTest {
    */
   function DrupalUnitTests($class_list = NULL) {
     static $classes;
-    $this->GroupTest('Drupal Unit Tests');
+    $this->DrupalTestSuite('Drupal Unit Tests');
     
     /* Tricky part to avoid double inclusion */
     if (!$classes) {
@@ -39,33 +39,23 @@ class DrupalUnitTests extends DrupalGroupTest {
     
       $existing_classes = get_declared_classes();
       foreach ($files as $file) {
-          if ($error = $this->_requireWithError($file)) {
-          $this->addTestCase(new BadGroupTest($file, $error));
-          return;
-        }
+        include_once($file);
       }
-      
-      if (is_null($class_list)) {
-        $classes = $this->_selectRunnableTests($existing_classes, get_declared_classes());
-      }
-      else {
-        $classes = $class_list;
-      }
-    }
-        
-    if (count($classes) == 0) {
-      $this->addTestCase(new BadGroupTest($test_file, 'No new test cases'));
-      return;
+      $classes = array_diff(get_declared_classes(), $existing_classes);
     }
     if (!is_null($class_list)) {
       $classes = $class_list; 
+    }   
+    if (count($classes) == 0) {
+      $this->addTestCase(new BadGroupTest($test_file, 'No new test cases'));
+      return;
     }
     $groups = array();
     foreach ($classes as $class) {
       $this->_addClassToGroups($groups, $class);
     }
     foreach ($groups as $group_name => $group) {
-      $group_test = &new DrupalGroupTest($group_name);
+      $group_test = &new DrupalTestSuite($group_name);
       foreach ($group as $key => $v) {
         $group_test->addTestCase($group[$key]); 
       }
