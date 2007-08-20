@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.29 2007/07/23 12:14:00 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.30 2007/08/20 05:59:20 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -120,7 +120,7 @@ class DrupalTestCase extends WebTestCase {
       }
     }
     
-    $ret = $this->_browser->clickSubmit(t($submit));
+    $ret = $this->_browser->clickSubmit(t($submit))  || $this->_browser->clickSubmitByName($submit) || $this->_browser->clickImageByName($submit);
 //    $ret = $this->_browser->clickSubmitByName('op');
     $this->assertTrue($ret, ' [browser] POST by click on ' . t($submit));
     $this->_content = $this->_browser->getContent();
@@ -326,8 +326,9 @@ class DrupalTestCase extends WebTestCase {
    * Logs in a user with the internal browser
    *
    * @param object user object with pass_raw property!
+   * @param $submit value of submit button on log in form
    */
-  function drupalLoginUser($user = NULL) {
+  function drupalLoginUser($user = NULL, $submit = 'Log in') {
 
     $this->drupalGet( url("user", NULL, NULL, TRUE) );
     // Going to the page retrieves the cookie, as the browser should save it
@@ -337,7 +338,7 @@ class DrupalTestCase extends WebTestCase {
     }
     
     $edit = array('name' => $user->name, 'pass' => $user->pass_raw);
-    $this->drupalPostRequest('user', $edit, 'Log in');
+    $this->drupalPostRequest('user', $edit, $submit);
 
     $this->assertText( $user->name, ' [login] found name: ' . $user->name);
     $this->assertNoText(t('The username %name has been blocked.', array('%name' => $user->name)), ' [login] not blocked');
@@ -375,11 +376,7 @@ class DrupalTestCase extends WebTestCase {
 
     while (sizeof($this->_cleanupUsers) > 0) {
       $uid = array_pop($this->_cleanupUsers);
-      $account = user_load(array('uid' => $uid));
-      db_query('DELETE FROM {users} WHERE uid = %d', $account->uid);
-      db_query('DELETE FROM {sessions} WHERE uid = %d', $account->uid);
-      db_query('DELETE FROM {users_roles} WHERE uid = %d', $account->uid);
-      db_query('DELETE FROM {authmap} WHERE uid = %d', $account->uid);
+      user_delete(array(), $uid);
     }
     parent::tearDown();
   }
