@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.30 2007/08/20 05:59:20 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.31 2007/09/08 23:02:40 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -101,7 +101,7 @@ class DrupalTestCase extends WebTestCase {
    * @param boolean $reporting assertations or not
    */
   function drupalPostRequest($path, $edit = array(), $submit, $edit_multi = array()) {
-    $url = url($path, NULL, NULL, TRUE);
+    $url = url($path, array('absolute' => TRUE));
     $ret = $this->drupalGet($url);
 
     $this->assertTrue($ret, " [browser] GET $url");
@@ -199,7 +199,7 @@ class DrupalTestCase extends WebTestCase {
     else {
       $try = module_enable(array($name));
     }
-
+    menu_rebuild();
     if(module_exists($name)) {
       if (!isset($this->_cleanupModules[$name])) {
         $this->_cleanupModules[$name] = 0;
@@ -330,7 +330,7 @@ class DrupalTestCase extends WebTestCase {
    */
   function drupalLoginUser($user = NULL, $submit = 'Log in') {
 
-    $this->drupalGet( url("user", NULL, NULL, TRUE) );
+    $this->drupalGet( url("user", array('absolute' => TRUE)) );
     // Going to the page retrieves the cookie, as the browser should save it
 
     if ($user === NULL) {
@@ -354,10 +354,12 @@ class DrupalTestCase extends WebTestCase {
     foreach ($this->_cleanupModules as $name => $status) {
       db_query("UPDATE {system} SET status = %d WHERE name = '%s' AND type = 'module'", $status, $name);
     }
+    if (!empty($this->_cleanupModules)) {
+      module_list(TRUE, FALSE);
+      menu_rebuild();
+    }
     $this->_cleanupModules = array();
-    // Refresh the modules list
-    module_list(TRUE, FALSE);
-    menu_rebuild();
+
 
     foreach ($this->_cleanupVariables as $name => $value) {
       if (is_null($value)) {

@@ -11,6 +11,7 @@ class DrupalReporter extends SimpleReporter {
   var $_passes_stack     = array(0);
   var $_progress_stack   = array(0);
   var $test_info_stack   = array();
+  var $_output_stack_id  = -1;
   var $form;
   var $form_depth = array();
   var $current_field_set = array();
@@ -169,7 +170,7 @@ class DrupalReporter extends SimpleReporter {
 	  $this->writeContent('<strong>' . $this->getPassCount() . '</strong> passes, <strong>' . $this->getFailCount() . '</strong> fails and <strong>' . $this->getExceptionCount() . '</strong> exceptions.', $parent_weight, $class);
 	  if (count($this->test_stack) != 0) {
         $this->writeContent(theme('table', array(), $this->test_stack));
-        unset($this->test_stack);
+        $this->test_stack = array();
       }
 	  array_pop($this->form_depth);
     }
@@ -255,7 +256,7 @@ class DrupalReporter extends SimpleReporter {
   	return $form['#weight'];
   }
 }
-function unit_tests($reporter) {
-  return $reporter->form;	
+function unit_tests($args, $reporter) {
+  return $reporter->form['Drupal Unit Tests'];	
 }
 ?>

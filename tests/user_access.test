@@ -10,8 +10,8 @@ class UserAccessTest extends DrupalTestCase {
   }
 
   function _addMask($mask, $type, $status = 0) {
-    $aid = db_next_id('{access}_aid');
-    db_query("INSERT INTO {access} (aid, mask, type, status) VALUES ('%s', '%s', '%s', %d)", $aid, $mask, $type, $status);
+    db_query("INSERT INTO {access} (mask, type, status) VALUES ('%s', '%s', %d)", $mask, $type, $status);
+    $aid = db_last_insert_id('access', 'aid');
     $str_status = ($status == 0) ? 'deny' : 'allow';
     $this->assertTrue(db_affected_rows() > 0, "$str_status Mask added for $type '$mask'");
     $this->_cleanup_masks[] = $aid;

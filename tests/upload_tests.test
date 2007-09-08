@@ -1,5 +1,5 @@
 <?php
-/* $Id: upload_tests.test,v 1.10 2007/06/25 07:43:57 rokZlender Exp $ */
+/* $Id: upload_tests.test,v 1.11 2007/09/08 23:02:40 rokZlender Exp $ */
 class UploadPictureTests extends DrupalTestCase {
   
 
@@ -43,8 +43,8 @@ class UploadPictureTests extends DrupalTestCase {
     // not a image
     $img_path = realpath(drupal_get_path('module', 'simpletest'). "/tests/upload_tests.test");
     $edit = array('files[picture_upload]' => $img_path);
-    $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
-    $this->assertWantedText(t('The uploaded file was not an image.'), 'The uploaded file was not an image.');
+    $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Save' );
+    $this->assertWantedText(t('The selected file @file could not be uploaded. Only JPEG, PNG and GIF images are allowed.', array('@file' => 'upload_tests.test')), 'The uploaded file was not an image.');
      variable_set('user_pictures', $old_pic_set);
 
     // do we have to check users roles?
@@ -89,7 +89,7 @@ class UploadPictureTests extends DrupalTestCase {
 
         // TEST:
         $edit = array('picture' => $img_path);
-        $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
+        $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Save' );
         $file_dir = variable_get('file_directory_path', 'files');
         $picture_dir = variable_get('user_picture_path', 'pictures');
         $pic_path = $file_dir .'/'.$picture_dir .'/picture-'.$user->uid.'.jpg';
@@ -146,7 +146,7 @@ class UploadPictureTests extends DrupalTestCase {
 
         // TEST:
         $edit = array('picture' => $img_path);
-        $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
+        $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Save' );
         $file_dir = variable_get('file_directory_path', 'files');
         $picture_dir = variable_get('user_picture_path', 'pictures');
         $pic_path = $file_dir .'/'.$picture_dir .'/picture-'.$user->uid.'.jpg';
@@ -201,7 +201,7 @@ class UploadPictureTests extends DrupalTestCase {
 
         // TEST:
         $edit = array('picture' => $img_path);
-        $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
+        $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Save' );
         $text = t('The uploaded image is too large; the maximum dimensions are %dimensions pixels.', array('%dimensions' => variable_get('user_picture_dimensions', '85x85')));
         $this->assertWantedText($text, 'Checking response on invalid image (dimensions).');
 
@@ -250,7 +250,7 @@ class UploadPictureTests extends DrupalTestCase {
         variable_set('user_picture_file_size', $test_size);
 
         $edit = array('picture' => $img_path);
-        $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
+        $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Save' );
         $text = t('The uploaded image is too large; the maximum file size is %size kB.', array('%size' => variable_get('user_picture_file_size', '30')));
         $this->assertWantedText($text, 'Checking response on invalid image size.');
 
@@ -301,7 +301,7 @@ class UploadPictureTests extends DrupalTestCase {
 
       // TEST:
       $edit = array('files[picture_upload]' => $img_path);
-      $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Submit' );
+      $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Save' );
       $picture_dir = variable_get('user_picture_path', 'pictures');
       $pic_path = file_directory_path() .'/'.$picture_dir .'/picture-'.$user->uid.'.jpg';
 

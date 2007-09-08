@@ -1,5 +1,5 @@
 <?php
-/* $Id: taxonomy.module.test,v 1.7 2007/06/23 10:23:44 rokZlender Exp $ */
+/* $Id: taxonomy.module.test,v 1.8 2007/09/08 23:02:40 rokZlender Exp $ */
 
 class TaxonomyVocabularyFunctions extends DrupalTestCase {
   function get_info() {
@@ -46,7 +46,7 @@ class TaxonomyVocabularyFunctions extends DrupalTestCase {
     }
     $edit['vid'] = $vid;
     // get data using function
-    $getEdit = taxonomy_get_vocabulary($vid);
+    $getEdit = taxonomy_vocabulary_load($vid);
     foreach($getEdit as $key => $value ) {
       $this->assertEqual($value, $edit[$key],"Checking value of $key");
     }
@@ -278,13 +278,13 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
     $patternArray['term name 2'] = $termname;
 
     // create test user and login
-    $perm = array('access content', 'create story content', 'edit story content');
+    $perm = array('access content', 'create story content', 'edit story content', 'delete own story content');
     $account = $this->drupalCreateUserRolePerm($perm);
     $this->drupalLoginUser($account);
     
     // why is this printing out the user profile page?
     // go to node/add/story
-    $this->drupalGet(url('node/add/story', NULL, NULL, TRUE));
+    $this->drupalGet(url('node/add/story', array('absolute' => TRUE)));
     $req = $this->_browser->getRequest();
 
     $headers = $this->_browser->getHeaders();
@@ -303,8 +303,8 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
     
     // multiple slect box was failing through drupalPostRequest. Use raw POST instead
     // Failing because they were being sent/handled wrong (earnest.berry@gmail.com <Souvent22>)
-    $action = url('node/add/story', NULL, NULL, TRUE);
-    $this->drupalPostRequest($action, $edit, 'Submit', $edit_multi);
+    $action = url('node/add/story', array('absolute' => TRUE));
+    $this->drupalPostRequest($action, $edit, 'Save', $edit_multi);
     $content = $this->drupalGetContent();
     $patternArray['body text'] = $body;
     $patternArray['title'] = $title;
@@ -348,7 +348,7 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
     // than other form/field types
     $edit_multi = array('taxonomy-' . $vid => $parent);
     
-    $this->drupalPostRequest('node/'. $node->nid .'/edit', $edit, 'Submit', $edit_multi);
+    $this->drupalPostRequest('node/'. $node->nid .'/edit', $edit, 'Save', $edit_multi);
 
     // TODO Do a MUCH better check here of the information msg
     $patternArray['information message'] = 'been updated';
@@ -370,8 +370,8 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
     $this->_browser->get(url("node/".$node->nid));
     $this->assertNoUnwantedText($termname, "Checking if node exists");
     // checking database fields
-    $result = db_query('SELECT tid FROM {term_node} WHERE nid = %d', $node->nid);
-    $this->assertEqual(db_num_rows($result), 0, 'Checking database field after deletion');
+    $num_rows = db_result(db_query('SELECT COUNT(*) FROM {term_node} WHERE nid = %d', $node->nid));
+    $this->assertEqual($num_rows, 0, 'Checking database field after deletion');
 
     // delete vocabulary
     // to avoid exception messages create array with empty fields

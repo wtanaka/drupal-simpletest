@@ -1,5 +1,5 @@
 <?php
-// $Id: user_registration_test.test,v 1.10 2007/06/23 10:23:44 rokZlender Exp $
+// $Id: user_registration_test.test,v 1.11 2007/09/08 23:02:40 rokZlender Exp $
 /**
  * Class to test the user registration process,
  * - based on initial version by Kuba Zygmunt -
@@ -44,7 +44,7 @@ class UserRegistrationTest extends DrupalTestCase {
     $this->assertEqual($user->signature, '','Checking signature field');
     $this->assertTrue(($user->created > time() - 20 ), 0,'Checking creation time.');
     $this->assertEqual($user->status, variable_get('user_register', 1) == 1 ? 1 : 0,'Checking status field');
-    $this->assertEqual($user->timezone, NULL, 'Checking timezone field');
+    $this->assertEqual($user->edit-timezone, NULL, 'Checking timezone field');
     $this->assertEqual($user->language, '', 'Checking language field');
     $this->assertEqual($user->picture, '', 'Check picture field');
     $this->assertEqual($user->init, $mail, 'Check init field');
@@ -69,7 +69,7 @@ class UserRegistrationTest extends DrupalTestCase {
     $new_pass = user_password();
     $this->assertTrue($this->_browser->setField('pass[pass1]', $new_pass), 'Pass1 field set.');
     $this->assertTrue($this->_browser->setField('pass[pass2]', $new_pass), 'Pass2 field set.');
-    $this->_browser->clickSubmit();
+    $this->_browser->clickSubmit(t('Save'));
     $this->assertText(t('The changes have been saved.'), "Changed password to '$new_pass'");
     
     /* Check if the password changes are present in db */
