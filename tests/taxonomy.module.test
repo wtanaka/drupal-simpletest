@@ -1,5 +1,5 @@
 <?php
-/* $Id: taxonomy.module.test,v 1.8 2007/09/08 23:02:40 rokZlender Exp $ */
+/* $Id: taxonomy.module.test,v 1.9 2007/09/18 14:59:13 rokZlender Exp $ */
 
 class TaxonomyVocabularyFunctions extends DrupalTestCase {
   function get_info() {
@@ -362,9 +362,7 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
       $this->assertTrue(in_array($nodeRow['tid'], $parent), 'Checking database field');
     }
 
-    // delete node
-    // node_delete(array('nid' => $node->nid, 'confirm' => 1));
-    // delete through browser
+    // delete node through browser
     $this->drupalPostRequest('node/'. $node->nid .'/delete', array(), 'Delete' );
     // checking after delete
     $this->_browser->get(url("node/".$node->nid));

@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.31 2007/09/08 23:02:40 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.32 2007/09/18 14:59:12 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -378,6 +378,11 @@ class DrupalTestCase extends WebTestCase {
 
     while (sizeof($this->_cleanupUsers) > 0) {
       $uid = array_pop($this->_cleanupUsers);
+      // cleanup nodes this user created
+      $result = db_query("SELECT nid FROM {node} WHERE uid = %d", $uid);
+      while ($node = db_fetch_array($result)) {
+        node_delete($node['nid']);
+      }
       user_delete(array(), $uid);
     }
     parent::tearDown();

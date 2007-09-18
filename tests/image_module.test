@@ -1,6 +1,6 @@
 <?php
 
-/* $Id: image_module.test,v 1.10 2007/06/23 10:23:44 rokZlender Exp $ */
+/* $Id: image_module.test,v 1.11 2007/09/18 14:59:13 rokZlender Exp $ */
 class ImageModuleTest extends DrupalTestCase {
   function get_info() {
     $modules = (module_list());
@@ -128,8 +128,6 @@ class ImageModuleTest extends DrupalTestCase {
     $this->assertWantedText($title, "Checking title : $title");
     $this->assertWantedText($description, "Checking body: $description");
 
-    // delete image node
-    node_delete($node->nid);
   }
 }
 

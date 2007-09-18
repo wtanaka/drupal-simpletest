@@ -1,5 +1,5 @@
 <?php
-// $Id: page_view.test,v 1.9 2007/09/08 23:02:40 rokZlender Exp $
+// $Id: page_view.test,v 1.10 2007/09/18 14:59:13 rokZlender Exp $
 class PageViewTest extends DrupalTestCase {
   /**
    * Implementation of get_info() for information
@@ -52,6 +52,7 @@ class PageViewTest extends DrupalTestCase {
     $this->assertResponse(403);
     
     $test_user = $this->drupalCreateUserRolePerm(array('administer nodes'));
+    //TODO: Add edit page attempt with administer nodes user
     node_delete(array('nid' => $node->nid));
   }
 }
