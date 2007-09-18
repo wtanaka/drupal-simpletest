@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.26 2007/09/08 23:02:40 rokZlender Exp $
+// $Id: simpletest.module,v 1.27 2007/09/18 15:29:39 rokZlender Exp $
 
 /**
  * Implementation of hook_help().
@@ -107,9 +107,9 @@ function simpletest_entrypoint() {
      */
     return '&nbsp;';  
   }  
-  
+  drupal_add_js(drupal_get_path('module', 'simpletest') . '/simpletest.js', 'module');
   $output = drupal_get_form('simpletest_overview_form');
-	
+
   if (simpletest_running_output()) {
 	print theme('page',  simpletest_running_output() . $output);
   } else {
@@ -141,9 +141,9 @@ function simpletest_overview_form_submit($form, &$form_state) {
     
     case 'selected_tests':
       $test_list = array();
-      foreach ($form_state['values'] as $test => $checked){
-        if ($checked == 1) {
-          $tests_list[] = $test;
+      foreach ($form_state['values'] as $item => $value){
+        if ($value == 1 && strpos($item, 'selectall') === FALSE) {
+          $tests_list[] = $item;
         }
       }
       if (count($tests_list) > 0 ) {
@@ -175,16 +175,24 @@ function simpletest_overview_form() {
   foreach ($test_instances as $group_test) {
     $group = array();
     $tests = $group_test->getTestInstances();
+    $group_class = str_replace(' ', '-', strtolower($group_test->getLabel()));
+    $group['tests'] = array(
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#title' => 'Tests',
+      '#attributes' => array('class' => $group_class), 
+    );
     foreach($tests as $test) {
       $test_info = $test->get_info();
       $desc = $test_info['desc'];
-      $group[get_class($test)] = array('#type' => 'checkbox', '#title' => $test_info['name'], '#default_value' => 0,
+      $group['tests'][get_class($test)] = array('#type' => 'checkbox', '#title' => $test_info['name'], '#default_value' => 0,
                                                    '#description' => $desc);
       
     }
     $output[] = array_merge($group,
-                    array('#type' => 'fieldset', '#collapsible' => TRUE, '#collapsed' => FALSE,
-                          '#title' => $group_test->getLabel()));
+                     array('#type' => 'fieldset', '#collapsible' => FALSE, '#collapsed' => FALSE,
+                          '#title' => $group_test->getLabel(), '#attributes' => array('class' => 'select_all')));
   }
   
   $submit['running_options'] = array('#type' => 'radios', '#default_value' => 'selected_tests', 
