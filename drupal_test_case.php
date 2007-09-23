@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.33 2007/09/20 12:47:58 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.34 2007/09/23 08:35:23 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -98,9 +98,8 @@ class DrupalTestCase extends WebTestCase {
    * @param string  $path      location of the post form
    * @param array   $edit      field data
    * @param string  $submit    name of the submit button, untranslated
-   * @param boolean $reporting assertations or not
    */
-  function drupalPostRequest($path, $edit = array(), $submit, $edit_multi = array()) {
+  function drupalPostRequest($path, $edit = array(), $submit) {
     $url = url($path, array('absolute' => TRUE));
     $ret = $this->drupalGet($url);
 
@@ -109,15 +108,6 @@ class DrupalTestCase extends WebTestCase {
       $ret = $this->_browser->setFieldByName($field_name, $field_value)
           || $this->_browser->setFieldById("edit-$field_name", $field_value);
       $this->assertTrue($ret, " [browser] Setting $field_name=\"$field_value\"");
-    }
-    if ( is_array($edit_multi) )  {
-      // Mutli-values
-      foreach( $edit_multi as $field_name => $field_values) {
-        $ret = $this->assertFieldById( "edit-$field_name") || $this->assertFieldByName( $field_name );
-        $this->assertTrue($ret, " [browser] Asserting multi-field $field_name=\"(" . implode(',', $field_values) . ")\"");
-        $ret = $this->setFieldById( "edit-$field_name", $field_values );
-        $this->assertTrue($ret, " [browser] Setting multi-field $field_name=\"(" . implode(',', $field_values) . ")\"");
-      }
     }
     
     $ret = $this->_browser->clickSubmit(t($submit))  || $this->_browser->clickSubmitByName($submit) || $this->_browser->clickImageByName($submit);
