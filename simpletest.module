@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.28 2007/11/29 10:07:07 rokZlender Exp $
+// $Id: simpletest.module,v 1.29 2007/11/29 10:17:51 rokZlender Exp $
 
 /**
  * Implementation of hook_help().
@@ -142,7 +142,7 @@ function simpletest_overview_form_submit($form, &$form_state) {
     case 'selected_tests':
       $test_list = array();
       foreach ($form_state['values'] as $item => $value){
-        if ($value == 1 && strpos($item, 'selectall') === FALSE) {
+        if ($value === 1 && strpos($item, 'selectall') === FALSE) {
           $tests_list[] = $item;
         }
       }
