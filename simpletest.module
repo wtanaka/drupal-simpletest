@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.27 2007/09/18 15:29:39 rokZlender Exp $
+// $Id: simpletest.module,v 1.28 2007/11/29 10:07:07 rokZlender Exp $
 
 /**
  * Implementation of hook_help().
@@ -280,6 +280,18 @@ function simpletest_settings() {
     '#title' => t('Password'),
     '#type' => 'password',
     '#default_value' => variable_get('simpletest_httpauth_pass', '')
+  );
+  
+  $form['devel'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Devel module settings'),
+    '#description' => t('Devel module can cause problems if you have query log enabled. It will output a few thousand queries and crash your browser'),
+  );
+  
+  $form['devel']['simpletest_devel'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use devel query log on test result pages'),
+    '#default_value' => variable_get('simpletest_devel', false),
   );
   
   return system_settings_form($form);

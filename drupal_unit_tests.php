@@ -93,9 +93,11 @@ class DrupalUnitTests extends DrupalTestSuite {
     @set_time_limit(0);
     ignore_user_abort(true);
     
-    // Disable known problematic modules
-    $this->drupalModuleDisable('devel');
-    
+    // Disable devel output, check simpletest settings page
+    if (!variable_get('simpletest_devel', false)) {
+      $GLOBALS['devel_shutdown'] = FALSE;
+    }
+        
     parent::run($reporter);
 
     // Restores modules
