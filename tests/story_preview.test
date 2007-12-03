@@ -1,0 +1,38 @@
+<?php
+/*
+ * Written by Corni for the Google Highly Open Participation Contest.
+ * Credits go to the coder of the page_creation.test
+ */
+/**
+* Test file for story_preview
+*/
+class StoryPreviewTest extends DrupalTestCase {
+  function get_info() {
+    return array(
+   'name'  => 'Story preview test',
+   'desc'  => t('We want a working preview for storys, uh?'),
+   'group' => 'Node Tests');
+  }
+  
+  function testStoryPreview() {
+    /* Prepare settings */
+    $this->drupalVariableSet('node_options_story', array('status', 'promote'));
+    /* Prepare a user to do the stuff */
+    $web_user = $this->drupalCreateUserRolePerm(array('edit own story content', 'create story content'));
+    $this->drupalLoginUser($web_user);
+  
+    $edit = array(
+      'title'=>'!SimpleTest! title' . $this->randomName(20),
+      'body'=>'!SimpleTest! body' . $this->randomName(200),
+    );
+    $this->drupalPostRequest('node/add/story', $edit, 'Preview');
+
+    $this->assertWantedText(t('Preview'), 'Preview text is here');
+    $this->assertWantedText(t($edit['title']), 'Hello, the random title');
+    $this->assertWantedText(t($edit['body']), 'test is over, the body\'s still there');
+  
+    $this->assertFieldByName('title', $edit['title'], 'The title is on it\'s place');
+  
+  }
+
+}
