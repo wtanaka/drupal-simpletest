@@ -1,0 +1,129 @@
+<?php
+// $Id: node_revisions.test,v 1.1 2007/12/25 11:52:12 rokZlender Exp $
+class NodeRevisionsTest extends DrupalTestCase {
+  /**
+   * Implementation of get_info() for information
+   */
+  function get_info() {
+    return array(
+      'name' => t('Node revisions tests'), 
+      'desc' => t('Creates a node of type page and then a user tries various revision actions such as viewing, reverting to, and deleting revisions.'),
+      'group' => 'Node Tests',
+    );
+  }
+
+  /**
+   * Setup function used by tests. Creates a node with three revisions.
+   *
+   * If $log is TRUE, then a log message will be recorded.
+   */
+  function setup($log = FALSE) {
+    global $user;
+
+    $returnarray = array();
+    $node = new stdClass();
+    $numtimes = 3; // First, middle, last.
+    for ($i = 0; $i < $numtimes; $i++) {
+      $node->body      = $this->randomName(32 + $i);
+      $node->title     = $this->randomName(8 + $i);
+      $node->teaser    = $node->body;
+      $node->comment   = '2';
+      $node->created   = time();
+      $node->date      = format_date($node->created, 'custom', 'Y-m-d H:i:s O');
+      $node->format    = '1';
+      $node->moderate  = 0;
+      $node->name      = $user->name;
+      $node->uid       = $user->uid;
+      $node->promote   = 0;
+      $node->revision  = 1;
+      $node->log     = '';
+      if ($i == 1 && $log) {
+        $logmessage    = $this->randomName(32);
+        $node->log     = $logmessage;
+        $returnarray['log'] = $logmessage;
+      }
+      $node->status    = '1';
+      $node->sticky    = 0;
+      $node->type      = 'page';
+      $node->revisions = NULL;
+      $node->changed   = $node->created;
+      $node->taxonomy  = NULL;
+      node_save($node);
+      // Avoid confusion on the revisions overview page which is sorted by r.timestamp.
+      sleep(1);
+      if ($i == 1) {
+        $text          = $node->body;
+        $vid           = $node->vid;
+        $returnarray['vid'] = $vid;
+        $returnarray['text'] = $text;
+      }
+    }
+    $returnarray['node'] = $node;
+    return $returnarray;
+  }
+
+  /**
+   * Simpletest test. Tests to make sure the correct revision text appears on "view revisions" page.
+   */
+  function testNodeRevisions() {
+    extract( $this->setup() );
+
+    $test_user = $this->drupalCreateUserRolePerm(array('view revisions'));
+    $this->drupalLoginUser($test_user);
+    $this->drupalGet(url("node/$node->nid/revisions/$vid/view", array('absolute' => TRUE)));
+    $this->assertText($text, 'Check to make sure correct revision text appears on "view revisions" page.');
+
+    $this->cleanup($node->nid);
+  }
+
+  /**
+   * Simpletest test. Tests to make sure the correct log message appears on "revisions overview" page.
+   */
+  function testLogMessage() {
+    extract( $this->setup(TRUE) );
+
+    $test_user = $this->drupalCreateUserRolePerm(array('view revisions'));
+    $this->drupalLoginUser($test_user);
+    $this->drupalGet(url("node/$node->nid/revisions", array('absolute' => TRUE)));
+    $this->assertText($log, 'Check to make sure log message is properly displayed.');
+
+    $this->cleanup($node->nid);
+  }
+
+  /**
+   * Simpletest test. Tests to make sure the that revisions revert properly.
+   */
+  function testRevisionRevert() {
+    extract( $this->setup() );
+
+    $test_user = $this->drupalCreateUserRolePerm(array('revert revisions', 'edit any page content'));
+    $this->drupalLoginUser($test_user);
+    $this->drupalPostRequest("node/$node->nid/revisions/$vid/revert", array(), 'Revert');
+    $newnode = node_load($node->nid);
+    $this->assertTrue(($text == $newnode->body), 'Check to make sure reversions occur properly');
+
+    $this->cleanup($node->nid);
+  }
+
+  /**
+   * Simpletest test. Tests to make sure the revision deletes properly.
+   */
+  function testRevisionDelete() {
+    extract( $this->setup() );
+
+    $test_user = $this->drupalCreateUserRolePerm(array('delete revisions', 'delete any page content'));
+    $this->drupalLoginUser($test_user);
+    $this->drupalPostRequest("node/$node->nid/revisions/$vid/delete", array(), 'Delete');
+    $this->assertTrue(db_result(db_query('SELECT COUNT(vid) FROM {node_revisions} WHERE nid = %d and VID = %d', $node->nid, $vid)) == 0, 'Check to make sure revisions delete properly');    $this->cleanup($node->nid);
+
+    $this->cleanup($node->nid);
+  }
+
+  /**
+   * Cleanup function used by tests. Deletes the associated node.
+   */
+  function cleanup($nid) {
+    node_delete(array('nid' => $nid));
+  }
+}
+?>
