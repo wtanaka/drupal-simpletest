@@ -1,23 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.29 2007/11/29 10:17:51 rokZlender Exp $
-
-/**
- * Implementation of hook_help().
- */
-function simpletest_help($section) {
-  $output = '';
-
-  switch ($section) {
-    case 'admin/modules#description':
-      $output = t("Simple unit testing suite");
-      break;
-    case 'admin/settings/simpletest':
-      $output = '';
-      break;
-  }
-
-  return $output;
-}
+// $Id: simpletest.module,v 1.30 2007/12/27 08:49:25 rokZlender Exp $
 
 /**
  * Implementation of hook_menu().
@@ -57,63 +39,48 @@ function simpletest_load() {
   }
   global $user;
   if ($user->uid != 1) {
-    drupal_set_message(t('We strongly suggest running the simpletests with uid=1!'));
+    drupal_set_message(t('It is strongly suggested to run the tests with the first user!'));
   }
-  
   $loaded = true;
   if (!defined('SIMPLE_TEST')) {
-    define('SIMPLE_TEST', drupal_get_path('module', 'simpletest'). '/simpletest'); 
-  } 
-  if (!is_dir(SIMPLE_TEST)){
-    $output = t('Sorry but the simpletest cannot be found in the current installation. Please notice that simpletest.module needs Simpletest framework. '
-              . 'Please download it from !simpletest_link and place it into the same directory as simpletest.module: %simpletest_directory',
-                array('!simpletest_link' => l('Simpletest on SourceForge', 'https://sourceforge.net/project/showfiles.php?group_id=76550'),
-                      '%simpletest_directory' => SIMPLE_TEST));
-    drupal_set_message($output, 'error');
-    return false;
+    define('SIMPLE_TEST', drupal_get_path('module', 'simpletest') .'/simpletest'); 
+  }
+  if (!is_dir(SIMPLE_TEST)) {
+    return simpletest_trigger_error('not available');
   }
   
-  /* We currently use only the web tester that DrupalTestCase is built upon */
-  require_once(SIMPLE_TEST . '/web_tester.php');
-  require_once(SIMPLE_TEST . '/reporter.php');
+  // We currently use only the web tester that DrupalTestCase is built upon
+  require_once(SIMPLE_TEST .'/web_tester.php');
+  require_once(SIMPLE_TEST .'/reporter.php');
   require_once('drupal_reporter.php');
  
-  if (version_compare(SimpleTest::getVersion() , '1.0.1beta2') < 0) {
-    $output = t('Due to a lot of refactoring done on simpletest library side. Simpletest module is not compatible with simpeltest versions lower thab 1.0.1beta2. '
-              . 'Please download the latest version from !simpletest_link and place it into the same directory as simpletest.module: %simpletest_directory',
-                array('!simpletest_link' => l('Simpletest on SourceForge', 'https://sourceforge.net/project/showfiles.php?group_id=76550'),
-                      '%simpletest_directory' => SIMPLE_TEST));
-    drupal_set_message($output, 'error');
-    return false;
+  if (version_compare(SimpleTest::getVersion(), '1.0.1beta2') < 0) {
+    return simpletest_trigger_error('stale version');
   }
   
-
-  
-  $path = drupal_get_path('module', 'simpletest'). '/';
-  require_once($path . 'drupal_test_case.php');
-  require_once($path . 'drupal_unit_tests.php');
+  $path = drupal_get_path('module', 'simpletest') .'/';
+  require_once($path .'drupal_test_case.php');
+  require_once($path .'drupal_unit_tests.php');
   return true;
 }
-
 
 /**
  * Menu callback for both running tests and listing possible tests
  */
 function simpletest_entrypoint() {
   if (!simpletest_load()) {
-    /**
-     * @todo find a better way for this return,
-     * currently needed to show error, true leads to page not found
-     */
+     // @TODO - Find a better way for this return.  It is currently needed to show error,
+     // and returning true leads to page not found
     return '&nbsp;';  
-  }  
-  drupal_add_js(drupal_get_path('module', 'simpletest') . '/simpletest.js', 'module');
+  }
+  drupal_add_js(drupal_get_path('module', 'simpletest') .'/simpletest.js', 'module');
   $output = drupal_get_form('simpletest_overview_form');
 
   if (simpletest_running_output()) {
-	print theme('page',  simpletest_running_output() . $output);
-  } else {
-	print theme('page', $output);	
+    return simpletest_running_output() . $output;
+  }
+  else {
+    return $output;
   }
 }
 
@@ -133,30 +100,25 @@ function simpletest_running_output($output = NULL) {
  */
 function simpletest_overview_form_submit($form, &$form_state) {
   $form_state['redirect'] = FALSE;
-  switch ($form_state['values']['running_options']){
-    
+  $output = '';
+  switch ($form_state['values']['running_options']) {
     case 'all_tests':
-      $output  = simpletest_run_tests();
-    break;    
-    
+      $output = simpletest_run_tests();
+      break;    
     case 'selected_tests':
-      $test_list = array();
+      $tests_list = array();
       foreach ($form_state['values'] as $item => $value){
         if ($value === 1 && strpos($item, 'selectall') === FALSE) {
           $tests_list[] = $item;
         }
       }
       if (count($tests_list) > 0 ) {
-				$output = simpletest_run_tests($tests_list);
-			}
-			else { 
-				// no test has been selected
-				drupal_set_message(t('No test has been selected.'), 'error');
-			}
-    break;  
-    
+        $output = simpletest_run_tests($tests_list);
+        break;
+      }
+      // Fall through
     default:
-      drupal_set_message(t('No test has been selected.'), 'error');
+      simpletest_trigger_error('no tests selected');
   }
   
   simpletest_running_output($output);
@@ -164,7 +126,7 @@ function simpletest_overview_form_submit($form, &$form_state) {
 }
 
 /**
- * Create simpletest_overview_form 
+ * Form callback;  make the form to run tests
  */
 function simpletest_overview_form() {
   $output = array();
@@ -186,20 +148,40 @@ function simpletest_overview_form() {
     foreach($tests as $test) {
       $test_info = $test->get_info();
       $desc = $test_info['desc'];
-      $group['tests'][get_class($test)] = array('#type' => 'checkbox', '#title' => $test_info['name'], '#default_value' => 0,
-                                                   '#description' => $desc);
-      
+      $group['tests'][get_class($test)] = array(
+        '#type' => 'checkbox',
+        '#title' => $test_info['name'],
+        '#default_value' => 0,
+        '#description' => $desc,
+      );
     }
-    $output[] = array_merge($group,
-                     array('#type' => 'fieldset', '#collapsible' => FALSE, '#collapsed' => FALSE,
-                          '#title' => $group_test->getLabel(), '#attributes' => array('class' => 'select_all')));
+    $output[] = $group + array(
+      '#type' => 'fieldset',
+      '#collapsible' => FALSE,
+      '#title' => $group_test->getLabel(),
+      '#attributes' => array('class' => 'select_all'),
+    );
   }
   
-  $submit['running_options'] = array('#type' => 'radios', '#default_value' => 'selected_tests', 
-                    '#options' => array('all_tests' => t('Run all tests (WARNING, this may take a long time)'), 'selected_tests' => t('Run selected tests')));
-  $submit['op'] = array('#type' => 'submit', '#value' => t('Begin'));
-  $output[] = array_merge($submit,
-                  array('#type' => 'fieldset', '#collapsible' => FALSE, '#collapsed' => FALSE, '#title' => 'Run tests'));
+  $submit['running_options'] = array(
+    '#type' => 'radios',
+    '#default_value' => 'selected_tests', 
+    '#options' => array(
+      'all_tests' => t('Run all tests (WARNING, this may take a long time)'),
+      'selected_tests' => t('Run selected tests'),
+    ),
+  );
+  $submit['op'] = array(
+    '#type' => 'submit',
+    '#value' => t('Begin'),
+  );
+  
+  $output[] = $submit + array(
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#title' => 'Run tests',
+  );
   return $output;
 }
 
@@ -217,11 +199,9 @@ function simpletest_run_tests($testlist = NULL) {
       cache_clear_all();
       exit ($test->run(new TextReporter()) ? 0 : 1);
     }
-    //$reporter = &new HtmlReporter();
     $reporter = &new DrupalReporter();
     cache_clear_all();
     $test->run($reporter);
-//    exit;
     $test_running = FALSE;
     return $reporter->getOutput();
   }
@@ -231,8 +211,8 @@ function simpletest_run_tests($testlist = NULL) {
  * Implementation of hook_simpletest().
  */
 function simpletest_simpletest() {
-	$dir = drupal_get_path('module', 'simpletest'). '/tests';
-	$tests = file_scan_directory($dir, '\.test$');
+  $dir = drupal_get_path('module', 'simpletest'). '/tests';
+  $tests = file_scan_directory($dir, '\.test$');
   return array_keys($tests);
 }
 
@@ -264,30 +244,29 @@ function simpletest_settings() {
   $form['http_auth'] = array(
     '#type' => 'fieldset',
     '#title' => t('HTTP authentication'),
-    '#description' => t('If needed, enter a username and password for reaching your web site. This is not a drupal username/password. This
-    is a login presented by your web server. Most sites may leave section empty.'));
+    '#description' => t('If needed, enter a username and password for reaching your web site. This is not a drupal username/password.') .
+                      t('This is a login presented by your web server. Most sites may leave this section empty.'),
+  );
   $form['http_auth']['simpletest_httpauth'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use http authentication'),
-    '#default_value' => variable_get('simpletest_httpauth', false)
+    '#default_value' => variable_get('simpletest_httpauth', false),
   );
   $form['http_auth']['simpletest_httpauth_username'] = array(
     '#type' => 'textfield',
     '#title' => t('Username'),
-    '#default_value' => variable_get('simpletest_httpauth_username', '')
+    '#default_value' => variable_get('simpletest_httpauth_username', ''),
   );
   $form['http_auth']['simpletest_httpauth_pass'] = array(
     '#title' => t('Password'),
     '#type' => 'password',
-    '#default_value' => variable_get('simpletest_httpauth_pass', '')
+    '#default_value' => variable_get('simpletest_httpauth_pass', ''),
   );
-  
   $form['devel'] = array(
     '#type' => 'fieldset',
     '#title' => t('Devel module settings'),
     '#description' => t('Devel module can cause problems if you have query log enabled. It will output a few thousand queries and crash your browser'),
   );
-  
   $form['devel']['simpletest_devel'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use devel query log on test result pages'),
@@ -296,4 +275,22 @@ function simpletest_settings() {
   
   return system_settings_form($form);
 
+}
+
+function simpletest_trigger_error($type) {
+  switch ($type) {
+    case 'not available':
+      $output = t('The simpletest framework cannot be found in the current installation. Please note that simpletest.module needs Simpletest framework to be installed. ');
+      $output .= t('Please download it from !simpletest_link and place it into the same directory as simpletest.module: %simpletest_directory', array('!simpletest_link' => l('Simpletest on SourceForge', 'https://sourceforge.net/project/showfiles.php?group_id=76550'), '%simpletest_directory' => SIMPLE_TEST));
+      drupal_set_message($output, 'error');
+      break;
+    case 'stale version':
+      $output = t('Due to a lot of refactoring done on simpletest library side. Simpletest module is not compatible with Simpletest versions lower than 1.0.1 beta2. ');
+      $output .= t('Please download the latest version from !simpletest_link and place it into the same directory as simpletest.module: %simpletest_directory', array('!simpletest_link' => l('Simpletest on SourceForge', 'https://sourceforge.net/project/showfiles.php?group_id=76550'), '%simpletest_directory' => SIMPLE_TEST));
+      drupal_set_message($output, 'error');
+      break;
+    case 'no tests selected':
+      drupal_set_message(t('No test has been selected.'), 'error');
+  }
+  return false;
 }

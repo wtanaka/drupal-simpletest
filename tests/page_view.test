@@ -1,5 +1,5 @@
 <?php
-// $Id: page_view.test,v 1.10 2007/09/18 14:59:13 rokZlender Exp $
+// $Id: page_view.test,v 1.11 2007/12/27 08:49:25 rokZlender Exp $
 class PageViewTest extends DrupalTestCase {
   /**
    * Implementation of get_info() for information
@@ -56,4 +56,3 @@ class PageViewTest extends DrupalTestCase {
     node_delete(array('nid' => $node->nid));
   }
 }
-?>
