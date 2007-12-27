@@ -1,5 +1,5 @@
 <?php
-// $Id: menu_module.test,v 1.1 2007/09/22 14:35:51 rokZlender Exp $
+// $Id: menu_module.test,v 1.2 2007/12/27 08:03:44 rokZlender Exp $
 
 class MenuModuleTestCase extends  DrupalTestCase {
 
@@ -23,7 +23,7 @@ class MenuModuleTestCase extends  DrupalTestCase {
     $mlid2 = $this->uiCreateLink($mlid1);
 
     $link1 = menu_link_load($mlid1);
-    $this->assertTrue((bool)$link1, '1st link ceated and loaded');
+    $this->assertTrue((bool)$link1, '1st link created and loaded');
 
     $link2 = menu_link_load($mlid2);
     $this->assertTrue((bool)$link2, '2nd link created as child and loaded');
@@ -38,7 +38,7 @@ class MenuModuleTestCase extends  DrupalTestCase {
     $this->assertTrue($link2['menu_name'] == 'navigation' && $link2['p2'] == $mlid2 && $link2['p1'] == $mlid1 && $link2['plid'] == $mlid1 && $link2['depth'] == 2 , '2nd link has correct data');
     $this->uiDeleteLink($mlid1);
     $this->assertFalse(menu_link_load($mlid1), '1st link deleted');
-    
+
     $link2 = menu_link_load($mlid2);
     $this->assertTrue($link2['plid'] == 0, '2nd link re-parented');
     $this->uiDeleteLink($mlid2);
@@ -48,7 +48,6 @@ class MenuModuleTestCase extends  DrupalTestCase {
    * Delete a menu link using the menu module UI.
    */
   function uiDeleteLink($mlid) {
-    $this->drupalGet(url("admin/build/menu/item/". $mlid ."/delete", array('absolute' => TRUE)));
     $this->drupalPostRequest("admin/build/menu/item/". $mlid ."/delete", array(), "Confirm");
   }
   /**
@@ -79,7 +78,7 @@ class MenuModuleTestCase extends  DrupalTestCase {
 class MenuModuleCustomMenuTest extends MenuModuleTestCase {
   var $_cleanup_roles = array();
   var $_cleanup_users = array();
-  
+
   /**
    * Implementation of get_info() for information
    */
@@ -105,14 +104,126 @@ class MenuModuleCustomMenuTest extends MenuModuleTestCase {
     $name = 'menu-' .$name;
     $this->drupalGet(url("admin/build/menu", array('absolute' => TRUE)));
     $this->assertText($title, 'Menu created');
-    
+
     $mlid1 = $this->uiCreateLink(0, $name);
     $link1 = menu_link_load($mlid1);
-    $this->assertTrue((bool)$link1, '1st link ceated and loaded');
+    $this->assertTrue((bool)$link1, '1st link created and loaded');
 
-    $this->drupalGet(url("admin/build/menu-customize/". $name ."/delete", array('absolute' => TRUE)));
     $this->drupalPostRequest("admin/build/menu-customize/". $name ."/delete", array(), "Delete");
     $this->assertFalse(menu_load($name), 'Custom menu deleted');
     $this->assertFalse(menu_link_load($mlid1), '1st link deleted with menu');
+  }
+}
+
+class MenuModuleEnable extends DrupalTestCase {
+  /**
+   * Implementation of get_info() for information
+   */
+  function get_info() {
+    return array('name' => t('Menu enable'), 'desc' => 'Enable / disable a menu item', 'group' => 'Menu Module Tests');
+  }
+
+  function tearDown() {
+    parent::tearDown();
+  }
+
+  function testMenuModuleEnable() {
+    $this->drupalModuleEnable('menu');
+    $web_user = $this->drupalCreateUserRolePerm(array('administer menu'));
+    $this->drupalLoginUser($web_user);
+    $overview = url('admin/build/menu-customize/navigation', array('absolute' => TRUE));
+    $this->drupalGet($overview);
+    $this->clickLink('edit', 0);
+    $url = $this->getUrl();
+    preg_match('/\d+/', $url, $matches);
+    $item = menu_link_load($matches[0]);
+    $hidden = $item['hidden'];
+    $edit['menu[enabled]'] = $hidden ? 1 : FALSE;
+    $this->assertTrue(TRUE,  $hidden ? 'Disabled item found' : 'Enabled item found');
+    $this->drupalPostRequest('admin/build/menu/item/'. $item['mlid'] .'/edit', $edit, 'Save');
+    $item = menu_link_load($item['mlid']);
+    $this->assertTrue($item['hidden'] != $hidden, $item['hidden'] ? 'Item is now disabled' : 'Item is now enabled');
+    $edit['menu[enabled]'] = $hidden ? FALSE : 1;
+    $this->drupalPostRequest('admin/build/menu/item/'. $item['mlid'] .'/edit', $edit, 'Save');
+    $item = menu_link_load($item['mlid']);
+    $this->assertTrue($item['hidden'] == $hidden, $item['hidden'] ? 'Item is disabled again' : 'Item is now enabled again');
+  }
+}
+
+class MenuModuleReset extends DrupalTestCase {
+  /**
+   * Implementation of get_info() for information
+   */
+  function get_info() {
+    return array('name' => t('Menu reset'), 'desc' => 'Edit and reset a menu item', 'group' => 'Menu Module Tests');
+  }
+
+  function tearDown() {
+    parent::tearDown();
+  }
+
+  function testMenuModuleReset() {;
+    $this->drupalModuleEnable('menu');
+    $web_user = $this->drupalCreateUserRolePerm(array('administer menu'));
+    $this->drupalLoginUser($web_user);
+    $form_state = array();
+    $menu['menu_name'] = 'navigation';
+    require_once drupal_get_path('module', 'menu') .'/menu.admin.inc';
+    $form = drupal_retrieve_form('menu_overview_form', $form_state, $menu);
+    $found = FALSE;
+    foreach ($form as $mlid => $elements) {
+      if (isset($elements['#item']) && $elements['#item']['module'] == 'system') {
+        $found = TRUE;
+        $mlid = substr($mlid, 5);
+        break;
+      }
+    }
+    $this->assertTrue($found, 'System module item found');
+    if ($found) {
+      // We can't use menu API here because of localization issues.
+      $item = db_fetch_array(db_query('SELECT * FROM {menu_links} WHERE mlid = %d', $mlid));
+      $edit['menu[link_title]'] = $this->randomName(16);
+      $path = 'admin/build/menu/item/'. $mlid;
+      $this->drupalPostRequest($path .'/edit', $edit, 'Save');
+      $new_title = db_result(db_query('SELECT link_title FROM {menu_links} WHERE mlid = %d', $mlid));
+      $this->assertTrue($new_title == $edit['menu[link_title]'], 'Edit succesful');
+      $this->assertFalse($item['link_title'] == $new_title, 'Item changed' );
+      $reset_path = $path .'/reset';
+      $this->assertWantedRaw($reset_path, 'Reset link found');
+      $this->drupalPostRequest($reset_path, array(), 'Reset');
+      $reset_title = db_result(db_query('SELECT link_title FROM {menu_links} WHERE mlid = %d', $mlid));
+      $this->assertFalse($edit['menu[link_title]'] == $reset_title, 'Item reset');
+      $this->assertText(t('The menu item was reset to its default settings.'), 'Reset message');
+      drupal_write_record('menu_links', $item, 'mlid');
+      $restored_item = db_fetch_array(db_query('SELECT * FROM {menu_links} WHERE mlid = %d', $mlid));
+      $this->assertTrue($item == $restored_item, 'Item restored');
+    }
+  }
+}
+
+class MenuModuleInvalidPath extends DrupalTestCase {
+  /**
+   * Implementation of get_info() for information
+   */
+  function get_info() {
+    return array('name' => t('Menu invalid path'), 'desc' => 'Try to create a menu item with an invalid / inaccesible path.', 'group' => 'Menu Module Tests');
+  }
+
+  function tearDown() {
+    parent::tearDown();
+  }
+
+  function testMenuModuleInvalidPath() {
+    $this->drupalModuleEnable('menu');
+    $web_user = $this->drupalCreateUserRolePerm(array('administer menu'));
+    $this->drupalLoginUser($web_user);
+    foreach (array('-&-', 'admin/user/permissions') as $invalid_path) {
+      $edit = array (
+        'menu[link_path]' => $invalid_path,
+        'menu[link_title]' => 'title',
+      );
+      $this->drupalPostRequest("admin/build/menu-customize/navigation/add", $edit, "Save");
+      $this->assertWantedRaw(t("The path '@path' is either invalid or you do not have access to it.", array('@path' => $invalid_path)), 'Invalid path failed');
+    }
   }
 }
