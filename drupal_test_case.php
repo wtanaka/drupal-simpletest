@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.35 2007/12/29 20:16:09 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.36 2007/12/29 20:20:58 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -67,7 +67,7 @@ class DrupalTestCase extends WebTestCase {
 
   /**
    * @abstract Brokder for the post function
-   * addes the authetnication headers if
+   * adds the authetnication headers if
    * neccessary
    * @author Earnest Berry III <earnest.berry@gmail.com>
    *
