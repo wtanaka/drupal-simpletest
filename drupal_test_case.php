@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.34 2007/09/23 08:35:23 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.35 2007/12/29 20:16:09 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -24,13 +24,13 @@ class DrupalTestCase extends WebTestCase {
     }
     $this->WebTestCase($label);
   }
-  
+
   /**
-   * @abstract Checks to see if we need to send 
+   * @abstract Checks to see if we need to send
    * a http-auth header to authenticate
    * when browsing a site.
    *
-   * @param status Boolean pass true if you want to know if we are using 
+   * @param status Boolean pass true if you want to know if we are using
    * HTTP-AUTH
    * @return void
    */
@@ -40,35 +40,34 @@ class DrupalTestCase extends WebTestCase {
       return $check;
     }
     if( variable_get('simpletest_httpauth', false) ) {
-      $html = $this->authenticate( variable_get('simpletest_httpauth_username', ''), variable_get('simpletest_httpauth_pass', '') );
+      $html = $this->authenticate(variable_get('simpletest_httpauth_username', ''), variable_get('simpletest_httpauth_pass', ''));
     }
     return $html;
   }
 
   /**
-   * @abstract Brokder for the get function
-   * addes the authetnication headers if 
-   * neccessary
+   * @abstract Broker for the get function
+   * adds the authentication headers if neccessary
    * @author Earnest Berry III <earnest.berry@gmail.com>
    *
-   * @param url string Url to retch
+   * @param url URL to fetch
    * @return void
    */
   function drupalGet($url) {
     $html = $this->_browser->get($url);
-    
-    if( $this->drupalCheckAuth(true) ) {
+
+    if ($this->drupalCheckAuth(true)) {
       $html .= $this->drupalCheckAuth();
     }
-    
+
     $this->_content = $this->_browser->getContent();
-    
+
     return $html;
   }
 
   /**
    * @abstract Brokder for the post function
-   * addes the authetnication headers if 
+   * addes the authetnication headers if
    * neccessary
    * @author Earnest Berry III <earnest.berry@gmail.com>
    *
@@ -77,17 +76,17 @@ class DrupalTestCase extends WebTestCase {
    */
   function drupalRawPost($action, $edit = array()) {
     $html = $this->_browser->post($action, $edit);
-    
+
     if( $this->drupalCheckAuth(true) ) {
       $html .= $this->drupalCheckAuth();
     }
-    
+
     $this->_content = $this->_browser->getContent();
-    
+
     return $html;
   }
 
-  
+
 
   /**
    * Do a post request on a drupal page.
@@ -109,7 +108,7 @@ class DrupalTestCase extends WebTestCase {
           || $this->_browser->setFieldById("edit-$field_name", $field_value);
       $this->assertTrue($ret, " [browser] Setting $field_name=\"$field_value\"");
     }
-    
+
     $ret = $this->_browser->clickSubmit(t($submit))  || $this->_browser->clickSubmitByName($submit) || $this->_browser->clickImageByName($submit);
 //    $ret = $this->_browser->clickSubmitByName('op');
     $this->assertTrue($ret, ' [browser] POST by click on ' . t($submit));
@@ -117,13 +116,13 @@ class DrupalTestCase extends WebTestCase {
   }
 
   /**
-   *    Follows a link by name. Will click the first link
-   *    found with this link text by default, or a later
-   *    one if an index is given. Match is case insensitive
-   *    with normalised space.
-   *    Does make assertations if the click was sucessful or not
-   *    and it does translate label.
-   *    WARNING: Assertation fails on empty ("") output from the clicked link
+   *    Follows a link by name.
+   *
+   *    Will click the first link found with this link text by default, or a
+   *    later one if an index is given. Match is case insensitive with
+   *    normalized space. The label is translated label. There is an assert
+   *    for successful click.
+   *    WARNING: Assertion fails on empty ("") output from the clicked link
    *
    *    @param string $label      Text between the anchor tags.
    *    @param integer $index     Link position counting from zero.
@@ -158,7 +157,7 @@ class DrupalTestCase extends WebTestCase {
   /**
    * Generates a random string, to be used as name or whatever
    * @param integer $number   number of characters
-   * @return ransom string
+   * @return random string
    */
   function randomName($number = 4, $prefix = 'simpletest_') {
     $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';
@@ -196,9 +195,9 @@ class DrupalTestCase extends WebTestCase {
       }
       $this->pass(" [module] $name enabled");
       return TRUE;
-    } 
+    }
     else {
-      $this->fail(" [module] $name could not be enbled, probably file not exists");
+      $this->fail(" [module] $name could not be enabled, probably file not exists");
       return FALSE;
     }
   }
@@ -232,7 +231,7 @@ class DrupalTestCase extends WebTestCase {
 
 
   /**
-   * Set a druapl variable and keep track of the changes for tearDown()
+   * Set a drupal variable and keep track of the changes for tearDown()
    * @param string $name name of the value
    * @param mixed  $value value
    */
@@ -326,7 +325,7 @@ class DrupalTestCase extends WebTestCase {
     if ($user === NULL) {
       $user = $this->drupalCreateUserRolePerm();
     }
-    
+
     $edit = array('name' => $user->name, 'pass' => $user->pass_raw);
     $this->drupalPostRequest('user', $edit, $submit);
 
@@ -341,7 +340,7 @@ class DrupalTestCase extends WebTestCase {
    * tearDown implementation, setting back switched modules etc
    */
   function tearDown() {
-    
+
     foreach ($this->_cleanupModules as $name => $status) {
       db_query("UPDATE {system} SET status = %d WHERE name = '%s' AND type = 'module'", $status, $name);
     }
@@ -376,7 +375,7 @@ class DrupalTestCase extends WebTestCase {
       }
       user_delete(array(), $uid);
     }
-    
+
     //Output drupal warnings and messages into assert messages
     $drupal_msgs = drupal_get_messages();
     foreach($drupal_msgs as $type => $msgs) {
@@ -384,7 +383,7 @@ class DrupalTestCase extends WebTestCase {
         $this->assertTrue(TRUE, "$type: $msg");
       }
     }
-    
+
     parent::tearDown();
   }
 
@@ -402,7 +401,7 @@ class DrupalTestCase extends WebTestCase {
     array_pop($reporter->test_info_stack);
   }
 
-  
+
         /**
          *    Will trigger a pass if the raw text is found on the loaded page
          *    Fail otherwise.
@@ -418,7 +417,7 @@ class DrupalTestCase extends WebTestCase {
                   $message);
         }
 
-          
+
         /**
          *    Will trigger a pass if the raw text is NOT found on the loaded page
          *    Fail otherwise.

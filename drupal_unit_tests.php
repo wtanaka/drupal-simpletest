@@ -8,7 +8,7 @@ class DrupalTestSuite extends TestSuite {
   function DrupalTestSuite($label) {
     $this->TestSuite($label);
   }
-  
+
   /**
    * @return array of instanciated tests that this GroupTests holds
    */
@@ -19,8 +19,8 @@ class DrupalTestSuite extends TestSuite {
         $this->_test_cases[$i] = &new $class();
       }
     }
-    return $this->_test_cases; 
-  } 
+    return $this->_test_cases;
+  }
 }
 
 class DrupalUnitTests extends DrupalTestSuite {
@@ -32,11 +32,11 @@ class DrupalUnitTests extends DrupalTestSuite {
   function DrupalUnitTests($class_list = NULL) {
     static $classes;
     $this->DrupalTestSuite('Drupal Unit Tests');
-    
+
     /* Tricky part to avoid double inclusion */
     if (!$classes) {
       $files = module_invoke_all('simpletest');
-    
+
       $existing_classes = get_declared_classes();
       foreach ($files as $file) {
         include_once($file);
@@ -44,8 +44,8 @@ class DrupalUnitTests extends DrupalTestSuite {
       $classes = array_diff(get_declared_classes(), $existing_classes);
     }
     if (!is_null($class_list)) {
-      $classes = $class_list; 
-    }   
+      $classes = $class_list;
+    }
     if (count($classes) == 0) {
       $this->addTestCase(new BadGroupTest($test_file, 'No new test cases'));
       return;
@@ -57,7 +57,7 @@ class DrupalUnitTests extends DrupalTestSuite {
     foreach ($groups as $group_name => $group) {
       $group_test = &new DrupalTestSuite($group_name);
       foreach ($group as $key => $v) {
-        $group_test->addTestCase($group[$key]); 
+        $group_test->addTestCase($group[$key]);
       }
       $this->addTestCase($group_test);
     }
@@ -75,14 +75,14 @@ class DrupalUnitTests extends DrupalTestSuite {
       $groups[$info['group']][] = $test;
     }
     else {
-      $groups[$class][] = $test; 
+      $groups[$class][] = $test;
     }
   }
-  
+
   /**
    * Invokes run() on all of the held test cases, instantiating
    * them if necessary.
-   * The Druapl version uses paintHeader instead of paintGroupStart
+   * The Drupal version uses paintHeader instead of paintGroupStart
    * to avoid collapsing of the very top level.
    *
    * @param SimpleReporter $reporter    Current test reporter.
@@ -92,12 +92,12 @@ class DrupalUnitTests extends DrupalTestSuite {
     cache_clear_all();
     @set_time_limit(0);
     ignore_user_abort(true);
-    
+
     // Disable devel output, check simpletest settings page
     if (!variable_get('simpletest_devel', false)) {
       $GLOBALS['devel_shutdown'] = FALSE;
     }
-        
+
     parent::run($reporter);
 
     // Restores modules
@@ -107,7 +107,7 @@ class DrupalUnitTests extends DrupalTestSuite {
     $this->_cleanupModules = array();
 
   }
-  
+
   /**
    * Enables a drupal module
    * @param string $name name of the module
@@ -133,7 +133,7 @@ class DrupalUnitTests extends DrupalTestSuite {
       }
     }
     else {
-      die("required module $name could not be enbled, probably file not exists");
+      die("required module $name could not be enabled, probably file not exists");
     }
   }
 
@@ -161,4 +161,3 @@ class DrupalUnitTests extends DrupalTestSuite {
     die("incompatible module $name could not be disabled for unknown reason");
   }
 }
-?>
