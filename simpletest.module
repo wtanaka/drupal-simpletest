@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.30 2007/12/27 08:49:25 rokZlender Exp $
+// $Id: simpletest.module,v 1.31 2008/01/03 10:11:22 rokZlender Exp $
 
 /**
  * Implementation of hook_menu().
@@ -217,7 +217,7 @@ function simpletest_simpletest() {
 }
 
 /**
- * This function makes sure no unnecesary copies of the DrupalUnitTests object are instantiated
+ * This function makes sure no unnecessary copies of the DrupalUnitTests object are instantiated
  * @param  array $classes list of all classes the test should concern or
  *                        DEFAULT NULL
  * @return DrupalUnitTests object

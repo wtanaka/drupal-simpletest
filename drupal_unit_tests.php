@@ -10,7 +10,7 @@ class DrupalTestSuite extends TestSuite {
   }
 
   /**
-   * @return array of instanciated tests that this GroupTests holds
+   * @return array of instantiated tests that this GroupTests holds
    */
   function getTestInstances() {
     for ($i = 0, $count = count($this->_test_cases); $i < $count; $i++) {
@@ -65,7 +65,7 @@ class DrupalUnitTests extends DrupalTestSuite {
 
   /**
    * Adds a class to a groups array specified by the get_info of the group
-   * @param array  $groups Group of categorizesd tests
+   * @param array  $groups Group of categorized tests
    * @param string $class  Name of a class
    */
   function _addClassToGroups(&$groups, $class) {
@@ -133,7 +133,7 @@ class DrupalUnitTests extends DrupalTestSuite {
       }
     }
     else {
-      die("required module $name could not be enabled, probably file not exists");
+      die("required module $name could not be enabled (probably file does not exist)");
     }
   }
 

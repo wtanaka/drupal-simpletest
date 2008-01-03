@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.36 2007/12/29 20:20:58 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.37 2008/01/03 10:11:22 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -47,7 +47,7 @@ class DrupalTestCase extends WebTestCase {
 
   /**
    * @abstract Broker for the get function
-   * adds the authentication headers if neccessary
+   * adds the authentication headers if necessary
    * @author Earnest Berry III <earnest.berry@gmail.com>
    *
    * @param url URL to fetch
@@ -66,9 +66,9 @@ class DrupalTestCase extends WebTestCase {
   }
 
   /**
-   * @abstract Brokder for the post function
-   * adds the authetnication headers if
-   * neccessary
+   * @abstract Broker for the post function
+   * adds the authentication headers if
+   * necessary
    * @author Earnest Berry III <earnest.berry@gmail.com>
    *
    * @param url string Url to retch
@@ -91,7 +91,7 @@ class DrupalTestCase extends WebTestCase {
   /**
    * Do a post request on a drupal page.
    * It will be done as usual post request with SimpleBrowser
-   * By $reporting you specify if this request does assertations or not
+   * By $reporting you specify if this request does assertions or not
    * Warning: empty ("") returns will cause fails with $reporting
    *
    * @param string  $path      location of the post form
@@ -126,7 +126,7 @@ class DrupalTestCase extends WebTestCase {
    *
    *    @param string $label      Text between the anchor tags.
    *    @param integer $index     Link position counting from zero.
-   *    @param boolean $reporting Assertations or not
+   *    @param boolean $reporting Assertions or not
    *    @return boolean/string    Page on success.
    *
    *    @access public
@@ -148,7 +148,7 @@ class DrupalTestCase extends WebTestCase {
   }
 
   /**
-   * @TODO: needs documention
+   * @TODO: needs documentation
    */
   function drupalGetContent() {
     return $this->_content;
@@ -197,7 +197,7 @@ class DrupalTestCase extends WebTestCase {
       return TRUE;
     }
     else {
-      $this->fail(" [module] $name could not be enabled, probably file not exists");
+      $this->fail(" [module] $name could not be enabled (probably file does not exist)");
       return FALSE;
     }
   }
@@ -249,7 +249,7 @@ class DrupalTestCase extends WebTestCase {
 
 
   /**
-   * Create a role / perm combination specified by persmissions
+   * Create a role / perm combination specified by permissions
    *
    * @param  array $permissions Array of the permission strings
    * @return integer role-id
@@ -621,7 +621,7 @@ class DrupalTestCase extends WebTestCase {
         }
 
         /**
-         *    Will trigger a pass if the perl regex pattern
+         *    Will trigger a pass if the Perl regex pattern
          *    is not present in subject. Fail if found.
          *    @param string $pattern    Perl regex to look for including
          *                              the regex delimiters.
@@ -638,7 +638,7 @@ class DrupalTestCase extends WebTestCase {
         }
 
         /**
-         *    Confirms that no errors have occoured so
+         *    Confirms that no errors have occurred so
          *    far in the test method.
          *    @param string $message    Message to display.
          *    @return boolean           True on pass
@@ -652,7 +652,7 @@ class DrupalTestCase extends WebTestCase {
         }
 
         /**
-         *    Confirms that an error has occoured and
+         *    Confirms that an error has occurred and
          *    optionally that the error text matches exactly.
          *    @param string $expected   Expected error text or
          *                              false for no check.
@@ -674,10 +674,10 @@ class DrupalTestCase extends WebTestCase {
         }
 
         /**
-         *    Confirms that an error has occoured and
+         *    Confirms that an error has occurred and
          *    that the error text matches a Perl regular
          *    expression.
-         *    @param string $pattern   Perl regular expresion to
+         *    @param string $pattern   Perl regular expression to
          *                              match against.
          *    @param string $message    Message to display.
          *    @return boolean           True on pass
