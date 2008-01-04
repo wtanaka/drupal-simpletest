@@ -1,5 +1,5 @@
 <?php
-/* $Id: taxonomy.module.test,v 1.10 2007/09/23 08:35:23 rokZlender Exp $ */
+/* $Id: taxonomy.module.test,v 1.11 2008/01/04 10:36:32 rokZlender Exp $ */
 
 class TaxonomyVocabularyFunctions extends DrupalTestCase {
   function get_info() {
@@ -24,7 +24,7 @@ class TaxonomyVocabularyFunctions extends DrupalTestCase {
     $nodes = array();
     for($i = 0; $i < $maxNodes; $i++) {
       $nodes[$nodesList[$i]] = $nodesList[$i];
-      $nodesBak[] = $nodesList[$i];
+      $nodesBak[$nodesList[$i]] = $nodesList[$i];
     }
     $_t = array('vid', 'name', 'description', 'help', 'relations', 'hierarchy', 'multiple',
       'required', 'tags', 'module', 'weight', 'nodes');
@@ -35,7 +35,7 @@ class TaxonomyVocabularyFunctions extends DrupalTestCase {
     // exec save function
     taxonomy_save_vocabulary($edit);
     //after save we use $nodesBak
-    sort($nodesBak);
+    ksort($nodesBak);
     $edit['nodes'] = $nodesBak;
     $vocabularies = taxonomy_get_vocabularies();
     foreach($vocabularies as $voc) {
@@ -120,7 +120,7 @@ class TaxonomyTermFunctions extends DrupalTestCase {
     $staryTid = $getTerm->tid;
     $relations[] = $staryTid;
     $termname = $this->randomName(20);
-    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => 0, 'vid' => $vid, 'tid' => 0, 'relations' => array($staryTid));
+    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => 0, 'vid' => $edit['vid'], 'tid' => 0, 'relations' => array($staryTid));
     taxonomy_save_term($data);
     $_tArray = taxonomy_get_term_by_name($termname);
     $getTerm = $_tArray[0];
@@ -128,7 +128,7 @@ class TaxonomyTermFunctions extends DrupalTestCase {
 
     // Creating another term related to 2 terms above;
     $termname = $this->randomName(20);
-    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => 0, 'vid' => $vid, 'tid' => 0, 'relations' => array($staryTid, $getTerm->tid));
+    $data = array('name' => $termname, 'description' => '', 'weight' => 0, 'synonyms' => 0, 'vid' => $edit['vid'], 'tid' => 0, 'relations' => array($staryTid, $getTerm->tid));
     taxonomy_save_term($data);
     $_tArray = taxonomy_get_term_by_name($termname);
     $getTerm = $_tArray[0];
@@ -278,7 +278,7 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
     $patternArray['term name 2'] = $termname;
 
     // create test user and login
-    $perm = array('access content', 'create story content', 'edit story content', 'delete own story content');
+    $perm = array('access content', 'create story content', 'edit own story content', 'delete own story content');
     $account = $this->drupalCreateUserRolePerm($perm);
     $this->drupalLoginUser($account);
     
