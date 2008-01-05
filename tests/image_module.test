@@ -1,6 +1,6 @@
 <?php
 
-/* $Id: image_module.test,v 1.12 2007/11/26 23:45:03 rokZlender Exp $ */
+/* $Id: image_module.test,v 1.13 2008/01/05 10:21:57 rokZlender Exp $ */
 class ImageModuleTest extends DrupalTestCase {
   function get_info() {
     $modules = (module_list());
@@ -93,7 +93,7 @@ class ImageModuleTest extends DrupalTestCase {
     
     // get node nid
     $node = node_load(array('title' => $title));
-    $this->drupalGet(url("node/$node->nid", array('absolute' => TRUE)));
+    $this->drupalGet("node/$node->nid");
     $content = $this->_browser->getContent();
     $this->assertWantedText($title, "Checking title : $title");
     $this->assertWantedText($description, "Checking body: $description");
@@ -124,7 +124,7 @@ class ImageModuleTest extends DrupalTestCase {
     $edit = array('title' => $title, 'body' => $description, 'files[image]' => $img_path);
     $this->drupalPostRequest('node/'. $node->nid .'/edit', $edit, 'Submit' );
     $content = $this->_browser->getContent();
-    $this->drupalGet(url("node/$node->nid"));
+    $this->drupalGet("node/$node->nid");
     $this->assertWantedText($title, "Checking title : $title");
     $this->assertWantedText($description, "Checking body: $description");
 

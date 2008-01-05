@@ -1,5 +1,5 @@
 <?php
-// $Id: node_revisions.test,v 1.1 2007/12/25 11:52:12 rokZlender Exp $
+// $Id: node_revisions.test,v 1.2 2008/01/05 10:21:57 rokZlender Exp $
 class NodeRevisionsTest extends DrupalTestCase {
   /**
    * Implementation of get_info() for information
@@ -70,7 +70,7 @@ class NodeRevisionsTest extends DrupalTestCase {
 
     $test_user = $this->drupalCreateUserRolePerm(array('view revisions'));
     $this->drupalLoginUser($test_user);
-    $this->drupalGet(url("node/$node->nid/revisions/$vid/view", array('absolute' => TRUE)));
+    $this->drupalGet("node/$node->nid/revisions/$vid/view");
     $this->assertText($text, 'Check to make sure correct revision text appears on "view revisions" page.');
 
     $this->cleanup($node->nid);
@@ -84,7 +84,7 @@ class NodeRevisionsTest extends DrupalTestCase {
 
     $test_user = $this->drupalCreateUserRolePerm(array('view revisions'));
     $this->drupalLoginUser($test_user);
-    $this->drupalGet(url("node/$node->nid/revisions", array('absolute' => TRUE)));
+    $this->drupalGet("node/$node->nid/revisions");
     $this->assertText($log, 'Check to make sure log message is properly displayed.');
 
     $this->cleanup($node->nid);
@@ -123,7 +123,7 @@ class NodeRevisionsTest extends DrupalTestCase {
    * Cleanup function used by tests. Deletes the associated node.
    */
   function cleanup($nid) {
-    node_delete(array('nid' => $nid));
+    node_delete($nid);
   }
 }
-?>
+

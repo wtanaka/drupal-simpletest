@@ -1,5 +1,5 @@
 <?php
-// $Id: menu_module.test,v 1.2 2007/12/27 08:03:44 rokZlender Exp $
+// $Id: menu_module.test,v 1.3 2008/01/05 10:21:57 rokZlender Exp $
 
 class MenuModuleTestCase extends  DrupalTestCase {
 
@@ -54,7 +54,7 @@ class MenuModuleTestCase extends  DrupalTestCase {
    * Create a menu link using the menu module UI.
    */
   function uiCreateLink($plid = 0, $menu_name = 'navigation') {
-    $this->drupalGet(url("admin/build/menu-customize/". $menu_name ."/add", array('absolute' => TRUE)));
+    $this->drupalGet("admin/build/menu-customize/$menu_name/add");
     $this->assertResponse(200);
 
     $title = '!link_'. $this->randomName(16);
@@ -67,7 +67,7 @@ class MenuModuleTestCase extends  DrupalTestCase {
     );
 
     $this->drupalPostRequest("admin/build/menu-customize/". $menu_name ."/add", $edit, "Save");
-    $out = $this->drupalGet(url("admin/build/menu-customize/". $menu_name, array('absolute' => TRUE)));
+    $out = $this->drupalGet("admin/build/menu-customize/$menu_name");
     $this->assertText($title, 'Link created');
     $mlid = db_result(db_query("SELECT mlid FROM {menu_links} WHERE link_title = '%s'", $title));
 
@@ -91,7 +91,7 @@ class MenuModuleCustomMenuTest extends MenuModuleTestCase {
     $web_user = $this->drupalCreateUserRolePerm(array('access content', 'administer menu', 'access administration pages',));
     $this->drupalLoginUser($web_user);
 
-    $this->drupalGet(url("admin/build/menu/add", array('absolute' => TRUE)));
+    $this->drupalGet('admin/build/menu/add');
     $name = substr(md5($this->randomName(16)), 0, 20);
     $title = $this->randomName(16);
     $edit = array (
@@ -102,7 +102,7 @@ class MenuModuleCustomMenuTest extends MenuModuleTestCase {
     $this->drupalPostRequest("admin/build/menu/add", $edit, "Save");
 
     $name = 'menu-' .$name;
-    $this->drupalGet(url("admin/build/menu", array('absolute' => TRUE)));
+    $this->drupalGet('admin/build/menu');
     $this->assertText($title, 'Menu created');
 
     $mlid1 = $this->uiCreateLink(0, $name);
@@ -131,8 +131,7 @@ class MenuModuleEnable extends DrupalTestCase {
     $this->drupalModuleEnable('menu');
     $web_user = $this->drupalCreateUserRolePerm(array('administer menu'));
     $this->drupalLoginUser($web_user);
-    $overview = url('admin/build/menu-customize/navigation', array('absolute' => TRUE));
-    $this->drupalGet($overview);
+    $this->drupalGet('admin/build/menu-customize/navigation');
     $this->clickLink('edit', 0);
     $url = $this->getUrl();
     preg_match('/\d+/', $url, $matches);

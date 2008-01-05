@@ -198,7 +198,7 @@ class AddTopicToForum extends DrupalForumTestCase {
 
     // Then find the new topic, load it, and make sure the text we chose appears
     $new_topic = node_load(array('title' => $title), null, true);
-    $this->drupalGet(url('node/'. $new_topic->nid, array('absolute' => TRUE)));
+    $this->drupalGet("node/$new_topic->nid");
 
     $this->assertWantedRaw($title, t('Looking for subject text'));
     $this->assertWantedRaw($description, t('Looking for body text'));

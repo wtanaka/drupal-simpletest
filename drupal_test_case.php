@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.38 2008/01/05 10:04:07 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.39 2008/01/05 10:21:57 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -50,10 +50,11 @@ class DrupalTestCase extends WebTestCase {
    * adds the authentication headers if necessary
    * @author Earnest Berry III <earnest.berry@gmail.com>
    *
-   * @param url URL to fetch
+   * @param $path string Drupal path or url to load into internal browser
    * @return void
    */
-  function drupalGet($url) {
+  function drupalGet($path) {
+    $url = url($path, array('absolute' => TRUE));
     $html = $this->_browser->get($url);
 
     if ($this->drupalCheckAuth(true)) {
@@ -106,8 +107,7 @@ class DrupalTestCase extends WebTestCase {
    */
   function drupalPostRequest($path, $edit = array(), $submit) {
     if (isset($path)) {
-      $url = url($path, array('absolute' => TRUE));
-      $ret = $this->drupalGet($url);
+      $ret = $this->drupalGet($path);
       $this->assertTrue($ret, " [browser] GET $url");
     }
 
@@ -327,7 +327,7 @@ class DrupalTestCase extends WebTestCase {
    */
   function drupalLoginUser($user = NULL, $submit = 'Log in') {
 
-    $this->drupalGet( url("user", array('absolute' => TRUE)) );
+    $this->drupalGet('user');
     // Going to the page retrieves the cookie, as the browser should save it
 
     if ($user === NULL) {
