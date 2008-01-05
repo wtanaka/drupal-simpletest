@@ -19,8 +19,8 @@ class DrupalTestSuite extends TestSuite {
         $this->_test_cases[$i] = &new $class();
       }
     }
-    return $this->_test_cases;
-  }
+    return $this->_test_cases; 
+  } 
 }
 
 class DrupalUnitTests extends DrupalTestSuite {
@@ -73,9 +73,6 @@ class DrupalUnitTests extends DrupalTestSuite {
     if (method_exists($test, 'get_info')) {
       $info = $test->get_info();
       $groups[$info['group']][] = $test;
-    }
-    else {
-      $groups[$class][] = $test;
     }
   }
 
