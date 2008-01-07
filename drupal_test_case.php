@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.39 2008/01/05 10:21:57 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.40 2008/01/07 13:22:38 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -103,7 +103,7 @@ class DrupalTestCase extends WebTestCase {
    *   (where possible) to the values indicated. A checkbox can be set to
    *   TRUE to be checked and FALSE to be unchecked.
    * @param string $submit
-   *   Untranslated name of the submit button.
+   *   Untranslated value, id or name of the submit button.
    */
   function drupalPostRequest($path, $edit = array(), $submit) {
     if (isset($path)) {
@@ -117,8 +117,7 @@ class DrupalTestCase extends WebTestCase {
       $this->assertTrue($ret, " [browser] Setting $field_name=\"$field_value\"");
     }
 
-    $ret = $this->_browser->clickSubmit(t($submit))  || $this->_browser->clickSubmitByName($submit) || $this->_browser->clickImageByName($submit);
-//    $ret = $this->_browser->clickSubmitByName('op');
+    $ret = $this->_browser->clickSubmit(t($submit))  || $this->_browser->clickSubmitById($submit) || $this->_browser->clickSubmitByName($submit) || $this->_browser->clickImageByName($submit);
     $this->assertTrue($ret, ' [browser] POST by click on ' . t($submit));
     $this->_content = $this->_browser->getContent();
   }
