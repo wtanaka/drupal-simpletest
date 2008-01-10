@@ -63,7 +63,7 @@ class LocaleModuleTest extends DrupalTestCase {
     // No t() here, we do not want to add this string to the database and it's
     // surely not translated yet.
     $this->assertText($native, 'Test language added');
-    $this->drupalGet(url('logout', array('absolute' => TRUE)));
+    $this->drupalGet('logout');
 
     // Search for the name and translate it.
     $this->drupalLoginUser($translate_user);
@@ -95,7 +95,7 @@ class LocaleModuleTest extends DrupalTestCase {
     $this->drupalPostRequest('admin/build/translate/search', $search, 'Search');
     // The indicator should not be here.
     $this->assertNoUnwantedRaw($language_indicator, 'String is translated');
-    $this->drupalGet(url('logout', array('absolute' => TRUE)));
+    $this->drupalGet('logout');
 
     // Delete the language
     $this->drupalLoginUser($admin_user);
@@ -105,15 +105,15 @@ class LocaleModuleTest extends DrupalTestCase {
     // We need raw here because %locale will add HTML.
     $this->assertWantedRaw(t('The language %locale has been removed.', array('%locale' => $name)), 'The test language has been removed.');
     // Reload to remove $name.
-    $this->drupalGet(url($path, array('absolute' => TRUE)));
+    $this->drupalGet($path);
     $this->assertNoText($langcode, 'Language code not found');
     $this->assertNoText($name, 'Name not found');
     $this->assertNoText($native, 'Native not found');
-    $this->drupalGet(url('logout', array('absolute' => TRUE)));
+    $this->drupalGet('logout');
 
     // Delete the name string.
     $this->drupalLoginUser($translate_user);
-    $this->drupalGet(url('admin/build/translate/delete/'. $lid, array('absolute' => TRUE)));
+    $this->drupalGet('admin/build/translate/delete/'. $lid);
     $this->assertText(t('The string has been removed.'), 'The string has been removed message.');
     $this->drupalPostRequest('admin/build/translate/search', $search, 'Search');
     $this->assertNoText($name, 'Search now can not find the name');
