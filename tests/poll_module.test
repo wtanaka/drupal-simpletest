@@ -4,7 +4,7 @@ class PollTests extends DrupalTestCase {
 
   function pollCreate($standalone = TRUE) {
     $this->assertTrue(TRUE, 'Poll create' . $standalone);
-    $web_user = $this->drupalCreateUserRolePerm(array('create poll content'));
+    $web_user = $this->drupalCreateUserRolePerm(array('create poll content', 'access content'));
     $this->drupalLoginUser($web_user);
     $title = $this->randomName();
     $edit = array (
@@ -46,6 +46,11 @@ class PollCreateTest extends PollTests {
   function get_info() {
     return array('name' => t('Poll create'), 'desc' => 'Adds "more choices", previews and creates a poll.', 'group' => 'Poll module tests');
   }
+  
+  function setUp() {
+    parent::setUp();
+    $this->drupalModuleEnable('poll');
+  }
 
   function tearDown() {
     parent::tearDown();
@@ -63,6 +68,11 @@ class PollVoteTest extends PollTests {
   function get_info() {
     return array('name' => t('Poll vote'), 'desc' => 'Vote on a poll', 'group' => 'Poll module tests');
   }
+    
+  function setUp() {
+    parent::setUp();
+    $this->drupalModuleEnable('poll');
+  }
 
   function tearDown() {
     parent::tearDown();
@@ -71,15 +81,15 @@ class PollVoteTest extends PollTests {
   function testPollVote() {
     $this->pollCreate(FALSE);
     $this->drupalGet('logout');
-    $web_user = $this->drupalCreateUserRolePerm(array('cancel own vote', 'inspect all votes', 'vote on polls'));
+    $web_user = $this->drupalCreateUserRolePerm(array('cancel own vote', 'inspect all votes', 'vote on polls', 'access content'));
     $this->drupalLoginUser($web_user);
     $edit = array (
       'choice' => '1',
     );
     $this->drupalPostRequest('node/'. $this->nid, $edit, 'Vote');
-    $this->assertWantedRaw('Your vote was recorded.', 'Your vote was recorded.');
+    $this->assertText('Your vote was recorded.', 'Your vote was recorded.');
     $this->drupalGet("node/$this->nid/votes");
-    $this->assertWantedRaw(t('This table lists all the recorded votes for this poll. If anonymous users are allowed to vote, they will be identified by the IP address of the computer they used when they voted.'), 'Vote table text.');
-    $this->assertWantedRaw('choice 2', 'vote recorded');
+    $this->assertText(t('This table lists all the recorded votes for this poll. If anonymous users are allowed to vote, they will be identified by the IP address of the computer they used when they voted.'), 'Vote table text.');
+    $this->assertText('choice 2', 'vote recorded');
   }
 }
