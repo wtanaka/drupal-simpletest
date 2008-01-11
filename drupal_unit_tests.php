@@ -35,7 +35,17 @@ class DrupalUnitTests extends DrupalTestSuite {
 
     /* Tricky part to avoid double inclusion */
     if (!$classes) {
-      $files = module_invoke_all('simpletest');
+
+      $files = array();
+      foreach (module_list() as $module) {
+        $module_path = drupal_get_path('module', $module);
+        if (file_exists($module_path .'/tests/')) {
+          $dir = $module_path .'/tests';
+          $tests = file_scan_directory($dir, '\.test$');
+          $files = array_merge($files, $tests);
+        }   
+      }   
+      $files = array_keys($files);
 
       $existing_classes = get_declared_classes();
       foreach ($files as $file) {

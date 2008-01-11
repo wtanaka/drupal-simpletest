@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.31 2008/01/03 10:11:22 rokZlender Exp $
+// $Id: simpletest.module,v 1.32 2008/01/11 17:03:04 rokZlender Exp $
 
 /**
  * Implementation of hook_menu().
@@ -205,15 +205,6 @@ function simpletest_run_tests($testlist = NULL) {
     $test_running = FALSE;
     return $reporter->getOutput();
   }
-}
-
-/**
- * Implementation of hook_simpletest().
- */
-function simpletest_simpletest() {
-  $dir = drupal_get_path('module', 'simpletest'). '/tests';
-  $tests = file_scan_directory($dir, '\.test$');
-  return array_keys($tests);
 }
 
 /**
