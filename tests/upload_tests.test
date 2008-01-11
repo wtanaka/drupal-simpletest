@@ -1,5 +1,5 @@
 <?php
-/* $Id: upload_tests.test,v 1.11 2007/09/08 23:02:40 rokZlender Exp $ */
+/* $Id: upload_tests.test,v 1.12 2008/01/11 16:44:38 rokZlender Exp $ */
 class UploadPictureTests extends DrupalTestCase {
   
 
@@ -20,10 +20,12 @@ class UploadPictureTests extends DrupalTestCase {
 
   function testDirectories() {
     // test if filepath is proper
-    $file_dir = variable_get('file_directory_path', 'files');
+    $file_dir = file_directory_path();
     $picture_dir = variable_get('user_picture_path', 'pictures');
     $file_check = file_check_directory($file_dir, FILE_CREATE_DIRECTORY, 'file_directory_path');
     $picture_path = $file_dir .'/'.$picture_dir;
+  
+    
     $pic_check = file_check_directory($picture_path, FILE_CREATE_DIRECTORY, 'user_picture_path');
     // check directories
     //$this->assertTrue($file_check,"The directory $file_dir doesn't exist or cannot be created.");
@@ -44,8 +46,8 @@ class UploadPictureTests extends DrupalTestCase {
     $img_path = realpath(drupal_get_path('module', 'simpletest'). "/tests/upload_tests.test");
     $edit = array('files[picture_upload]' => $img_path);
     $this->drupalPostRequest('user/'.$user->uid.'/edit', $edit, 'Save' );
-    $this->assertWantedText(t('The selected file @file could not be uploaded. Only JPEG, PNG and GIF images are allowed.', array('@file' => 'upload_tests.test')), 'The uploaded file was not an image.');
-     variable_set('user_pictures', $old_pic_set);
+    $this->assertWantedRaw(t('The selected file %file could not be uploaded. Only JPEG, PNG and GIF images are allowed.', array('%file' => 'upload_tests.test')), 'The uploaded file was not an image.');
+    variable_set('user_pictures', $old_pic_set);
 
     // do we have to check users roles?
     // delete test user and roles
@@ -322,8 +324,9 @@ class UploadPictureTests extends DrupalTestCase {
       variable_set('user_picture_dimensions', $old_dim);
 
       variable_set('user_pictures', $old_pic_set);
-
-
+      
+      // DELETING UPLOADED PIC
+      file_delete($pic_path);  
     }
 
 
