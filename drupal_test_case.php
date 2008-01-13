@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.42 2008/01/13 16:23:45 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.43 2008/01/13 22:54:25 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -96,10 +96,11 @@ class DrupalTestCase extends WebTestCase {
    * @author Earnest Berry III <earnest.berry@gmail.com>
    *
    * @param $path string Drupal path or url to load into internal browser
+   * @param array $options Options to be forwarded to url().
    * @return void
    */
-  function drupalGet($path) {
-    $url = url($path, array('absolute' => TRUE));
+  function drupalGet($path, $options = array()) {
+    $url = url($path, array_merge($options, array('absolute' => TRUE)));
     $html = $this->_browser->get($url);
 
     if ($this->drupalCheckAuth(true)) {
@@ -408,18 +409,20 @@ class DrupalTestCase extends WebTestCase {
     }
     $this->_cleanupVariables = array();
     
-    
+    //delete nodes
     foreach ($this->_cleanupNodes as $nid) {
       node_delete($nid);
     }
 
 
+    //delete roles
     while (sizeof($this->_cleanupRoles) > 0) {
       $rid = array_pop($this->_cleanupRoles);
       db_query("DELETE FROM {role} WHERE rid = %d",       $rid);
       db_query("DELETE FROM {permission} WHERE rid = %d", $rid);
     }
 
+    //delete users and their content
     while (sizeof($this->_cleanupUsers) > 0) {
       $uid = array_pop($this->_cleanupUsers);
       // cleanup nodes this user created
