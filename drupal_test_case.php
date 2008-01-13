@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.41 2008/01/13 16:16:13 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.42 2008/01/13 16:23:45 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -240,10 +240,10 @@ class DrupalTestCase extends WebTestCase {
     else {
       $try = module_enable(array($name));
     }
-    menu_rebuild();
+    drupal_flush_all_caches();
     if(module_exists($name)) {
       if (!isset($this->_cleanupModules[$name])) {
-        $this->_cleanupModules[$name] = 0;
+        $this->_cleanupModules[] = $name;
       }
       $this->pass(" [module] $name enabled");
       return TRUE;
@@ -393,15 +393,11 @@ class DrupalTestCase extends WebTestCase {
    */
   function tearDown() {
 
-    foreach ($this->_cleanupModules as $name => $status) {
-      db_query("UPDATE {system} SET status = %d WHERE name = '%s' AND type = 'module'", $status, $name);
-    }
     if (!empty($this->_cleanupModules)) {
-      module_list(TRUE, FALSE);
-      menu_rebuild();
+      module_disable($this->_cleanupModules);
+      drupal_flush_all_caches();
+      $this->_cleanupModules = array();
     }
-    $this->_cleanupModules = array();
-
 
     foreach ($this->_cleanupVariables as $name => $value) {
       if (is_null($value)) {
