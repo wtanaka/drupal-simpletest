@@ -1,15 +1,17 @@
 <?php
-// $Id: page_view.test,v 1.12 2008/01/05 10:21:57 rokZlender Exp $
+// $Id: page_view.test,v 1.13 2008/01/13 16:16:13 rokZlender Exp $
 class PageViewTest extends DrupalTestCase {
   /**
    * Implementation of get_info() for information
    */
   function get_info() {
-    return array('name' => t('Unauthorized node view'), 'desc' => t(
-      'Creates a node of type page and then an unpermissioned user attempts to edit the node, '
-    . 'before tries with an anonymous user. Asserts failure.'
-    . '</ br>WARNING: This is based on default registered user permuissions (no administer nodes).')
-    , 'group' => 'Node Tests');
+    return array(
+      'name' => t('Unauthorized node view'),
+      'desc' => t('Creates a node of type page and then an unpermissioned user attempts to edit the node, '
+        . 'before tries with an anonymous user. Asserts failure.'
+        . '</ br>WARNING: This is based on default registered user permuissions (no administer nodes).')
+      , 'group' => 'Node Tests',
+  );
   }
   
   function setUp() {
@@ -18,26 +20,7 @@ class PageViewTest extends DrupalTestCase {
   function testPageView() {
     /* Prepare a node to view */
     global $user;
-    $node = new stdClass();
-    $node->body      = $this->randomName(32);
-    $node->title     = $this->randomName(8);
-    $node->teaser    = $node->body;
-    $node->comment   = '2';
-    $node->created   = time();
-    $node->date      = format_date($node->created, 'custom', 'Y-m-d H:i:s O');
-    $node->format    = '1';
-    $node->moderate  = 0;
-    $node->name      = $user->name;
-    $node->uid       = $user->uid;
-    $node->promote   = 0;
-    $node->revision  = 0;
-    $node->status    = '1';
-    $node->sticky    = 0;
-    $node->type      = 'page';
-    $node->revisions = NULL;
-    $node->changed   = $node->created;
-    $node->taxonomy  = NULL;
-    node_save($node);
+    $node = $this->drupalCreateNode();
     $this->assertNotNull(node_load($node->nid), 'Node created');
 
     /* Tries to edit with anonymous user */

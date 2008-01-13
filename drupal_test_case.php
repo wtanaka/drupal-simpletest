@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.40 2008/01/07 13:22:38 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.41 2008/01/13 16:16:13 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -13,6 +13,7 @@ class DrupalTestCase extends WebTestCase {
   var $_cleanupVariables = array();
   var $_cleanupUsers     = array();
   var $_cleanupRoles     = array();
+  var $_cleanupNodes     = array();
 
 
   function DrupalTestCase($label = NULL) {
@@ -24,6 +25,50 @@ class DrupalTestCase extends WebTestCase {
     }
     $this->WebTestCase($label);
   }
+  
+  /**
+   * Creates a node based on default settings.
+   *
+   * @param settings An array of settings to change from the defaults, in the form of 'body' => 'Hello, world!'
+   */
+  function drupalCreateNode($settings = array()) {
+ 
+    // Populate defaults array
+    $defaults = array(
+      'body'      => $this->randomName(32),
+      'title'     => $this->randomName(8),
+      'comment'   => 2,
+      'changed'   => time(),
+      'format'    => 1,
+      'moderate'  => 0,
+      'promote'   => 0,
+      'revision'  => 1,
+      'log'       => '',
+      'status'    => 1,
+      'sticky'    => 0,
+      'type'      => 'page',
+      'revisions' => NULL,
+      'taxonomy'  => NULL,
+    );
+    $defaults['teaser'] = $defaults['body'];
+    // If we already have a node, we use the original node's created time, and this
+    $defaults['date'] = format_date($defaults['created'], 'custom', 'Y-m-d H:i:s O');
+    
+    if (empty($settings['uid'])) {
+      global $user;
+      $defaults['uid'] = $user->uid;
+    }
+    $node = ($settings + $defaults);
+    $node = (object)$node;
+ 
+    node_save($node);
+    
+    // small hack to link revisions to our test user
+    db_query('UPDATE {node_revisions} SET uid = %d WHERE vid = %d', $node->uid, $node->vid);
+    $this->_cleanupNodes[] = $node->nid;
+    return $node;
+  }
+
 
   /**
    * @abstract Checks to see if we need to send
@@ -366,6 +411,12 @@ class DrupalTestCase extends WebTestCase {
       }
     }
     $this->_cleanupVariables = array();
+    
+    
+    foreach ($this->_cleanupNodes as $nid) {
+      node_delete($nid);
+    }
+
 
     while (sizeof($this->_cleanupRoles) > 0) {
       $rid = array_pop($this->_cleanupRoles);

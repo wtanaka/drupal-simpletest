@@ -1,5 +1,5 @@
 <?php
-// $Id: content_actions.test,v 1.1 2007/12/27 07:37:50 rokZlender Exp $
+// $Id: content_actions.test,v 1.2 2008/01/13 16:16:13 rokZlender Exp $
 class ActionsContentTest extends  DrupalTestCase {
   var $_cleanup_roles = array();
   var $_cleanup_users = array();
@@ -8,13 +8,25 @@ class ActionsContentTest extends  DrupalTestCase {
    * Implementation of get_info() for information
    */
   function get_info() {
-    return array('name' => t('Actions content'), 'desc' => t('Perform various tests with content actions.') , 'group' => 'Actions');
+    return array(
+      'name' => t('Actions content'),
+      'desc' => t('Perform various tests with content actions.') ,
+      'group' => 'Actions',
+    );
   }
 
   /**
    * Setup function
    */
-  function setup() {
+  function setUp() {
+    parent::setUp();
+  }
+  
+  /**
+   * Teardown function
+   */
+  function tearDown(){
+    parent::tearDown();
   }
 
   /**
@@ -30,15 +42,12 @@ class ActionsContentTest extends  DrupalTestCase {
     $hash = md5('node_publish_action');
 
     $not_clean = db_result(db_query("SELECT COUNT(*) FROM {trigger_assignments} WHERE aid IN ('". implode("','", $content_actions) ."')"));
-    
+    $this->assertFalse($not_clean, t('Actions were already assigned to the trigger. Unassign all content triggers before attempting to run again.'));
+
     if ($not_clean) {
-      $this->assertFalse($not_clean, t('Actions were already assigned to the trigger. Unassign all content triggers before attempting to run again.'));
       return;
     }
-    else {
-      $this->assertFalse($not_clean, t('Actions were already not assigned to the trigger.'));
-    }
-
+    
     // Test 1: Assign an action to a trigger, then pull the trigger, and make sure the actions fire. (Wow, those metaphors work out nicely).
 
     $test_user = $this->drupalCreateUserRolePerm(array('administer actions', 'create page content'));
@@ -49,21 +58,7 @@ class ActionsContentTest extends  DrupalTestCase {
     $this->drupalPostRequest('admin/build/trigger/node', $edit, 'Assign');
 
     // Create an unpublished node.
-    $node->body      = $this->randomName(32);
-    $node->title     = $this->randomName(8);
-    $node->teaser    = $node->body;
-    $node->comment   = 2;
-    $node->format    = 1;
-    $node->name      = $test_user->name;
-    $node->uid       = $test_user->uid;
-    $node->promote   = 0;
-    $node->revision  = 0;
-    $node->status    = 0;
-    $node->sticky    = 0;
-    $node->type      = 'page';
-    $node->revisions = NULL;
-    $node->taxonomy  = NULL;
-    node_save($node);
+    $node = $this->drupalCreateNode(array('status' => 0));
     // Node should be published automatically.
     $loaded_node = node_load($node->nid);
     $this->assertTrue($loaded_node->status == 1, t('Check to make sure the node is automatically published'));
@@ -74,7 +69,7 @@ class ActionsContentTest extends  DrupalTestCase {
 
     $edit = array('aid' => $hash);
     $this->drupalPostRequest('admin/build/trigger/node', $edit, 'Assign');
-    $this->assertWantedRaw(t('The action you choose is already assigned to that trigger.'), t('Check to make sure an error occurs when assigning an action to a trigger twice.'));
+    $this->assertWantedRaw(t('The action you chose is already assigned to that trigger.'), t('Check to make sure an error occurs when assigning an action to a trigger twice.'));
 
     // Test 3: The action should be able to be unassigned from a trigger.
 
