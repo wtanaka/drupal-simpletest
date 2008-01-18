@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.43 2008/01/13 22:54:25 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.44 2008/01/18 09:02:24 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -154,7 +154,7 @@ class DrupalTestCase extends WebTestCase {
   function drupalPostRequest($path, $edit = array(), $submit) {
     if (isset($path)) {
       $ret = $this->drupalGet($path);
-      $this->assertTrue($ret, " [browser] GET $url");
+      $this->assertTrue($ret, " [browser] GET $path");
     }
 
     foreach ($edit as $field_name => $field_value) {
