@@ -1,5 +1,5 @@
 <?php
-// $Id: menu_module.test,v 1.3 2008/01/05 10:21:57 rokZlender Exp $
+// $Id: menu_module.test,v 1.4 2008/01/18 11:15:21 rokZlender Exp $
 
 class MenuModuleTestCase extends  DrupalTestCase {
 
@@ -7,15 +7,25 @@ class MenuModuleTestCase extends  DrupalTestCase {
    * Implementation of get_info() for information
    */
   function get_info() {
-    return array('name' => t('Menu link creation/deletion'), 'desc' => t('Create two links in the Navigation menu, check their data, and delete them using the menu module UI.') , 'group' => 'Menu Module Tests');
+    return array(
+      'name' => t('Menu link creation/deletion'),
+      'desc' => t('Create two links in the Navigation menu, check their data, and delete them using the menu module UI.'),
+      'group' => 'Menu Module Tests',
+    );
   }
 
   function setUp() {
+    parent::setUp();
+   
+    $this->drupalModuleEnable('menu');
+  }
+
+  function tearDown() {
+    parent::tearDown();
   }
 
   function testCreateCheckDelete() {
 
-    $this->drupalModuleEnable('menu');
     $web_user = $this->drupalCreateUserRolePerm(array('access content', 'administer menu', 'access administration pages',));
     $this->drupalLoginUser($web_user);
 
@@ -76,18 +86,29 @@ class MenuModuleTestCase extends  DrupalTestCase {
 }
 
 class MenuModuleCustomMenuTest extends MenuModuleTestCase {
-  var $_cleanup_roles = array();
-  var $_cleanup_users = array();
 
   /**
    * Implementation of get_info() for information
    */
   function get_info() {
-    return array('name' => t('Custom menu creation/deletion'), 'desc' => t('Create a custom menu, add a link to it, and delete it using the menu module UI.') , 'group' => 'Menu Module Tests');
+    return array(
+      'name' => t('Custom menu creation/deletion'),
+      'desc' => t('Create a custom menu, add a link to it, and delete it using the menu module UI.'),
+      'group' => 'Menu Module Tests',
+    );
+  }
+
+  function setUp() {
+    parent::setUp();
+
+    $this->drupalModuleEnable('menu');
+  }
+
+  function tearDown() {
+    parent::tearDown();
   }
 
   function testCreateCheckDelete() {
-    $this->drupalModuleEnable('menu');
     $web_user = $this->drupalCreateUserRolePerm(array('access content', 'administer menu', 'access administration pages',));
     $this->drupalLoginUser($web_user);
 
@@ -115,12 +136,23 @@ class MenuModuleCustomMenuTest extends MenuModuleTestCase {
   }
 }
 
+
 class MenuModuleEnable extends DrupalTestCase {
   /**
    * Implementation of get_info() for information
    */
   function get_info() {
-    return array('name' => t('Menu enable'), 'desc' => 'Enable / disable a menu item', 'group' => 'Menu Module Tests');
+    return array(
+      'name' => t('Menu enable'),
+      'desc' => 'Enable / disable a menu item',
+      'group' => 'Menu Module Tests',
+    );
+  }
+
+  function setUp() {
+    parent::setUp();
+
+    $this->drupalModuleEnable('menu');
   }
 
   function tearDown() {
@@ -128,7 +160,6 @@ class MenuModuleEnable extends DrupalTestCase {
   }
 
   function testMenuModuleEnable() {
-    $this->drupalModuleEnable('menu');
     $web_user = $this->drupalCreateUserRolePerm(array('administer menu'));
     $this->drupalLoginUser($web_user);
     $this->drupalGet('admin/build/menu-customize/navigation');
@@ -149,12 +180,23 @@ class MenuModuleEnable extends DrupalTestCase {
   }
 }
 
+
 class MenuModuleReset extends DrupalTestCase {
   /**
    * Implementation of get_info() for information
    */
   function get_info() {
-    return array('name' => t('Menu reset'), 'desc' => 'Edit and reset a menu item', 'group' => 'Menu Module Tests');
+    return array(
+      'name' => t('Menu reset'),
+      'desc' => 'Edit and reset a menu item',
+      'group' => 'Menu Module Tests',
+    );
+  }
+
+  function setUp() {
+    parent::setUp();
+
+    $this->drupalModuleEnable('menu');
   }
 
   function tearDown() {
@@ -162,7 +204,6 @@ class MenuModuleReset extends DrupalTestCase {
   }
 
   function testMenuModuleReset() {;
-    $this->drupalModuleEnable('menu');
     $web_user = $this->drupalCreateUserRolePerm(array('administer menu'));
     $this->drupalLoginUser($web_user);
     $form_state = array();
@@ -200,12 +241,23 @@ class MenuModuleReset extends DrupalTestCase {
   }
 }
 
+
 class MenuModuleInvalidPath extends DrupalTestCase {
   /**
    * Implementation of get_info() for information
    */
   function get_info() {
-    return array('name' => t('Menu invalid path'), 'desc' => 'Try to create a menu item with an invalid / inaccesible path.', 'group' => 'Menu Module Tests');
+    return array(
+      'name' => t('Menu invalid path'),
+      'desc' => 'Try to create a menu item with an invalid / inaccesible path.',
+      'group' => 'Menu Module Tests',
+    );
+  }
+  
+  function setUp() {
+    parent::setUp();
+
+    $this->drupalModuleEnable('menu');
   }
 
   function tearDown() {
@@ -213,7 +265,6 @@ class MenuModuleInvalidPath extends DrupalTestCase {
   }
 
   function testMenuModuleInvalidPath() {
-    $this->drupalModuleEnable('menu');
     $web_user = $this->drupalCreateUserRolePerm(array('administer menu'));
     $this->drupalLoginUser($web_user);
     foreach (array('-&-', 'admin/user/permissions') as $invalid_path) {
