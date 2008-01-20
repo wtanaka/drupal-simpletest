@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.44 2008/01/18 09:02:24 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.45 2008/01/20 10:32:21 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -9,11 +9,12 @@
  */
 class DrupalTestCase extends WebTestCase {
   var $_content;
-  var $_cleanupModules   = array();
-  var $_cleanupVariables = array();
-  var $_cleanupUsers     = array();
-  var $_cleanupRoles     = array();
-  var $_cleanupNodes     = array();
+  var $_cleanupModules      = array();
+  var $_cleanupVariables    = array();
+  var $_cleanupUsers        = array();
+  var $_cleanupRoles        = array();
+  var $_cleanupNodes        = array();
+  var $_cleanupContentTypes = array();
 
 
   function DrupalTestCase($label = NULL) {
@@ -69,6 +70,46 @@ class DrupalTestCase extends WebTestCase {
     return $node;
   }
 
+  /**
+   * Creates a custom content type based on default settings.
+   *
+   * @param settings An array of settings to change from the defaults, in the form of 'type' => 'foo'
+   */
+  function drupalCreateContentType($settings = array()) {
+    // find a non-existent random type name.
+    do {
+      $name = $this->randomName(3, 'type_');
+    } while (node_get_types('type', $name));
+
+    // Populate defaults array
+    $defaults = array(
+      'type' => $name,
+      'name' => $name,
+      'description' => '',
+      'help' => '',
+      'min_word_count' => 0,
+      'title_label' => 'Title',
+      'body_label' => 'Body',
+      'has_title' => 1,
+      'has_body' => 1,
+    );
+    // imposed values for a custom type
+    $forced = array(
+      'orig_type' => '',
+      'old_type' => '',
+      'module' => 'node',
+      'custom' => 1,
+      'modified' => 1,
+      'locked' => 0,
+    );
+    $type = $forced + $settings + $defaults;
+    $type = (object)$type;
+
+    node_type_save($type);
+
+    $this->_cleanupContentTypes[] = $type->type;
+    return $type;
+  }
 
   /**
    * @abstract Checks to see if we need to send
@@ -431,6 +472,11 @@ class DrupalTestCase extends WebTestCase {
         node_delete($node['nid']);
       }
       user_delete(array(), $uid);
+    }
+
+    //delete content types
+    foreach ($this->_cleanupContentTypes as $type) {
+      node_type_delete($type);
     }
 
     //Output drupal warnings and messages into assert messages
