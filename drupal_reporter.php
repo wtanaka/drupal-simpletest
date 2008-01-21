@@ -151,7 +151,7 @@ class DrupalReporter extends SimpleReporter {
     $parent_weight = $this->getParentWeight() - 0.5;
     /* Exception for the top groups, no subgrouping for singles */
     if (($this->_output_stack_id == 2) && ($this->_output_stack[$this->_output_stack_id]['size'] == 1)) {
-      $this->writeContent($this->getTestCaseProgress() . ' test cases complete: ', -10);
+      $this->writeContent(format_plural($this->getTestCaseProgress(), '1 test case complete: ', '@count test cases complete: '), -10);
       $parent_weight = $this->getParentWeight() - 0.5;
       $this->writeContent('<strong>' . $this->getPassCount() . '</strong> passes, <strong>' . $this->getFailCount() . '</strong> fails and <strong>' . $this->getExceptionCount() . '</strong> exceptions.', $parent_weight, $class);
       array_pop($this->form_depth);
@@ -159,7 +159,7 @@ class DrupalReporter extends SimpleReporter {
     else {
       $collapsed = $ok ? TRUE : FALSE;
       if ($this->getTestCaseProgress()) {
-        $this->writeContent($this->getTestCaseProgress() . ' test cases complete: ', -10);
+        $this->writeContent(format_plural($this->getTestCaseProgress(), '1 test case complete: ', '@count test cases complete: '), -10);
         $use_grouping = FALSE;
       }
       else {
