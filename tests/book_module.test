@@ -1,5 +1,5 @@
 <?php
-// $Id: book_module.test,v 1.1 2008/01/12 22:08:47 rokZlender Exp $
+// $Id: book_module.test,v 1.2 2008/01/21 06:39:13 rokZlender Exp $
 
 class BookModuleTestCase extends DrupalTestCase {
   var $book;
@@ -106,7 +106,7 @@ class BookModuleTestCase extends DrupalTestCase {
    * 
    * @param array $nodes Nodes to check in outline.
    */
-  function generateOutlinePattern(array $nodes) {
+  function generateOutlinePattern($nodes) {
     $outline = '';
     foreach ($nodes as $node)
       $outline .= '(node\/' . $node->nid . ')(.*?)(' . $node->title . ')(.*?)';
