@@ -15,6 +15,7 @@ class BlogAPIModuleTestCase extends DrupalTestCase {
     
     $this->drupalModuleEnable('blog');
     $this->drupalModuleEnable('blogapi');
+    $this->drupalModuleEnable('taxonomy');
   }
   
   function tearDown() {
