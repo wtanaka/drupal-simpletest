@@ -1,42 +1,46 @@
+$Id: README.txt,v 1.12 2008/01/21 09:00:37 rokZlender Exp $
+
 Description
------------------------
+-----------
 A framework for running unit tests in Drupal.
 
 USAGE WARNING
------------------------
+-------------
 NEVER USE THIS MODULE IN A PRODUCTION ENVIRONMENT!
 While running a test this module may (completely) change your Drupal setup.
 Though it usually recovers the original setup at the end of a test, there is
 no guarantee that it will work correctly, especially if an error or timeout
 occurs.
 
-Since all registered users have the registered users role this role
-MUST have the default settings for current tests to run correct.
-This also applies for anonymous user.
-
-
 Status
------------------------
-Some core tests have been written - see the /tests subdirectory. We need more,
-especially for contributed modules.
+------
+Drupal core tests are in the /tests subdirectory. We need people to help
+expand our library of core tests, as well as provide tests for contributed
+modules. 
 
-Simpletest hook
------------------------
-This module offers a new 'simpletest' hook. Modules implementing this hook should return an array of paths which
-point to test files. These paths should be relative to the /simpletest directory.
+Documentation
+-------------
+* Official SimpleTest documentation:
+  http://simpletest.org/en/start-testing.html
+* SimpleTest module API documentation:
+  http://drupal.org/simpletest
+* An Introduction to Unit Testing in Drupal:
+  http://www.lullabot.com/articles/introduction-unit-testing
+* A Drupal Module Developer's Guide to SimpleTest:
+  http://www.lullabot.com/articles/drupal-module-developer-guide-simpletest
 
-Writing Tests
------------------------
-Please write some tests.
-See http://drupal.org/simpletest
-
-Authors
------------------------
-Moshe Weitzman < weitzman at tejasa dot com >
-Kuba Zygmunt   < kuba.zygmunt at gmail dot com >
-Thomas Ilsche  < ThomasIlsche at gmx dot de >
+Module Authors
+--------------
+* Moshe Weitzman < weitzman at tejasa dot com >
+* Kuba Zygmunt   < kuba.zygmunt at gmail dot com >
+* Thomas Ilsche  < ThomasIlsche at gmx dot de >
+* Rok Zlender    < rok.zlender at gmail dot com >
 
 Thanks
------------------------
-to Google for sponsoring the testsuite Summer of Code project.
-see http://code.google.com/summerofcode.html
+------
+* Google for sponsoring the initial test suite (and subsequent improvements)
+  as Summer of Code projects:
+  http://code.google.com/soc/
+* Google and all students/mentors involved in the creation of a huge set of
+  core tests during the Google Highly Open Participation contest:
+  http://code.google.com/opensource/ghop/
