@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.46 2008/01/21 06:48:49 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.47 2008/01/28 08:29:10 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -106,6 +106,7 @@ class DrupalTestCase extends WebTestCase {
     $type = (object)$type;
 
     node_type_save($type);
+    node_types_rebuild();
 
     $this->_cleanupContentTypes[] = $type->type;
     return $type;
@@ -489,7 +490,6 @@ class DrupalTestCase extends WebTestCase {
 
     parent::tearDown();
   }
-
 
   /**
    * Just some info for the reporter
