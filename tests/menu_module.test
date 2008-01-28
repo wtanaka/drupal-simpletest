@@ -1,5 +1,5 @@
 <?php
-// $Id: menu_module.test,v 1.5 2008/01/28 07:40:47 rokZlender Exp $
+// $Id: menu_module.test,v 1.6 2008/01/28 08:48:37 rokZlender Exp $
 
 class MenuModuleTestCase extends  DrupalTestCase {
 
@@ -54,7 +54,7 @@ class MenuModuleTestCase extends  DrupalTestCase {
    * Delete a menu link using the menu module UI.
    */
   function uiDeleteLink($mlid) {
-    $this->drupalPostRequest("admin/build/menu/item/". $mlid ."/delete", array(), "Confirm");
+    $this->drupalPost("admin/build/menu/item/". $mlid ."/delete", array(), "Confirm");
   }
   /**
    * Create a menu link using the menu module UI.
@@ -72,7 +72,7 @@ class MenuModuleTestCase extends  DrupalTestCase {
       'menu[weight]' => '0',
     );
 
-    $this->drupalPostRequest("admin/build/menu-customize/". $menu_name ."/add", $edit, "Save");
+    $this->drupalPost("admin/build/menu-customize/". $menu_name ."/add", $edit, "Save");
     $out = $this->drupalGet("admin/build/menu-customize/$menu_name");
     $this->assertText($title, 'Link created');
     $mlid = db_result(db_query("SELECT mlid FROM {menu_links} WHERE link_title = '%s'", $title));
@@ -116,7 +116,7 @@ class MenuModuleCustomMenuTest extends MenuModuleTestCase {
       'description' => '',
       'title' =>  $title,
     );
-    $this->drupalPostRequest("admin/build/menu/add", $edit, "Save");
+    $this->drupalPost("admin/build/menu/add", $edit, "Save");
 
     $name = 'menu-' .$name;
     $this->drupalGet('admin/build/menu');
@@ -126,7 +126,7 @@ class MenuModuleCustomMenuTest extends MenuModuleTestCase {
     $link1 = menu_link_load($mlid1);
     $this->assertTrue((bool)$link1, '1st link created and loaded');
 
-    $this->drupalPostRequest("admin/build/menu-customize/". $name ."/delete", array(), "Delete");
+    $this->drupalPost("admin/build/menu-customize/". $name ."/delete", array(), "Delete");
     $this->assertFalse(menu_load($name), 'Custom menu deleted');
     $this->assertFalse(menu_link_load($mlid1), '1st link deleted with menu');
   }
@@ -166,11 +166,11 @@ class MenuModuleEnable extends DrupalTestCase {
     $hidden = $item['hidden'];
     $edit['menu[enabled]'] = $hidden ? 1 : FALSE;
     $this->assertTrue(TRUE,  $hidden ? 'Disabled item found' : 'Enabled item found');
-    $this->drupalPostRequest('admin/build/menu/item/'. $item['mlid'] .'/edit', $edit, 'Save');
+    $this->drupalPost('admin/build/menu/item/'. $item['mlid'] .'/edit', $edit, 'Save');
     $item = menu_link_load($item['mlid']);
     $this->assertTrue($item['hidden'] != $hidden, $item['hidden'] ? 'Item is now disabled' : 'Item is now enabled');
     $edit['menu[enabled]'] = $hidden ? FALSE : 1;
-    $this->drupalPostRequest('admin/build/menu/item/'. $item['mlid'] .'/edit', $edit, 'Save');
+    $this->drupalPost('admin/build/menu/item/'. $item['mlid'] .'/edit', $edit, 'Save');
     $item = menu_link_load($item['mlid']);
     $this->assertTrue($item['hidden'] == $hidden, $item['hidden'] ? 'Item is disabled again' : 'Item is now enabled again');
   }
@@ -220,13 +220,13 @@ class MenuModuleReset extends DrupalTestCase {
       $item = db_fetch_array(db_query('SELECT * FROM {menu_links} WHERE mlid = %d', $mlid));
       $edit['menu[link_title]'] = $this->randomName(16);
       $path = 'admin/build/menu/item/'. $mlid;
-      $this->drupalPostRequest($path .'/edit', $edit, 'Save');
+      $this->drupalPost($path .'/edit', $edit, 'Save');
       $new_title = db_result(db_query('SELECT link_title FROM {menu_links} WHERE mlid = %d', $mlid));
       $this->assertTrue($new_title == $edit['menu[link_title]'], 'Edit succesful');
       $this->assertFalse($item['link_title'] == $new_title, 'Item changed' );
       $reset_path = $path .'/reset';
       $this->assertWantedRaw($reset_path, 'Reset link found');
-      $this->drupalPostRequest($reset_path, array(), 'Reset');
+      $this->drupalPost($reset_path, array(), 'Reset');
       $reset_title = db_result(db_query('SELECT link_title FROM {menu_links} WHERE mlid = %d', $mlid));
       $this->assertFalse($edit['menu[link_title]'] == $reset_title, 'Item reset');
       $this->assertText(t('The menu item was reset to its default settings.'), 'Reset message');
@@ -268,7 +268,7 @@ class MenuModuleInvalidPath extends DrupalTestCase {
         'menu[link_path]' => $invalid_path,
         'menu[link_title]' => 'title',
       );
-      $this->drupalPostRequest("admin/build/menu-customize/navigation/add", $edit, "Save");
+      $this->drupalPost("admin/build/menu-customize/navigation/add", $edit, "Save");
       $this->assertWantedRaw(t("The path '@path' is either invalid or you do not have access to it.", array('@path' => $invalid_path)), 'Invalid path failed');
     }
   }

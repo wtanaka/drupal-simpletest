@@ -1,5 +1,5 @@
 <?php
-/* $Id: taxonomy.module.test,v 1.12 2008/01/05 10:21:57 rokZlender Exp $ */
+/* $Id: taxonomy.module.test,v 1.13 2008/01/28 08:48:37 rokZlender Exp $ */
 
 class TaxonomyVocabularyFunctions extends DrupalTestCase {
   function get_info() {
@@ -297,10 +297,10 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
     $body = $this->randomName(100);
     $edit = array('title' => $title, 'body' => $body, 'taxonomy-' . $vid => $parent);
     
-    // multiple slect box was failing through drupalPostRequest. Use raw POST instead
+    // multiple slect box was failing through drupalPost. Use raw POST instead
     // Failing because they were being sent/handled wrong (earnest.berry@gmail.com <Souvent22>)
     $action = url('node/add/story', array('absolute' => TRUE));
-    $this->drupalPostRequest($action, $edit, 'Save');
+    $this->drupalPost($action, $edit, 'Save');
     $content = $this->drupalGetContent();
     $patternArray['body text'] = $body;
     $patternArray['title'] = $title;
@@ -341,7 +341,7 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
 
     $edit = array('title' => $title, 'body' => $body, 'taxonomy-' . $vid => $parent);
     
-    $this->drupalPostRequest('node/'. $node->nid .'/edit', $edit, 'Save');
+    $this->drupalPost('node/'. $node->nid .'/edit', $edit, 'Save');
     
     // TODO Do a MUCH better check here of the information msg
     $patternArray['information message'] = 'been updated';
@@ -356,7 +356,7 @@ class TaxonomyTestNodeApi extends DrupalTestCase {
     }
 
     // delete node through browser
-    $this->drupalPostRequest('node/'. $node->nid .'/delete', array(), 'Delete' );
+    $this->drupalPost('node/'. $node->nid .'/delete', array(), 'Delete' );
     // checking after delete
     $this->_browser->get(url("node/".$node->nid));
     $this->assertNoUnwantedText($termname, "Checking if node exists");

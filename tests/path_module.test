@@ -34,7 +34,7 @@ class PathModuleTestCase extends DrupalTestCase {
     $edit = array();
     $edit['src'] = 'node/' . $node1->nid;
     $edit['dst'] = $this->randomName(8);
-    $this->drupalPostRequest('admin/build/path/add', $edit, 'Create new alias');
+    $this->drupalPost('admin/build/path/add', $edit, 'Create new alias');
     
     // confirm that the alias works
     $this->drupalGet($edit['dst']);
@@ -45,7 +45,7 @@ class PathModuleTestCase extends DrupalTestCase {
     
     $previous = $edit['dst'];
     $edit['dst'] = $this->randomName(8);
-    $this->drupalPostRequest('admin/build/path/edit/' . $pid, $edit, 'Update alias');
+    $this->drupalPost('admin/build/path/edit/' . $pid, $edit, 'Update alias');
     
     // confirm that the alias works
     $this->drupalGet($edit['dst']);
@@ -62,13 +62,13 @@ class PathModuleTestCase extends DrupalTestCase {
     // set alias to second test node
     $edit['src'] = 'node/' . $node2->nid;
     // leave $edit['dst'] the same
-    $this->drupalPostRequest('admin/build/path/add', $edit, 'Create new alias');
+    $this->drupalPost('admin/build/path/add', $edit, 'Create new alias');
     
     // confirm that the alias didn't make a duplicate
     $this->assertWantedRaw(t('The alias %alias is already in use in this language.', array('%alias' => $edit['dst'])), 'Attempt to move alias was rejected.');
     
     // delete alias
-    $this->drupalPostRequest('admin/build/path/delete/' . $pid, array(), 'Confirm');
+    $this->drupalPost('admin/build/path/delete/' . $pid, array(), 'Confirm');
     
     // confirm that the alias no longer works
     $this->drupalGet($edit['dst']);
@@ -85,7 +85,7 @@ class PathModuleTestCase extends DrupalTestCase {
     // create alias
     $edit = array();
     $edit['path'] = $this->randomName(8);
-    $this->drupalPostRequest('node/' . $node1->nid . '/edit', $edit, 'Save');
+    $this->drupalPost('node/' . $node1->nid . '/edit', $edit, 'Save');
     
     // confirm that the alias works
     $this->drupalGet($edit['path']);
@@ -94,7 +94,7 @@ class PathModuleTestCase extends DrupalTestCase {
     // change alias
     $previous = $edit['path'];
     $edit['path'] = $this->randomName(8);
-    $this->drupalPostRequest('node/' . $node1->nid . '/edit', $edit, 'Save');
+    $this->drupalPost('node/' . $node1->nid . '/edit', $edit, 'Save');
     
     // confirm that the alias works
     $this->drupalGet($edit['path']);
@@ -110,13 +110,13 @@ class PathModuleTestCase extends DrupalTestCase {
     
     // set alias to second test node
     // leave $edit['path'] the same
-    $this->drupalPostRequest('node/' . $node2->nid . '/edit', $edit, 'Save');
+    $this->drupalPost('node/' . $node2->nid . '/edit', $edit, 'Save');
     
     // confirm that the alias didn't make a duplicate
     $this->assertText(t('The path is already in use.'), 'Attempt to moved alias was rejected.');
     
     // delete alias
-    $this->drupalPostRequest('node/' . $node1->nid . '/edit', array('path' => ''), 'Save');
+    $this->drupalPost('node/' . $node1->nid . '/edit', array('path' => ''), 'Save');
     
     // confirm that the alias no longer works
     $this->drupalGet($edit['path']);
@@ -133,7 +133,7 @@ class PathModuleTestCase extends DrupalTestCase {
     $edit = array();
     $edit['title'] = '!SimpleTest test node! ' . $this->randomName(10);
     $edit['body'] = '!SimpleTest test body! ' . $this->randomName(32) . ' ' . $this->randomName(32);
-    $this->drupalPostRequest('node/add/page', $edit, 'Save');
+    $this->drupalPost('node/add/page', $edit, 'Save');
     
     // check to make sure the node was created
     $node = node_load(array('title' => $edit['title']));

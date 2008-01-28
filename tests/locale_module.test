@@ -48,7 +48,7 @@ class LocaleModuleTest extends DrupalTestCase {
       'prefix' => $prefix,
       'direction' => '0',
     );
-    $this->drupalPostRequest('admin/settings/language/add', $edit, 'Add custom language');
+    $this->drupalPost('admin/settings/language/add', $edit, 'Add custom language');
     // Add string.
     t($name, array(), $langcode);
     // Reset locale cache.
@@ -69,7 +69,7 @@ class LocaleModuleTest extends DrupalTestCase {
       'translation' => 'all',
       'group' => 'all',
     );
-    $this->drupalPostRequest('admin/build/translate/search', $search, 'Search');
+    $this->drupalPost('admin/build/translate/search', $search, 'Search');
     // assertText seems to remove the input field where $name always could be
     // found, so this is not a false assert. See how assertNoText succeeds
     // later.
@@ -85,10 +85,10 @@ class LocaleModuleTest extends DrupalTestCase {
     $edit = array (
       "translations[$langcode]" => $translation,
     );
-    $this->drupalPostRequest(NULL, $edit, 'Save translations');
+    $this->drupalPost(NULL, $edit, 'Save translations');
     $this->assertText(t('The string has been saved.'), 'The string has been saved.');
     $this->assertTrue($name != $translation && t($name, array(), $langcode) == $translation, 't() works');
-    $this->drupalPostRequest('admin/build/translate/search', $search, 'Search');
+    $this->drupalPost('admin/build/translate/search', $search, 'Search');
     // The indicator should not be here.
     $this->assertNoUnwantedRaw($language_indicator, 'String is translated');
     $this->drupalGet('logout');
@@ -97,7 +97,7 @@ class LocaleModuleTest extends DrupalTestCase {
     $this->drupalLoginUser($admin_user);
     $path = 'admin/settings/language/delete/'. $langcode;
     // This a confirm form, we do not need any fields changed.
-    $this->drupalPostRequest($path, array(), 'Delete');
+    $this->drupalPost($path, array(), 'Delete');
     // We need raw here because %locale will add HTML.
     $this->assertWantedRaw(t('The language %locale has been removed.', array('%locale' => $name)), 'The test language has been removed.');
     // Reload to remove $name.
@@ -111,7 +111,7 @@ class LocaleModuleTest extends DrupalTestCase {
     $this->drupalLoginUser($translate_user);
     $this->drupalGet('admin/build/translate/delete/'. $lid);
     $this->assertText(t('The string has been removed.'), 'The string has been removed message.');
-    $this->drupalPostRequest('admin/build/translate/search', $search, 'Search');
+    $this->drupalPost('admin/build/translate/search', $search, 'Search');
     $this->assertNoText($name, 'Search now can not find the name');
   }
 }

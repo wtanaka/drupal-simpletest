@@ -1,5 +1,5 @@
 <?php
-// $Id: node_revisions.test,v 1.3 2008/01/13 16:16:13 rokZlender Exp $
+// $Id: node_revisions.test,v 1.4 2008/01/28 08:48:37 rokZlender Exp $
 class NodeRevisionsTest extends DrupalTestCase {
   /**
    * Implementation of get_info() for information
@@ -79,7 +79,7 @@ class NodeRevisionsTest extends DrupalTestCase {
 
     $test_user = $this->drupalCreateUserRolePerm(array('revert revisions', 'edit any page content'));
     $this->drupalLoginUser($test_user);
-    $this->drupalPostRequest("node/$node->nid/revisions/$vid/revert", array(), 'Revert');
+    $this->drupalPost("node/$node->nid/revisions/$vid/revert", array(), 'Revert');
     $newnode = node_load($node->nid);
     $this->assertTrue(($text == $newnode->body), 'Check to make sure reversions occur properly');
 
@@ -94,7 +94,7 @@ class NodeRevisionsTest extends DrupalTestCase {
 
     $test_user = $this->drupalCreateUserRolePerm(array('delete revisions', 'delete any page content'));
     $this->drupalLoginUser($test_user);
-    $this->drupalPostRequest("node/$node->nid/revisions/$vid/delete", array(), 'Delete');
+    $this->drupalPost("node/$node->nid/revisions/$vid/delete", array(), 'Delete');
     $this->assertTrue(db_result(db_query('SELECT COUNT(vid) FROM {node_revisions} WHERE nid = %d and VID = %d', $node->nid, $vid)) == 0, 'Check to make sure revisions delete properly');    $this->cleanup($node->nid);
 
     $this->cleanup($node->nid);

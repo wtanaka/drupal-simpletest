@@ -26,7 +26,7 @@ class StoryEditTest extends DrupalTestCase {
 	);
 	
     //Create the page to edit
-    $this->drupalPostRequest('node/add/story', $edit, 'Save');
+    $this->drupalPost('node/add/story', $edit, 'Save');
 
     $node = node_load(array('title' => $edit['title']));
     $this->assertNotNull($node, 'Node found in database');
@@ -49,7 +49,7 @@ class StoryEditTest extends DrupalTestCase {
 
 	
     //edit the content of the page
-    $this->drupalPostRequest("node/$node->nid/edit", $edit, 'Save');
+    $this->drupalPost("node/$node->nid/edit", $edit, 'Save');
 
     $this->assertWantedText(t($edit['title']), 'Hello, the random title');
     $this->assertWantedText(t($edit['body']), 'test is over, the body\'s still there');

@@ -25,7 +25,7 @@ class StoryPreviewTest extends DrupalTestCase {
       'title'=>'!SimpleTest! title' . $this->randomName(20),
       'body'=>'!SimpleTest! body' . $this->randomName(200),
     );
-    $this->drupalPostRequest('node/add/story', $edit, 'Preview');
+    $this->drupalPost('node/add/story', $edit, 'Preview');
 
     $this->assertWantedText(t('Preview'), 'Preview text is here');
     $this->assertWantedText(t($edit['title']), 'Hello, the random title');
