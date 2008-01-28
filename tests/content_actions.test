@@ -1,5 +1,5 @@
 <?php
-// $Id: content_actions.test,v 1.2 2008/01/13 16:16:13 rokZlender Exp $
+// $Id: content_actions.test,v 1.3 2008/01/28 07:40:47 rokZlender Exp $
 class ActionsContentTest extends  DrupalTestCase {
   var $_cleanup_roles = array();
   var $_cleanup_users = array();
@@ -13,20 +13,6 @@ class ActionsContentTest extends  DrupalTestCase {
       'desc' => t('Perform various tests with content actions.') ,
       'group' => 'Actions',
     );
-  }
-
-  /**
-   * Setup function
-   */
-  function setUp() {
-    parent::setUp();
-  }
-  
-  /**
-   * Teardown function
-   */
-  function tearDown(){
-    parent::tearDown();
   }
 
   /**

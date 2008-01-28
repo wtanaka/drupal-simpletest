@@ -1,5 +1,5 @@
 <?php
-// $Id: page_creation.test,v 1.15 2008/01/21 06:41:47 rokZlender Exp $
+// $Id: page_creation.test,v 1.16 2008/01/28 07:40:47 rokZlender Exp $
 class PageCreationTest extends  DrupalTestCase {
   var $_cleanup_roles = array();
   var $_cleanup_users = array();
@@ -8,10 +8,11 @@ class PageCreationTest extends  DrupalTestCase {
    * Implementation of get_info() for information
    */
   function get_info() {
-    return array('name' => t('Page node creation'), 'desc' => t('Create a page node and verify its consistency in the database.') , 'group' => 'Node Tests');
-  }
-
-  function setUp() {
+    return array(
+      'name' => t('Page node creation'),
+      'desc' => t('Create a page node and verify its consistency in the database.'),
+      'group' => 'Node Tests',
+    );
   }
   
   function testPageCreation() {

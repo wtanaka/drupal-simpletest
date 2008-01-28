@@ -1,5 +1,5 @@
 <?php
-// $Id: page_view.test,v 1.13 2008/01/13 16:16:13 rokZlender Exp $
+// $Id: page_view.test,v 1.14 2008/01/28 07:40:47 rokZlender Exp $
 class PageViewTest extends DrupalTestCase {
   /**
    * Implementation of get_info() for information
@@ -14,9 +14,6 @@ class PageViewTest extends DrupalTestCase {
   );
   }
   
-  function setUp() {
-  }
-
   function testPageView() {
     /* Prepare a node to view */
     global $user;

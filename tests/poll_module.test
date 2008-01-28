@@ -52,10 +52,6 @@ class PollCreateTest extends PollTests {
     $this->drupalModuleEnable('poll');
   }
 
-  function tearDown() {
-    parent::tearDown();
-  }
-
   function testPollCreate() {
     $this->pollCreate(TRUE);
   }

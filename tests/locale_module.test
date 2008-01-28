@@ -18,10 +18,6 @@ class LocaleModuleTest extends DrupalTestCase {
     $this->drupalModuleEnable('locale');
   }
 
-  function tearDown() {
-    parent::tearDown();
-  }
-
   function testlocaleModuleTest() {
     global $base_url;
     

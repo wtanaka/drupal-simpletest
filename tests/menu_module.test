@@ -1,5 +1,5 @@
 <?php
-// $Id: menu_module.test,v 1.4 2008/01/18 11:15:21 rokZlender Exp $
+// $Id: menu_module.test,v 1.5 2008/01/28 07:40:47 rokZlender Exp $
 
 class MenuModuleTestCase extends  DrupalTestCase {
 
@@ -18,10 +18,6 @@ class MenuModuleTestCase extends  DrupalTestCase {
     parent::setUp();
    
     $this->drupalModuleEnable('menu');
-  }
-
-  function tearDown() {
-    parent::tearDown();
   }
 
   function testCreateCheckDelete() {

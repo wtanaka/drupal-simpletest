@@ -9,10 +9,6 @@ class UserRegistrationTest extends DrupalTestCase {
     return array('name' => t('User registration'), 'desc' => t('Registers a user, fails login, resets password, successfully logs in with the one time password, changes password, logs out, successfully logs in with the new password, visits profile page.') , 'group' => 'User tests');
   }
 
-  function tearDown() {
-    parent::tearDown();
-  }
-
   function testUserRegistration() {
     /* We first allow every user to login instantly. */
     $this->drupalVariableSet('user_register', 1);

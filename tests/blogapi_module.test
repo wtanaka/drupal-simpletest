@@ -1,5 +1,5 @@
 <?php
-// $Id:
+// $Id: blogapi_module.test,v 1.3 2008/01/28 07:40:47 rokZlender Exp $
 
 class BlogAPIModuleTestCase extends DrupalTestCase {
   function get_info() {
@@ -16,10 +16,6 @@ class BlogAPIModuleTestCase extends DrupalTestCase {
     $this->drupalModuleEnable('blog');
     $this->drupalModuleEnable('blogapi');
     $this->drupalModuleEnable('taxonomy');
-  }
-  
-  function tearDown() {
-    parent::tearDown();
   }
   
   function test_blog_API() {
