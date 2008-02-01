@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.48 2008/01/28 08:48:37 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.49 2008/02/01 10:21:26 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -78,7 +78,7 @@ class DrupalTestCase extends WebTestCase {
   function drupalCreateContentType($settings = array()) {
     // find a non-existent random type name.
     do {
-      $name = $this->randomName(3, 'type_');
+      $name = strtolower($this->randomName(3, 'type_'));
     } while (node_get_types('type', $name));
 
     // Populate defaults array
