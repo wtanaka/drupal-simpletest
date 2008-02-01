@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.49 2008/02/01 10:21:26 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.50 2008/02/01 10:23:47 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -455,7 +455,7 @@ class DrupalTestCase extends WebTestCase {
     foreach ($this->_cleanupNodes as $nid) {
       node_delete($nid);
     }
-
+    $this->_cleanupNodes = array();
 
     //delete roles
     while (sizeof($this->_cleanupRoles) > 0) {
@@ -479,6 +479,7 @@ class DrupalTestCase extends WebTestCase {
     foreach ($this->_cleanupContentTypes as $type) {
       node_type_delete($type);
     }
+    $this->_cleanupContentTypes = array();
 
     //Output drupal warnings and messages into assert messages
     $drupal_msgs = drupal_get_messages();
