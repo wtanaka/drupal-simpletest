@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.51 2008/02/18 08:44:05 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.52 2008/02/18 14:29:45 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -281,6 +281,13 @@ class DrupalTestCase extends WebTestCase {
       $this->_modules[$name] = $name;
       $form_state['values'] = array('status' => $this->_modules, 'op' => t('Save configuration'));
       drupal_execute('system_modules', $form_state);
+      
+      //rebuilding all caches
+      drupal_rebuild_theme_registry();
+      node_types_rebuild();
+      menu_rebuild();
+      cache_clear_all('schema', 'cache');
+      module_rebuild_cache();
     }
   }
 
@@ -300,6 +307,13 @@ class DrupalTestCase extends WebTestCase {
       unset($this->_modules[$key]);
       $form_state['values'] = array('status' => $this->_modules, 'op' => t('Save configuration'));
       drupal_execute('system_modules', $form_state);
+      
+      //rebuilding all caches
+      drupal_rebuild_theme_registry();
+      node_types_rebuild();
+      menu_rebuild();
+      cache_clear_all('schema', 'cache');
+      module_rebuild_cache();
     }
   }
 
@@ -430,6 +444,13 @@ class DrupalTestCase extends WebTestCase {
     if ($this->_modules != $this->_originalModules) {
       $form_state['values'] = array('status' => $this->_originalModules, 'op' => t('Save configuration'));
       drupal_execute('system_modules', $form_state);
+      
+      //rebuilding all caches
+      drupal_rebuild_theme_registry();
+      node_types_rebuild();
+      menu_rebuild();
+      cache_clear_all('schema', 'cache');
+      module_rebuild_cache();
     }
 
     foreach ($this->_cleanupVariables as $name => $value) {
