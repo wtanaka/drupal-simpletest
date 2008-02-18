@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.50 2008/02/01 10:23:47 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.51 2008/02/18 08:44:05 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -9,7 +9,8 @@
  */
 class DrupalTestCase extends WebTestCase {
   var $_content;
-  var $_cleanupModules      = array();
+  var $_originalModules     = array();
+  var $_modules             = array();
   var $_cleanupVariables    = array();
   var $_cleanupUsers        = array();
   var $_cleanupRoles        = array();
@@ -275,25 +276,11 @@ class DrupalTestCase extends WebTestCase {
       $this->pass(" [module] $name already enabled");
       return TRUE;
     }
-    include_once './includes/install.inc';
-    module_rebuild_cache(); // Rebuild the module cache
-    if (drupal_get_installed_schema_version($name, TRUE) == SCHEMA_UNINSTALLED) {
-      drupal_install_modules(array($name));
-    }
-    else {
-      $try = module_enable(array($name));
-    }
-    drupal_flush_all_caches();
-    if(module_exists($name)) {
-      if (!isset($this->_cleanupModules[$name])) {
-        $this->_cleanupModules[] = $name;
-      }
-      $this->pass(" [module] $name enabled");
-      return TRUE;
-    }
-    else {
-      $this->fail(" [module] $name could not be enabled (probably file does not exist)");
-      return FALSE;
+    $this->checkOriginalModules();
+    if (array_search($name, $this->_modules) === FALSE) {
+      $this->_modules[$name] = $name;
+      $form_state['values'] = array('status' => $this->_modules, 'op' => t('Save configuration'));
+      drupal_execute('system_modules', $form_state);
     }
   }
 
@@ -308,23 +295,27 @@ class DrupalTestCase extends WebTestCase {
       $this->pass(" [module] $name already disabled");
       return TRUE;
     }
-    /* Update table */
-    db_query("UPDATE {system} SET status = 0 WHERE name = '%s' AND type = 'module'", $name);
-    if (db_affected_rows()) {
-      /* Make sure not overwriting when double switching */
-      if (!isset($this->_cleanupModules[$name])) {
-        $this->_cleanupModules[$name] = 1;
-      }
-      /* refresh module_list */
-      module_list(TRUE, FALSE);
-      $this->pass(" [module] $name disabled");
-      return TRUE;
+    $this->checkOriginalModules();
+    if (($key = array_search($name, $this->_modules)) !== FALSE) {
+      unset($this->_modules[$key]);
+      $form_state['values'] = array('status' => $this->_modules, 'op' => t('Save configuration'));
+      drupal_execute('system_modules', $form_state);
     }
-    $this->fail(" [module] $name could not be disabled for unknown reason");
-    return FALSE;
   }
 
-
+  /**
+   * Retrieves and saves current modules list into $_originalModules and $_modules.
+   */
+  function checkOriginalModules() {
+    if (empty($this->_originalModules)) {
+      require_once ('./modules/system/system.admin.inc');
+      $form_state = array();
+      $form = drupal_retrieve_form('system_modules', $form_state);
+      $this->_originalModules = drupal_map_assoc($form['status']['#default_value']);
+      $this->_modules = $this->_originalModules;
+    }
+  }
+  
   /**
    * Set a drupal variable and keep track of the changes for tearDown()
    * @param string $name name of the value
@@ -436,10 +427,9 @@ class DrupalTestCase extends WebTestCase {
    */
   function tearDown() {
 
-    if (!empty($this->_cleanupModules)) {
-      module_disable($this->_cleanupModules);
-      drupal_flush_all_caches();
-      $this->_cleanupModules = array();
+    if ($this->_modules != $this->_originalModules) {
+      $form_state['values'] = array('status' => $this->_originalModules, 'op' => t('Save configuration'));
+      drupal_execute('system_modules', $form_state);
     }
 
     foreach ($this->_cleanupVariables as $name => $value) {
