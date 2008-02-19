@@ -1,5 +1,5 @@
 <?php
-/* $Id: drupal_test_case.php,v 1.52 2008/02/18 14:29:45 rokZlender Exp $ */
+/* $Id: drupal_test_case.php,v 1.53 2008/02/19 13:52:05 rokZlender Exp $ */
 
 /**
  * Test case for typical Drupal tests.
@@ -451,6 +451,8 @@ class DrupalTestCase extends WebTestCase {
       menu_rebuild();
       cache_clear_all('schema', 'cache');
       module_rebuild_cache();
+    
+      $this->_modules = $this->_originalModules; 
     }
 
     foreach ($this->_cleanupVariables as $name => $value) {
