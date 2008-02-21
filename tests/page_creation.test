@@ -1,8 +1,6 @@
 <?php
-// $Id: page_creation.test,v 1.18 2008/02/21 08:13:26 rokZlender Exp $
+// $Id: page_creation.test,v 1.19 2008/02/21 08:16:22 rokZlender Exp $
 class PageCreationTest extends  DrupalTestCase {
-  var $_cleanup_roles = array();
-  var $_cleanup_users = array();
   
   /**
    * Implementation of get_info() for information
