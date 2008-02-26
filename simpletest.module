@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.33 2008/01/21 09:00:37 rokZlender Exp $
+// $Id: simpletest.module,v 1.34 2008/02/26 19:13:57 rokZlender Exp $
 
 /**
  * Implementation of hook_help().
@@ -204,21 +204,41 @@ function simpletest_overview_form() {
 /**
  * Actually runs tests
  * @param array $testlist list of tests to run or DEFAULT NULL run all tests
+ * @param boolean $html_reporter true if you want results in simple html, FALSE for full drupal page
  */
-function simpletest_run_tests($testlist = NULL) {
+function simpletest_run_tests($testlist = NULL, $reporter = 'drupal') {
   global $test_running;
   if (!$test_running) {
     $test_running = TRUE;
     $test = simpletest_get_total_test($testlist);
-    if (SimpleReporter::inCli()) {
-      cache_clear_all();
-      exit($test->run(new TextReporter()) ? 0 : 1);
+    switch ($reporter) {
+      case 'text':
+        $reporter = &new TextReporter();
+        break;	
+      case 'xml':
+        $reporter = &new XMLReporter();
+        break;
+      case 'html':
+      	$reporter = &new HtmlReporter();
+      	break;
+      case 'drupal':
+      	$reporter = &new DrupalReporter();
+      	break;
     }
-    $reporter = &new DrupalReporter();
+
     cache_clear_all();
-    $test->run($reporter);
+    $results = $test->run($reporter);
     $test_running = FALSE;
-    return $reporter->getOutput();
+    
+    switch (get_class($reporter)) {
+      case 'TextReporter':
+        exit ($results ? 0 : 1);
+      case 'XMLReporter':
+      case 'HtmlReporter':
+      	break;
+      case 'DrupalReporter':
+      	return $reporter->getOutput();
+    }
   }
 }
 
