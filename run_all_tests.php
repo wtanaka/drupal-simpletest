@@ -1,6 +1,6 @@
 <?php
 
-// $Id: run_all_tests.php,v 1.4 2008/02/26 19:13:57 rokZlender Exp $
+// $Id: run_all_tests.php,v 1.3.6.1 2008/02/26 19:16:21 rokZlender Exp $
 
 /**
  * @file
