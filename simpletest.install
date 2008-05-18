@@ -1,0 +1,51 @@
+<?php
+// $Id: simpletest.install,v 1.4.2.2 2008/05/18 22:49:37 boombatower Exp $
+
+/**
+ * @file
+ * SimpleTest installation file; ensures presence of SimpleTest library.
+ */
+
+/**
+ * Mininum required SimpleTest library version.
+ * 
+ * 1.0.1beta2 is required for the upload tests to work.
+ */
+define('SIMPLETEST_MINIMUM_VERSION', '1.0.1beta2');
+
+/**
+ * Implementation of hook_requirements().
+ */
+function simpletest_requirements($phase) {
+  $requirements = array();
+  $module_path = drupal_get_path('module', 'simpletest');
+  $simpletest_path = $module_path .'/simpletest/simpletest.php';
+
+  // Ensure translations don't break at install time.
+  $t = get_t();
+
+  // Check installed SimpleTest library version.
+  $simpletest_version = 0;
+  if (is_file($simpletest_path)) {
+    include_once $simpletest_path;
+    $simpletest_version = SimpleTest::getVersion();
+   }
+   
+  // Check for presence of required version of SimpleTest library.
+  $requirements['simpletest'] = array(
+    'title' => $t('SimpleTest library'),
+    'value' => $simpletest_version > 0 ? $simpletest_version : $t('Not found'),
+  );
+  $install_link = base_path() . $module_path .'/INSTALL.txt';
+  $download_link = 'http://sourceforge.net/project/showfiles.php?group_id=76550&package_id=77275';
+  if ($simpletest_version == 0) {
+    $requirements['simpletest']['description'] = $t('The SimpleTest library is not installed. You must <a href="@download">download the SimpleTest library</a> and place it your SimpleTest module folder. For more detailed instructions, see <a href="@install">INSTALL.txt</a>.', array('@download' => $download_link, '@install' => $install_link));
+    $requirements['simpletest']['severity'] = REQUIREMENT_ERROR;
+  }
+  elseif (version_compare($simpletest_version, SIMPLETEST_MINIMUM_VERSION) < 0) {
+    $requirements['simpletest']['description'] = $t('The SimpleTest module requires at least version %minimum-version of the SimpleTest library. Please <a href="@download">download a more recent SimpleTest library</a>. For more detailed instructions, see <a href="@install">INSTALL.txt</a>.', array('%minimum-version' => SIMPLETEST_MINIMUM_VERSION, '@download' => $download_link, '@install' => $install_link));
+    $requirements['simpletest']['severity'] = REQUIREMENT_ERROR;
+   }
+
+  return $requirements;
+}
