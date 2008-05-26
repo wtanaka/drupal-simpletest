@@ -1,5 +1,5 @@
-; $Id $
+; $Id: simpletest.info,v 1.4.2.1 2008/05/26 05:39:16 boombatower Exp $
 name = "SimpleTest module"
 description = "Provides simpletest classes to developers as well as some standard tests for Drupal"
 package = Simpletest
-core = 7.x
+core = 6.x
