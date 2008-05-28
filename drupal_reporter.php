@@ -125,7 +125,8 @@ class DrupalReporter extends SimpleReporter {
 
     if (($c = count($this->test_info_stack)) > 0) {
       $info = $this->test_info_stack[$c - 1];
-      $this->writeContent('<strong>' . $info['name'] . '</strong>: ' . $info['desc'], $this->getParentWeight() );
+      $description = isset($info['desc']) ? $info['desc'] : $info['description'];
+      $this->writeContent('<strong>' . $info['name'] . '</strong>: ' . $description, $this->getParentWeight() );
     }
     
     $this->_test_stack[] = $test_name;

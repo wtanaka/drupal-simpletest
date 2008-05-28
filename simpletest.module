@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.33.2.2 2008/05/18 22:49:37 boombatower Exp $
+// $Id: simpletest.module,v 1.33.2.3 2008/05/28 04:27:44 boombatower Exp $
 
 /**
  * Path to the SimpleTest module.
@@ -59,16 +59,29 @@ function simpletest_perm() {
 function simpletest_load() {
   include_once SIMPLETEST_LIBRARY_PATH .'/web_tester.php';
   include_once SIMPLETEST_LIBRARY_PATH .'/reporter.php';
+  include_once SIMPLETEST_LIBRARY_PATH .'/unit_tester.php';
   include_once SIMPLETEST_MODULE_PATH  .'/drupal_reporter.php';
   include_once SIMPLETEST_MODULE_PATH  .'/drupal_test_case.php';
   include_once SIMPLETEST_MODULE_PATH  .'/drupal_unit_tests.php';
+  include_once SIMPLETEST_MODULE_PATH  .'/drupal_web_test_case.php';
 }
 
 /**
  * Menu callback for both running tests and listing possible tests
  */
 function simpletest_entrypoint() {
+  global $simpletest_ua_key;
   simpletest_load();
+  
+  if (!$simpletest_ua_key) {
+    $output = t('Please add the following code to the bottom of settings.php');
+    $output .=
+'<p><code><pre>$GLOBALS["simpletest_ua_key"] = '. mt_rand(1000, 1000000) .';
+if (preg_match("/^(simpletest\d+),(\d+)/", $_SERVER["HTTP_USER_AGENT"], $matches) && $GLOBALS["simpletest_ua_key"] == $matches[2]) {
+  $db_prefix = $matches[1];
+}</pre></code></p>';
+    return $output;
+  }
 
   drupal_add_js(SIMPLETEST_MODULE_PATH .'/simpletest.js', 'module');
   $output = drupal_get_form('simpletest_overview_form');
@@ -143,8 +156,15 @@ function simpletest_overview_form() {
       '#attributes' => array('class' => $group_class), 
     );
     foreach ($tests as $test) {
-      $test_info = $test->get_info();
-      $desc = $test_info['desc'];
+      if (method_exists($test, 'get_info')) {
+        $test_info = $test->get_info();
+        $desc = $test_info['desc'];
+      }
+      elseif (method_exists($test, 'getInfo')) {
+        $test_info = $test->getInfo();
+        $desc = $test_info['description'];
+      }
+
       $group['tests'][get_class($test)] = array(
         '#type' => 'checkbox',
         '#title' => $test_info['name'],
@@ -179,9 +199,115 @@ function simpletest_overview_form() {
     '#collapsed' => FALSE,
     '#title' => 'Run tests',
   );
+
+  $output['reset'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#title' => 'Clean Environment',
+    '#description' => 'Remove tables with the prefix "simpletest" and temporary directories that are left over from tests that crashed.'
+  );
+  $output['reset']['op'] = array(
+    '#type' => 'submit',
+    '#value' => t('Clean Environment'),
+    '#submit' => array('simpletest_clean_environment')
+  );
   return $output;
 }
 
+/**
+ * Remove all temporary database tables and directories.
+ */
+function simpletest_clean_environment() {
+  simpletest_clean_database();
+  simpletest_clean_temporary_directories();
+}
+
+/**
+ * Removed prefixed talbes from the database that are left over from crashed tests.
+ */
+function simpletest_clean_database() {
+  $tables = simpletest_get_like_tables();
+
+  $ret = array();
+  foreach ($tables as $table) {
+    db_drop_table($ret, $table);
+  }
+
+  if (count($ret) > 0) {
+    drupal_set_message(t('Removed @count left over tables.', array('@count' => count($ret))));
+  }
+  else {
+    drupal_set_message(t('No left over tables to remove.'));
+  }
+}
+
+/**
+ * Find all tables that are like the specified base table name.
+ *
+ * @param string $base_table Base table name.
+ * @param boolean $count Return the table count instead of list of tables.
+ * @return mixed Array of matching tables or count of tables.
+ */
+function simpletest_get_like_tables($base_table = 'simpletest', $count = FALSE) {
+  global $db_url, $db_prefix;
+  $url = parse_url($db_url);
+  $database = substr($url['path'], 1);
+  $select = $count ? 'COUNT(table_name)' : 'table_name';
+  $result = db_query("SELECT $select FROM information_schema.tables WHERE table_schema = '$database' AND table_name LIKE '$db_prefix$base_table%'");
+
+  if ($count) {
+    return db_result($result);
+  }
+  $tables = array();
+  while ($table = db_result($result)) {
+    $tables[] = $table;
+  }
+  return $tables;
+}
+
+/**
+ * Find all left over temporary directories and remove them.
+ */
+function simpletest_clean_temporary_directories() {
+  $files = scandir(file_directory_path());
+  $count = 0;
+  foreach ($files as $file) {
+    $path = file_directory_path() .'/'. $file;
+    if (is_dir($path) && preg_match('/^simpletest\d+/', $file)) {
+      simpletest_clean_temporary_directory($path);
+      $count++;
+    }
+  }
+
+  if ($count > 0) {
+    drupal_set_message(t('Removed @count temporary directories.', array('@count' => $count)));
+  }
+  else {
+    drupal_set_message(t('No temporary directories to remove.'));
+  }
+}
+
+/**
+ * Remove all files from specified firectory and then remove directory.
+ *
+ * @param string $path Directory path.
+ */
+function simpletest_clean_temporary_directory($path) {
+  $files = scandir($path);
+  foreach ($files as $file) {
+    if ($file != '.' && $file != '..') {
+      $file_path = "$path/$file";
+      if (is_dir($file_path)) {
+        simpletest_clean_temporary_directory($file_path);
+      }
+      else {
+        file_delete($file_path);
+      }
+    }
+  }
+  rmdir($path);
+}
 
 /**
  * Actually runs tests

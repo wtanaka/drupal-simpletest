@@ -63,7 +63,9 @@ class DrupalUnitTests extends DrupalTestSuite {
     $groups = array();
     foreach ($classes as $class) {
       if (!is_subclass_of($class, 'DrupalTestCase')) {
-        continue;
+        if (!is_subclass_of($class, 'DrupalWebTestCase')) {
+          continue;
+        }
       }
       $this->_addClassToGroups($groups, $class);
     }
@@ -87,6 +89,11 @@ class DrupalUnitTests extends DrupalTestSuite {
       $info = $test->get_info();
       $groups[$info['group']][] = $test;
     }
+    elseif (method_exists($test, 'getInfo')) {
+      $info = $test->getInfo();
+      $groups[$info['group']][] = $test;
+    }
+
   }
 
   /**
