@@ -1,6 +1,6 @@
 <?php
 
-// $Id: run_all_tests.php,v 1.3.6.1 2008/02/26 19:16:21 rokZlender Exp $
+// $Id: run_all_tests.php,v 1.3.6.2 2008/06/16 21:00:00 boombatower Exp $
 
 /**
  * @file
@@ -24,6 +24,11 @@ else {
   	exit("bootstrap.inc could not be loaded\n");
   }
 }
+
+// If we are run from the command line, we need to make Drupal thing
+// we are index.php because otherwise base_path() will end up
+// including the path to this file and everything will break.
+$_SERVER['SCRIPT_NAME'] = '/index.php';
 drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
 
 //load simpletest files
