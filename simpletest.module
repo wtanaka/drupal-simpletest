@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.33.2.3 2008/05/28 04:27:44 boombatower Exp $
+// $Id: simpletest.module,v 1.33.2.4 2008/06/17 22:27:16 boombatower Exp $
 
 /**
  * Path to the SimpleTest module.
@@ -340,10 +340,9 @@ function simpletest_run_tests($testlist = NULL, $reporter = 'drupal') {
     
     switch (get_class($reporter)) {
       case 'TextReporter':
-        exit ($results ? 0 : 1);
       case 'XMLReporter':
       case 'HtmlReporter':
-      	break;
+        return $results;
       case 'DrupalReporter':
       	return $reporter->getOutput();
     }
