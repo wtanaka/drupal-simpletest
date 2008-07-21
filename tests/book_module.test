@@ -1,5 +1,5 @@
 <?php
-// $Id: book_module.test,v 1.4 2008/01/28 08:48:37 rokZlender Exp $
+// $Id: book_module.test,v 1.4.2.1 2008/07/21 17:20:38 boombatower Exp $
 
 class BookModuleTestCase extends DrupalTestCase {
   var $book;
@@ -131,9 +131,9 @@ class BookModuleTestCase extends DrupalTestCase {
       $edit['book[plid]'] = $parent;
       $this->drupalPost(NULL, $edit, 'Save');
     }
-    else
+    else {
       $this->drupalPost('node/add/book', $edit, 'Save');
-    
+    }
     // check to make sure the book node was created
     $node = node_load(array('title' => $edit['title']));
     $this->assertNotNull(($node === FALSE ? NULL : $node), 'Book node found in database.');
