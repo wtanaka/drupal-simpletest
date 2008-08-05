@@ -1,5 +1,5 @@
 <?php
-// $Id: translation_module.test,v 1.3 2008/01/28 08:48:37 rokZlender Exp $
+// $Id: translation_module.test,v 1.3.2.1 2008/08/05 00:02:22 boombatower Exp $
 
 class TranslationModuleTestCase extends DrupalTestCase {
   var $book;
@@ -32,7 +32,7 @@ class TranslationModuleTestCase extends DrupalTestCase {
     $this->add_language('es');
     
     // Set story content type to use multilingual support with translation.
-    $this->drupalPost('admin/content/types/story', array('language_content_type' => "2"), 'Save content type');
+    $this->drupalPost('admin/content/node-type/story', array('language_content_type' => "2"), 'Save content type');
     $this->assertWantedRaw(t('The content type %type has been updated.', array('%type' => 'Story')), 'Story content type has been updated.');
 
     $this->drupalGet('logout');
