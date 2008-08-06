@@ -1,15 +1,7 @@
 <?php
-// $Id: simpletest.module,v 1.33.2.4 2008/06/17 22:27:16 boombatower Exp $
+// $Id: simpletest.module,v 1.33.2.4.2.1 2008/08/06 01:41:06 boombatower Exp $
 
-/**
- * Path to the SimpleTest module.
- */
-define('SIMPLETEST_MODULE_PATH', drupal_get_path('module', 'simpletest'));
-
-/**
- * Path to the SimpleTest library.
- */
-define('SIMPLETEST_LIBRARY_PATH', SIMPLETEST_MODULE_PATH .'/simpletest');
+//require_once drupal_get_path('module', 'simpletest') . '/drupal_test_case.php';
 
 /**
  * Implementation of hook_help().
@@ -17,11 +9,11 @@ define('SIMPLETEST_LIBRARY_PATH', SIMPLETEST_MODULE_PATH .'/simpletest');
 function simpletest_help($path, $arg) {
   switch ($path) {
     case 'admin/help#simpletest':
-      $output  = '<p>'. t('The SimpleTest module is a framework for running automated unit tests in Drupal. It can be used to verify a working state of Drupal before and after any code changes, or as a means for developers to write and execute tests for their modules. It integrates with the <a href="@simpletest-official">SimpleTest PHP library</a>.', array('@simpletest-official' => 'http://www.simpletest.org/')) .'</p>';
-      $output .= '<p>'. t('Visit <a href="@admin-simpletest">Administer >> Site building >> SimpleTest</a> to display a list of available tests. For comprehensive testing, select <em>all</em> tests, or individually select tests for more targeted testing. (Note: Selecting <em>all</em> tests may take several minutes to complete.)', array('@admin-simpletest' => url('admin/build/simpletest'))) .'</p>';
-      $output .= '<p>'. t('After the tests have run, a message will be displayed next to each test group indicating whether tests within it passed, failed, or had exceptions. A pass means that a test returned the expected results, while fail means that it did not. An exception normally indicates an error outside of the test, such as a PHP warning or notice. If there were fails or exceptions, the results are expanded, and the tests that had issues will be indicated in red or pink rows. Use these results to refine your code and tests until all tests return a pass.') .'</p>';
-      $output .= '<p>'. t('For more information on creating and modifying your own tests, see the <a href="@simpletest-api">SimpleTest API Documentation</a> in the Drupal handbook.', array('@simpletest-api' => 'http://drupal.org/simpletest')) .'</p>';
-      $output .= '<p>'. t('For more information, see the online handbook entry for <a href="@simpletest">SimpleTest module</a>.', array('@simpletest' => 'http://drupal.org/handbook/modules/simpletest')) .'</p>';
+      $output  = '<p>' . t('The SimpleTest module is a framework for running automated unit tests in Drupal. It can be used to verify a working state of Drupal before and after any code changes, or as a means for developers to write and execute tests for their modules.') .'</p>';
+      $output .= '<p>' . t('Visit <a href="@admin-simpletest">Administer >> Site building >> SimpleTest</a> to display a list of available tests. For comprehensive testing, select <em>all</em> tests, or individually select tests for more targeted testing. Note that it might take several minutes for all tests to complete.)', array('@admin-simpletest' => url('admin/build/testing'))) .'</p>';
+      $output .= '<p>' . t('After the tests have run, a message will be displayed next to each test group indicating whether tests within it passed, failed, or had exceptions. A pass means that a test returned the expected results, while fail means that it did not. An exception normally indicates an error outside of the test, such as a PHP warning or notice. If there were fails or exceptions, the results are expanded, and the tests that had issues will be indicated in red or pink rows. Use these results to refine your code and tests until all tests return a pass.') .'</p>';
+      $output .= '<p>' . t('For more information on creating and modifying your own tests, see the <a href="@simpletest-api">SimpleTest API Documentation</a> in the Drupal handbook.', array('@simpletest-api' => 'http://drupal.org/simpletest')) .'</p>';
+      $output .= '<p>' . t('For more information, see the online handbook entry for <a href="@simpletest">SimpleTest module</a>.', array('@simpletest' => 'http://drupal.org/handbook/modules/simpletest')) .'</p>';
       return $output;
   }
 }
@@ -30,18 +22,12 @@ function simpletest_help($path, $arg) {
  * Implementation of hook_menu().
  */
 function simpletest_menu() {
-  $items['admin/build/simpletest'] = array( 
-    'title' => 'Simpletest',
-    'page callback' => 'simpletest_entrypoint',
+  $items['admin/build/testing'] = array(
+    'title' => 'Testing',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('simpletest_test_form'),
     'description' => 'Run tests against Drupal core and your active modules. These tests help assure that your site code is working as designed.',
     'access arguments' => array('administer unit tests'),
-  );
-  $items['admin/settings/simpletest'] = array( 
-    'title' => 'Simpletest settings',
-    'description' => 'Configure unit testing framework.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('simpletest_settings'),
-    'access arguments' => array('access administration pages'),
   );
   return $items;
 }
@@ -50,169 +36,433 @@ function simpletest_menu() {
  * Implementation of hook_perm().
  */
 function simpletest_perm() {
-  return array('administer unit tests'); 
+  return array(
+    'administer unit tests' => t('Manage and run automated testing. %warning', array('%warning' => t('Warning: Give to trusted roles only; this permission has security implications.'))),
+  );
 }
 
 /**
- * Load required SimepleTest files.
+ * Implemenation of hook_theme().
  */
-function simpletest_load() {
-  include_once SIMPLETEST_LIBRARY_PATH .'/web_tester.php';
-  include_once SIMPLETEST_LIBRARY_PATH .'/reporter.php';
-  include_once SIMPLETEST_LIBRARY_PATH .'/unit_tester.php';
-  include_once SIMPLETEST_MODULE_PATH  .'/drupal_reporter.php';
-  include_once SIMPLETEST_MODULE_PATH  .'/drupal_test_case.php';
-  include_once SIMPLETEST_MODULE_PATH  .'/drupal_unit_tests.php';
-  include_once SIMPLETEST_MODULE_PATH  .'/drupal_web_test_case.php';
+function simpletest_theme() {
+  return array(
+    'simpletest_test_form' => array(
+      'arguments' => array('form' => NULL)
+    ),
+    'simpletest_result_summary' => array(
+      'arguments' => array('form' => NULL)
+    ),
+  );
 }
 
 /**
  * Menu callback for both running tests and listing possible tests
  */
-function simpletest_entrypoint() {
-  global $simpletest_ua_key;
-  simpletest_load();
-  
-  if (!$simpletest_ua_key) {
-    $output = t('Please add the following code to the bottom of settings.php');
-    $output .=
-'<p><code><pre>$GLOBALS["simpletest_ua_key"] = '. mt_rand(1000, 1000000) .';
-if (preg_match("/^(simpletest\d+),(\d+)/", $_SERVER["HTTP_USER_AGENT"], $matches) && $GLOBALS["simpletest_ua_key"] == $matches[2]) {
-  $db_prefix = $matches[1];
-}</pre></code></p>';
-    return $output;
-  }
-
-  drupal_add_js(SIMPLETEST_MODULE_PATH .'/simpletest.js', 'module');
-  $output = drupal_get_form('simpletest_overview_form');
-
-  if (simpletest_running_output()) {
-    return simpletest_running_output() . $output;
-  }
-  else {
-    return $output;
-  }
-}
-
-function simpletest_running_output($output = NULL) {
-  static $o;
-  if ($output != NULL) {
-    $o = $output;
-  }
-  return $o;
-}
-
-/**
- * FAPI form submit for simpletest_overview_form
- *
- * @param $form
- * @param $form_state
- */
-function simpletest_overview_form_submit($form, &$form_state) {
-  $form_state['redirect'] = FALSE;
-  $output = '';
-  switch ($form_state['values']['running_options']) {
-    case 'all_tests':
-      $output = simpletest_run_tests();
-      break;    
-    case 'selected_tests':
-      $tests_list = array();
-      foreach ($form_state['values'] as $item => $value) {
-        if ($value === 1 && strpos($item, 'selectall') === FALSE) {
-          $tests_list[] = $item;
-        }
-      }
-      if (count($tests_list) > 0 ) {
-        $output = simpletest_run_tests($tests_list);
-        break;
-      }
-      // Fall through
-    default:
-      simpletest_trigger_error('no tests selected');
-  }
-  
-  simpletest_running_output($output);
-  return FALSE;
-}
-
-/**
- * Form callback;  make the form to run tests
- */
-function simpletest_overview_form() {
-  $output = array();
-  
-  $total_test = &simpletest_get_total_test();
-  
-  $test_instances = $total_test->getTestInstances();
-  foreach ($test_instances as $group_test) {
-    $group = array();
-    $tests = $group_test->getTestInstances();
-    $group_class = str_replace(' ', '-', strtolower($group_test->getLabel()));
-    $group['tests'] = array(
-      '#type' => 'fieldset',
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-      '#title' => 'Tests',
-      '#attributes' => array('class' => $group_class), 
+function simpletest_test_form() {
+  global $db_prefix, $db_prefix_original;
+  $form = array();
+  $uncategorized_tests = simpletest_get_all_tests();
+  $tests = simpletest_categorize_tests($uncategorized_tests);
+  if (isset($_SESSION['test_id'])) {
+    $results = db_query("SELECT * FROM {simpletest} WHERE test_id = %d ORDER BY test_class, message_id", $_SESSION['test_id']);
+    unset($_SESSION['test_id']);
+    $summary = array(
+      '#theme' => 'simpletest_result_summary',
+      '#pass' => 0,
+      '#fail' => 0,
+      '#exception' => 0,
+      '#weight' => -10,
     );
-    foreach ($tests as $test) {
-      if (method_exists($test, 'get_info')) {
-        $test_info = $test->get_info();
-        $desc = $test_info['desc'];
+    $form['summary'] = $summary;
+    $form['results'] = array();
+    $group_summary = array();
+    $map = array(
+      'pass' => theme('image', 'misc/watchdog-ok.png'),
+      'fail' => theme('image', 'misc/watchdog-error.png'),
+      'exception' => theme('image', 'misc/watchdog-warning.png'),
+    );
+    $header = array(t('Message'), t('Group'), t('Filename'), t('Line'), t('Function'), array('colspan' => 2, 'data' => t('Status')));
+    while ($result = db_fetch_object($results)) {
+      $class = $result->test_class;
+      $info = $uncategorized_tests[$class]->getInfo();
+      $group = $info['group'];
+      if (!isset($group_summary[$group])) {
+        $group_summary[$group] = $summary;
       }
-      elseif (method_exists($test, 'getInfo')) {
-        $test_info = $test->getInfo();
-        $desc = $test_info['description'];
+      $element = &$form['results'][$group][$class];
+      if (!isset($element)) {
+        $element['summary'] = $summary;
       }
-
-      $group['tests'][get_class($test)] = array(
+      $status = $result->status;
+      // This reporter can only handle pass, fail and exception.
+      if (isset($map[$status])) {
+        $element['#title'] = $info['name'];
+        $status_index = '#'. $status;
+        $form['summary'][$status_index]++;
+        $group_summary[$group][$status_index]++;
+        $element['summary'][$status_index]++;
+        $element['result_table']['#rows'][] = array(
+          'data' => array(
+            $result->message,
+            $result->message_group,
+            basename($result->file),
+            $result->line,
+            $result->caller,
+            $map[$status],
+          ),
+          'class' => "simpletest-$status",
+        );
+      }
+      unset($element);
+    }
+    $all_ok = TRUE;
+    foreach ($form['results'] as $group => &$elements) {
+      $group_ok = TRUE;
+      foreach ($elements as $class => &$element) {
+        $info = $uncategorized_tests[$class]->getInfo();
+        $ok = $element['summary']['#fail'] + $element['summary']['#exception'] == 0;
+        $element += array(
+          '#type' => 'fieldset',
+          '#collapsible' => TRUE,
+          '#collapsed' => $ok,
+          '#description' => $info['description'],
+        );
+        $element['result_table']['#value'] = theme('table', $header, $element['result_table']['#rows']);
+        $element['summary']['#ok'] = $ok;
+        $group_ok = $group_ok && $ok;
+      }
+      $elements += array(
+        '#type' => 'fieldset',
+        '#title' => $group,
+        '#collapsible' => TRUE,
+        '#collapsed' => $group_ok,
+        'summary' => $group_summary[$group],
+      );
+      $elements['summary']['#ok'] = $group_ok;
+      $all_ok = $group_ok && $all_ok;
+    }
+    $form['summary']['#ok'] = $all_ok;
+  }
+  foreach ($tests as $group_name => $test_group) {
+    foreach ($test_group as $test) {
+      $test_info = $test->getInfo();
+      $test_class = get_class($test);
+      $form['tests'][$group_name][$test_class] = array(
         '#type' => 'checkbox',
         '#title' => $test_info['name'],
         '#default_value' => 0,
-        '#description' => $desc,
+        '#description' => $test_info['description'],
       );
     }
-    $output[] = $group + array(
-      '#type' => 'fieldset',
-      '#collapsible' => FALSE,
-      '#title' => $group_test->getLabel(),
-      '#attributes' => array('class' => 'select_all'),
-    );
   }
-  
-  $submit['running_options'] = array(
+
+  $form['run'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#title' => t('Run tests'),
+  );
+  $form['run']['running_options'] = array(
     '#type' => 'radios',
-    '#default_value' => 'selected_tests', 
+    '#default_value' => 'selected_tests',
     '#options' => array(
       'all_tests' => t('Run all tests (WARNING, this may take a long time)'),
       'selected_tests' => t('Run selected tests'),
     ),
   );
-  $submit['op'] = array(
+  $form['run']['op'] = array(
     '#type' => 'submit',
-    '#value' => t('Begin'),
+    '#value' => t('Run tests'),
   );
-  
-  $output[] = $submit + array(
+  $form['reset'] = array(
     '#type' => 'fieldset',
     '#collapsible' => FALSE,
     '#collapsed' => FALSE,
-    '#title' => 'Run tests',
+    '#title' => t('Clean test environment'),
+    '#description' => t('Remove tables with the prefix "simpletest" and temporary directories that are left over from tests that crashed.')
   );
-
-  $output['reset'] = array(
-    '#type' => 'fieldset',
-    '#collapsible' => FALSE,
-    '#collapsed' => FALSE,
-    '#title' => 'Clean Environment',
-    '#description' => 'Remove tables with the prefix "simpletest" and temporary directories that are left over from tests that crashed.'
-  );
-  $output['reset']['op'] = array(
+  $form['reset']['op'] = array(
     '#type' => 'submit',
-    '#value' => t('Clean Environment'),
+    '#value' => t('Clean environment'),
     '#submit' => array('simpletest_clean_environment')
   );
+  return $form;
+}
+
+/**
+ * Theme the SimpleTest form that provides test selection.
+ *
+ * @ingroup themeable
+ */
+function theme_simpletest_test_form($form) {
+  drupal_add_css(drupal_get_path('module', 'simpletest') .'/simpletest.css', 'module');
+  drupal_add_js(drupal_get_path('module', 'simpletest') .'/simpletest.js', 'module');
+  $header = array(
+    array('data' => t('Run'), 'class' => 'simpletest_run checkbox'),
+    array('data' => t('Test'), 'class' => 'simpletest_test'),
+    array('data' => t('Description'), 'class' => 'simpletest_description'),
+  );
+  $js = array(
+    'images' => array(
+      theme('image', 'misc/menu-collapsed.png', 'Expand', 'Expand'),
+      theme('image', 'misc/menu-expanded.png', 'Collapsed', 'Collapsed'),
+    ),
+  );
+
+  // Go through each test group and create a row:
+  $rows = array();
+  foreach (element_children($form['tests']) as $key) {
+    $element = &$form['tests'][$key];
+    $test_class = strtolower(trim(preg_replace("/[^\w\d]/", "-", $key)));
+    $row = array();
+    $row[] = array('id' => $test_class, 'class' => 'simpletest-select-all');
+    $row[] = array(
+      'data' =>  '<div class="simpletest-image" id="simpletest-test-group-'. $test_class .'">'. $js['images'][0] .'</div>&nbsp;<label for="'. $test_class .'-select-all" class="simpletest-group-label">'. $key .'</label>',
+      'style' => 'font-weight: bold;'
+    );
+    $row[] = isset($element['#description']) ? $element['#description'] : '&nbsp;';
+    $rows[] = array('data' => $row, 'class' => 'simpletest-group');
+
+    $current_js = array('testClass' => $test_class .'-test', 'testNames' => array(), 'imageDirection' => 0, 'clickActive' => FALSE);
+    foreach (element_children($element) as $test_name) {
+      $current_js['testNames'][] = 'edit-'. $test_name;
+      $test = $element[$test_name];
+      foreach (array('title', 'description') as $key) {
+        $$key = $test['#'. $key];
+        unset($test['#'. $key]);
+      }
+      $test['#name'] = $test_name;
+      $themed_test = drupal_render($test);
+      $row = array();
+      $row[] = $themed_test;
+      $row[] = theme('indentation', 1) .'<label for="edit-'. $test_name .'">'. $title .'</label>';
+      $row[] = '<div class="description">'. $description .'</div>';
+      $rows[] = array('data' => $row, 'style' => 'display: none;', 'class' => $test_class .'-test');
+    }
+    $js['simpletest-test-group-'. $test_class] = $current_js;
+  }
+  unset($form['tests']);
+  drupal_add_js(array('simpleTest' => $js), 'setting');
+  // Output test groups:
+  $output = '';
+  if (isset($form['results'])) {
+    $output .= drupal_render($form['summary']);
+    $output .= drupal_render($form['results']);
+  }
+  if (count($rows)) {
+    $output .= theme('table', $header, $rows, array('id' => 'simpletest-form-table'));
+  }
+  // Output the rest of the form, excluded test groups which have been removed:
+  $output .= drupal_render($form);
+
   return $output;
+}
+
+function theme_simpletest_result_summary($form, $text = NULL) {
+  return '<div class="simpletest-'. ($form['#ok'] ? 'pass' : 'fail') .'">' . _simpletest_format_summary_line($form) . '</div>';
+}
+
+function _simpletest_format_summary_line($summary) {
+  return t('@pass, @fail, @exception', array(
+    '@pass' => format_plural(isset($summary['#pass']) ? $summary['#pass'] : 0, '1 pass', '@count passes'),
+    '@fail' => format_plural(isset($summary['#fail']) ? $summary['#fail'] : 0, '1 fail', '@count fails'),
+    '@exception' => format_plural(isset($summary['#exception']) ? $summary['#exception'] : 0, '1 exception', '@count exceptions'),
+  ));
+}
+
+/**
+ * Run selected tests.
+ */
+function simpletest_test_form_submit($form, &$form_state) {
+  $output = '';
+  $batch_mode = !preg_match("/^simpletest\d+$/", $_SERVER['HTTP_USER_AGENT']);
+  $tests_list = array();
+  $run_all_tests = $form_state['values']['running_options'] == 'all_tests';
+  simpletest_get_all_tests();
+  foreach ($form_state['values'] as $class_name => $value) {
+    if (class_exists($class_name) && ($value === 1 || $run_all_tests)) {
+      $tests_list[] = $class_name;
+    }
+  }
+  if (count($tests_list) > 0 ) {
+    simpletest_run_tests($tests_list, 'drupal', $batch_mode);
+  }
+  else {
+    drupal_set_message(t('No test has been selected.'), 'error');
+  }
+}
+
+/**
+ * Actually runs tests
+ * @param $test_list
+ *   List of tests to run.
+ * @param $reporter
+ *   Which reporter to use. Allowed values are: text, xml, html and drupal,
+ *   drupal being the default.
+ * @param $batch_mode
+ *   Whether to use the batch API or not.
+ */
+function simpletest_run_tests($test_list, $reporter = 'drupal', $batch_mode = FALSE) {
+  global $db_prefix, $db_prefix_original;
+  cache_clear_all();
+  db_query('INSERT INTO {simpletest_test_id} VALUES (default)');
+  $test_id = db_last_insert_id('simpletest_test_id', 'test_id');
+
+  if ($batch_mode) {
+    $batch = array(
+      'title' => t('Running SimpleTests'),
+      'operations' => array(
+        array('_simpletest_batch_operation', array($test_list, $test_id)),
+      ),
+      'finished' => '_simpletest_batch_finished',
+      'redirect' => 'admin/build/testing',
+      'progress_message' => t('Processing tests.'),
+      'css' => array(drupal_get_path('module', 'simpletest') .'/simpletest.css'),
+      'init_message' => t('SimpleTest is initializing...') . ' ' . format_plural(count($test_list), "one test case will run.", "@count test cases will run."),
+    );
+    batch_set($batch);
+  }
+  else {
+    simpletest_get_all_tests();
+    foreach ($test_list as $test_class) {
+      $test = new $test_class($test_id);
+      $test->run();
+    }
+    $_SESSION['test_id'] = $test_id;
+  }
+}
+
+/**
+ * Batch operation callback.
+ */
+function _simpletest_batch_operation($test_list_init, $test_id, &$context) {
+  // Ensure that all classes are loaded before we unserialize some instances.
+  simpletest_get_all_tests();
+
+  // Get working values.
+  if (!isset($context['sandbox']['max'])) {
+    // First iteration: initialize working values.
+    $test_list = $test_list_init;
+    $context['sandbox']['max'] = count($test_list);
+    $test_results = array('#pass' => 0, '#fail' => 0, '#exception' => 0);
+  }
+  else {
+    // Nth iteration: get the current values where we last stored them.
+    $test_list = $context['sandbox']['tests'];
+    $test_results = $context['sandbox']['test_results'];
+  }
+  $max = $context['sandbox']['max'];
+
+  // Perform the next test.
+  $test_class = array_shift($test_list);
+  $test = new $test_class($test_id);
+  $test->run();
+  $size = count($test_list);
+  $info = $test->getInfo();
+
+  // Gather results and compose the report.
+  $test_results[$test_class] = $test->_results;
+  foreach ($test_results[$test_class] as $key => $value) {
+    $test_results[$key] += $value;
+  }
+  $test_results[$test_class]['#name'] = $info['name'];
+  $items = array();
+  foreach (element_children($test_results) as $class) {
+    $items[] = '<div class="simpletest-' . ($test_results[$class]['#fail'] + $test_results[$class]['#exception'] ? 'fail' : 'pass') . '">' . t('@name: @summary', array('@name' => $test_results[$class]['#name'], '@summary' => _simpletest_format_summary_line($test_results[$class]))) . '</div>';
+  }
+  $message = t('Processed test @num of @max - %test.', array('%test' => $info['name'], '@num' => $max - $size, '@max' => $max));
+  $message .= theme('item_list', $items);
+  $context['message'] = $message;
+  // TODO: Do we want a summary of all?
+
+  // Save working values for the next iteration.
+  $context['sandbox']['tests'] = $test_list;
+  $context['sandbox']['test_results'] = $test_results;
+  // The test_id is the only thing we need to save for the report page.
+  $context['results']['test_id'] = $test_id;
+
+  // Multistep processing: report progress.
+  $context['finished'] = 1 - $size / $max;
+}
+
+function _simpletest_batch_finished($success, $results, $operations) {
+  $_SESSION['test_id'] = $results['test_id'];
+  if ($success) {
+    drupal_set_message(t('The tests have finished running.'));
+  }
+  else {
+    drupal_set_message(t('The tests did not successfully finish.'), 'error');
+  }
+}
+
+/**
+ * Get a list of all of the tests.
+ *
+ * @return
+ *   An array of tests, with the class name as the keys and the instantiated
+ *   versions of the classes as the values.
+ */
+function simpletest_get_all_tests() {
+  static $formatted_classes;
+  if (!isset($formatted_classes)) {
+    require_once drupal_get_path('module', 'simpletest') . '/drupal_web_test_case.php';
+    $files = array();
+    foreach (array_keys(module_rebuild_cache()) as $module) {
+      $module_path = drupal_get_path('module', $module);
+      $test = $module_path . "/$module.test";
+      if (file_exists($test)) {
+        $files[] = $test;
+      }
+
+      $tests_directory = $module_path . '/tests';
+      if (is_dir($tests_directory)) {
+        foreach (file_scan_directory($tests_directory, '\.test$') as $file) {
+          if (!preg_match('/class\s+.*?\s+extends\s+DrupalTestCase/', file_get_contents($file->filename))) {
+            // Ignore tests using the old format.
+            $files[] = $file->filename;
+          }
+        }
+      }
+    }
+
+    foreach (file_scan_directory('includes/tests', '\.test$') as $file) {
+      $files[] = $file->filename;
+    }
+
+    $existing_classes = get_declared_classes();
+    foreach ($files as $file) {
+      include_once($file);
+    }
+    $classes = array_values(array_diff(get_declared_classes(), $existing_classes));
+    $formatted_classes = array();
+    foreach ($classes as $key => $class) {
+      if (method_exists($class, 'getInfo')) {
+        $formatted_classes[$class] = new $class;
+      }
+    }
+  }
+  if (count($formatted_classes) == 0) {
+    drupal_set_message('No test cases found.', 'error');
+    return FALSE;
+  }
+  return $formatted_classes;
+}
+
+/**
+ * Categorize the tests into groups.
+ *
+ * @param $tests
+ *   A list of tests from simpletest_get_all_tests.
+ * @see simpletest_get_all_tests.
+ */
+function simpletest_categorize_tests($tests) {
+  $groups = array();
+  foreach ($tests as $test => $instance) {
+    $info = $instance->getInfo();
+    $groups[$info['group']][$test] = $instance;
+  }
+  uksort($groups, 'strnatcasecmp');
+  return $groups;
 }
 
 /**
@@ -255,13 +505,16 @@ function simpletest_get_like_tables($base_table = 'simpletest', $count = FALSE) 
   $database = substr($url['path'], 1);
   $select = $count ? 'COUNT(table_name)' : 'table_name';
   $result = db_query("SELECT $select FROM information_schema.tables WHERE table_schema = '$database' AND table_name LIKE '$db_prefix$base_table%'");
+  $schema = drupal_get_schema_unprocessed('simpletest');
 
   if ($count) {
     return db_result($result);
   }
   $tables = array();
   while ($table = db_result($result)) {
-    $tables[] = $table;
+    if (!isset($schema[$table])) {
+      $tables[] = $table;
+    }
   }
   return $tables;
 }
@@ -273,7 +526,7 @@ function simpletest_clean_temporary_directories() {
   $files = scandir(file_directory_path());
   $count = 0;
   foreach ($files as $file) {
-    $path = file_directory_path() .'/'. $file;
+    $path = file_directory_path() . '/' . $file;
     if (is_dir($path) && preg_match('/^simpletest\d+/', $file)) {
       simpletest_clean_temporary_directory($path);
       $count++;
@@ -307,121 +560,4 @@ function simpletest_clean_temporary_directory($path) {
     }
   }
   rmdir($path);
-}
-
-/**
- * Actually runs tests
- * @param array $testlist list of tests to run or DEFAULT NULL run all tests
- * @param boolean $html_reporter true if you want results in simple html, FALSE for full drupal page
- */
-function simpletest_run_tests($testlist = NULL, $reporter = 'drupal') {
-  global $test_running;
-  if (!$test_running) {
-    $test_running = TRUE;
-    $test = simpletest_get_total_test($testlist);
-    switch ($reporter) {
-      case 'text':
-        $reporter = &new TextReporter();
-        break;	
-      case 'xml':
-        $reporter = &new XMLReporter();
-        break;
-      case 'html':
-      	$reporter = &new HtmlReporter();
-      	break;
-      case 'drupal':
-      	$reporter = &new DrupalReporter();
-      	break;
-    }
-
-    cache_clear_all();
-    $results = $test->run($reporter);
-    $test_running = FALSE;
-    
-    switch (get_class($reporter)) {
-      case 'TextReporter':
-      case 'XMLReporter':
-      case 'HtmlReporter':
-        return $results;
-      case 'DrupalReporter':
-      	return $reporter->getOutput();
-    }
-  }
-}
-
-/**
- * This function makes sure no unnecessary copies of the DrupalUnitTests object are instantiated
- * @param  array $classes list of all classes the test should concern or
- *                        DEFAULT NULL
- * @return DrupalUnitTests object
- */
-function &simpletest_get_total_test($classes = NULL) {
-  static $total_test;
-
-  if (!$total_test) {
-    $total_test = &new DrupalUnitTests();
-  }
-  if (!is_null($classes)) {
-    $dut = new DrupalUnitTests($classes);
-    return $dut;
-  }
-  return $total_test;
-}
-
-
-function simpletest_settings() {
-  $form = array();
-
-  $form['http_auth'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('HTTP authentication'),
-    '#description' => t('If needed, enter a username and password for reaching your web site. This is not a drupal username/password.') .
-                      t('This is a login presented by your web server. Most sites may leave this section empty.'),
-  );
-  $form['http_auth']['simpletest_httpauth'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Use http authentication'),
-    '#default_value' => variable_get('simpletest_httpauth', false),
-  );
-  $form['http_auth']['simpletest_httpauth_username'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Username'),
-    '#default_value' => variable_get('simpletest_httpauth_username', ''),
-  );
-  $form['http_auth']['simpletest_httpauth_pass'] = array(
-    '#title' => t('Password'),
-    '#type' => 'password',
-    '#default_value' => variable_get('simpletest_httpauth_pass', ''),
-  );
-  $form['devel'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Devel module settings'),
-    '#description' => t('Devel module can cause problems if you have query log enabled. It will output a few thousand queries and crash your browser'),
-  );
-  $form['devel']['simpletest_devel'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Use devel query log on test result pages'),
-    '#default_value' => variable_get('simpletest_devel', false),
-  );
-  
-  return system_settings_form($form);
-
-}
-
-function simpletest_trigger_error($type) {
-  switch ($type) {
-    case 'not available':
-      $output = t('The simpletest framework cannot be found in the current installation. Please note that simpletest.module needs Simpletest framework to be installed. ');
-      $output .= t('Please download it from !simpletest_link and place it into the same directory as simpletest.module: %simpletest_directory', array('!simpletest_link' => l('Simpletest on SourceForge', 'https://sourceforge.net/project/showfiles.php?group_id=76550'), '%simpletest_directory' => SIMPLE_TEST));
-      drupal_set_message($output, 'error');
-      break;
-    case 'stale version':
-      $output = t('Due to a lot of refactoring done on simpletest library side. Simpletest module is not compatible with Simpletest versions lower than 1.0.1 beta2. ');
-      $output .= t('Please download the latest version from !simpletest_link and place it into the same directory as simpletest.module: %simpletest_directory', array('!simpletest_link' => l('Simpletest on SourceForge', 'https://sourceforge.net/project/showfiles.php?group_id=76550'), '%simpletest_directory' => SIMPLE_TEST));
-      drupal_set_message($output, 'error');
-      break;
-    case 'no tests selected':
-      drupal_set_message(t('No test has been selected.'), 'error');
-  }
-  return false;
 }

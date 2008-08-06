@@ -1,34 +1,63 @@
-// $Id: simpletest.js,v 1.2 2007/09/18 15:30:06 rokZlender Exp $
-/**
- * Creates a select all checkbox before in every test group fieldset
- */
-$(document).ready(function() {
-  $('.select_all').each(function() {
-    var legend = $('> legend', this);
-    var cbs =  $('fieldset :checkbox', this);
-    var collapsed = 1;
-    var selectAllChecked = 1;
-    var cbInitialValue = "";
+// $Id: simpletest.js,v 1.2.4.1 2008/08/06 01:41:06 boombatower Exp $
 
-    for (i=0; i < cbs.length; i++) {
-      if (!cbs[i].checked) {
-        selectAllChecked = 0;
+Drupal.behaviors.simpleTestMenuCollapse = function() {
+  // Adds expand-collapse functionality.
+  $('div.simpletest-image').click(function() {
+    // Toggle all of the trs.
+    if (!Drupal.settings.simpleTest[$(this).attr('id')].clickActive) {
+      Drupal.settings.simpleTest[$(this).attr('id')].clickActive = true;
+      var trs = $(this).parents('tbody').children().filter('.'+ Drupal.settings.simpleTest[$(this).attr('id')].testClass), trs_formatted = [], direction = Drupal.settings.simpleTest[$(this).attr('id')].imageDirection, self = $(this);
+      for (var i = 0; i < trs.length; i++) {
+        trs_formatted.push(trs[i]);
       }
-      else {
-        collapsed = 0;
+      var toggleTrs = function(trs, action, action2) {
+        tr = trs[action]();
+        if (tr) {
+          $(tr)[action2](1, function() {
+            toggleTrs(trs, action, action2);
+          });
+        }
+        else {
+          Drupal.settings.simpleTest[self.attr('id')].clickActive = false;
+        }
+      }
+      toggleTrs(trs_formatted, (direction? 'pop' : 'shift'), (direction? 'fadeOut' : 'fadeIn'));
+      Drupal.settings.simpleTest[$(this).attr('id')].imageDirection = !direction;
+      $(this).html(Drupal.settings.simpleTest.images[(direction? 0 : 1)]);
+    }
+  });
+}
+Drupal.behaviors.simpleTestSelectAll = function() {
+  $('td.simpletest-select-all').each(function() {
+    var checkboxes = Drupal.settings.simpleTest['simpletest-test-group-'+ $(this).attr('id')].testNames, totalCheckboxes = 0,
+      checkbox = $('<input type="checkbox" class="form-checkbox" id="'+ $(this).attr('id') +'-select-all" />').change(function() {
+      var checked = !!($(this).attr('checked'));
+      for (var i = 0; i < checkboxes.length; i++) {
+        $('#'+ checkboxes[i]).attr('checked', checked);
+      }
+      self.data('simpletest-checked-tests', (checked? checkboxes.length : 0));
+    }).data('simpletest-checked-tests', 0);
+    var self = $(this);
+    for (var i = 0; i < checkboxes.length; i++) {
+      if ($('#'+ checkboxes[i]).change(function() {
+        if (checkbox.attr('checked') == 'checked') {
+          checkbox.attr('checked', '');
+        }
+        var data = (!self.data('simpletest-checked-tests') ? 0 : self.data('simpletest-checked-tests')) + (!!($(this).attr('checked')) ? 1 : -1);
+        self.data('simpletest-checked-tests', data);
+        if (data == checkboxes.length) {
+          checkbox.attr('checked', 'checked');
+        }
+        else {
+          checkbox.attr('checked', '');
+        }
+      }).attr('checked') == 'checked') {
+        totalCheckboxes++;
       }
     }
-    if (!collapsed && !selectAllChecked) 
-      $('fieldset', this).removeClass('collapsed');
-
-    var item = $('<div class="form-item"></div>').html('<label class="option"><input type="checkbox" id="'+legend.html()+'-selectall" /> Select all tests in this group</label>'+'<div class="description">Select all tests in group '+ legend.html() +'</div>');
-    
-    // finds all checkboxes in group fieldset and selects them or deselects
-    item.find(':checkbox').attr('checked', selectAllChecked).click(function() {
-      $(this).parents('fieldset:first').find('fieldset :checkbox').attr('checked', this.checked);
-    }).end();
-    
-    // add select all checkbox
-    legend.after(item);
+    if (totalCheckboxes == checkboxes.length) {
+      $(checkbox).attr('checked', 'checked');
+    }
+    $(this).append(checkbox);
   });
-});
+};

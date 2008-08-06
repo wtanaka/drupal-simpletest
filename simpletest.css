@@ -1,13 +1,37 @@
+/* $Id: simpletest.css,v 1.1.6.1 2008/08/06 01:41:06 boombatower Exp $ */
+
 /* Addon for the simpletest module */
 #simpletest {
 }
+/* Test Table */
+th.simpletest_run {
+  width: 50px;
+}
+th.simpletest_test {
+  width: 160px;
+}
+
+table#simpletest-form-table td div.form-item,
+td.simpletest-select-all {
+  text-align: center;
+}
+
+table#simpletest-form-table tr td {
+  background-color: white !important;
+}
+
+table#simpletest-form-table tr.simpletest-group td {
+  background-color: #EDF5FA !important;
+}
+
 div.simpletest-pass {
-  background: #b6ffb6;
+  color: #33a333;
 }
 
 div.simpletest-fail {
-  background: #ffc9c9;
+  color: #a30000;
 }
+
 tr.simpletest-pass.odd {
   background: #b6ffb6;
 }
@@ -19,6 +43,20 @@ tr.simpletest-pass.even {
 tr.simpletest-fail.odd {
   background: #ffc9c9;
 }
+
 tr.simpletest-fail.even {
   background: #ffacac;
+}
+
+tr.simpletest-exception.odd {
+  background: #f4ea71;
+}
+
+tr.simpletest-exception.even {
+  background: #f5e742;
+}
+
+div.simpletest-image {
+  display: inline;
+  cursor: pointer;
 }

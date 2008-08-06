@@ -1,56 +1,278 @@
 <?php
-// $Id: simpletest.install,v 1.4.2.3 2008/06/16 21:05:20 boombatower Exp $
+// $Id: simpletest.install,v 1.4.2.3.2.1 2008/08/06 01:41:06 boombatower Exp $
 
 /**
- * @file
- * SimpleTest installation file; ensures presence of SimpleTest library.
+ * Implementation of hook_install().
  */
+function simpletest_install() {
+  drupal_install_schema('simpletest');
+  // Check for files directory.
+  $path = file_directory_path() . '/simpletest';
+  if (file_check_directory($path, FILE_CREATE_DIRECTORY)) {
+    // Generate binary and text test files.
+    $generated = FALSE;
+    if (simpletest_get_file_count($path, 'binary') == 0) {
+      $lines = array(64, 1024);
+      foreach ($lines as $line) {
+        simpletest_generate_file('binary', 64, $line, 'binary');
+      }
+      $generated = TRUE;
+    }
+
+    if (simpletest_get_file_count($path, 'text') == 0) {
+      $lines = array(16, 256, 1024, 2048, 20480);
+      foreach ($lines as $line) {
+        simpletest_generate_file('text', 64, $line);
+      }
+      $generated = TRUE;
+    }
+
+    // Copy other test files for consistency.
+    $files = file_scan_directory($path, '(html|image|javascript|php|sql)-.*');
+    if (count($files) == 0) {
+      $original = drupal_get_path('module', 'simpletest') . '/files';
+      $files = file_scan_directory($original, '(html|image|javascript|php|sql)-.*');
+      foreach ($files as $file) {
+        file_copy($file->filename, $path . '/' . $file->basename);
+      }
+      $generated = TRUE;
+    }
+
+    if ($generated) {
+      drupal_set_message('Extra test files generated.');
+    }
+  }
+}
 
 /**
- * Mininum required SimpleTest library version.
- * 
- * 1.0.1beta2 is required for the upload tests to work.
+ * Generate test file.
  */
-define('SIMPLETEST_MINIMUM_VERSION', '1.0.1beta2');
+function simpletest_generate_file($filename, $width, $lines, $type = 'binary-text') {
+  $size = $width * $lines - $lines;
+
+  // Generate random text
+  $text = '';
+  for ($i = 0; $i < $size; $i++) {
+    switch ($type) {
+      case 'text':
+        $text .= chr(rand(32, 126));
+        break;
+      case 'binary':
+        $text .= chr(rand(0, 31));
+        break;
+      case 'binary-text':
+      default:
+        $text .= rand(0, 1);
+        break;
+    }
+  }
+  $text = wordwrap($text, $width - 1, "\n", TRUE) ."\n"; // Add \n for symetrical file.
+
+  // Create filename.
+  $path = file_directory_path() . '/simpletest/';
+  $count = simpletest_get_file_count($path, $filename);
+  file_put_contents($path . $filename . '-' . ($count + 1) . '.txt', $text);
+}
 
 /**
- * Implementation of hook_requirements().
+ * Get the number of files that have the specified filename base.
+ */
+function simpletest_get_file_count($directory, $filename) {
+  $files = scandir($directory);
+  $count = 0;
+  foreach ($files as $file) {
+    if (preg_match('/' . $filename . '.*?/', $file)) {
+      $count++;
+    }
+  }
+  return $count;
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function simpletest_uninstall() {
+  variable_del('simpletest_httpauth');
+  variable_del('simpletest_httpauth_username');
+  variable_del('simpletest_httpauth_pass');
+  variable_del('simpletest_devel');
+  drupal_uninstall_schema('simpletest');
+}
+
+/**
+ * Check that the cURL extension exists for PHP.
  */
 function simpletest_requirements($phase) {
   $requirements = array();
-  $module_path = drupal_get_path('module', 'simpletest');
-  // When installing from a profile, drupal_get_path() doesn't work since
-  // the {system} table doesn't exist yet. 
-  if (empty($module_path)) {
-    $module_path =  dirname(__FILE__);
-  }
-  $simpletest_path = $module_path .'/simpletest/simpletest.php';
-
-  // Ensure translations don't break at install time.
   $t = get_t();
 
-  // Check installed SimpleTest library version.
-  $simpletest_version = 0;
-  if (is_file($simpletest_path)) {
-    include_once $simpletest_path;
-    $simpletest_version = SimpleTest::getVersion();
-   }
-   
-  // Check for presence of required version of SimpleTest library.
-  $requirements['simpletest'] = array(
-    'title' => $t('SimpleTest library'),
-    'value' => $simpletest_version > 0 ? $simpletest_version : $t('Not found'),
-  );
-  $install_link = base_path() . $module_path .'/INSTALL.txt';
-  $download_link = 'http://sourceforge.net/project/showfiles.php?group_id=76550&package_id=77275';
-  if ($simpletest_version == 0) {
-    $requirements['simpletest']['description'] = $t('The SimpleTest library is not installed. You must <a href="@download">download the SimpleTest library</a> and place it your SimpleTest module folder. For more detailed instructions, see <a href="@install">INSTALL.txt</a>.', array('@download' => $download_link, '@install' => $install_link));
-    $requirements['simpletest']['severity'] = REQUIREMENT_ERROR;
+  $has_curl = function_exists('curl_init');
+
+  switch ($phase) {
+    case 'runtime':
+      $requirements['simpletest_curl'] = array(
+        'title' => $t('cURL'),
+        'value' => $has_curl ? $t('Enabled') : $t('Not found'),
+        'severity' => $has_curl ? REQUIREMENT_OK : REQUIREMENT_ERROR,
+      );
+      break;
+    case 'install':
+      if ($has_curl) {
+        $requirements['simpletest_curl'] = array(
+          'title' => $t('cURL'),
+          'severity' => REQUIREMENT_OK,
+        );
+      }
+      else {
+        $requirements['simpletest_curl'] = array(
+          'title' => $t('cURL'),
+          'severity' => REQUIREMENT_ERROR,
+          'description' => $t('Simpletest could not be installed because the PHP <a href="!curl_url">cURL</a> library is not available.', array('!curl_url' => 'http://php.net/manual/en/curl.setup.php')),
+        );
+      }
+      break;
   }
-  elseif (version_compare($simpletest_version, SIMPLETEST_MINIMUM_VERSION) < 0) {
-    $requirements['simpletest']['description'] = $t('The SimpleTest module requires at least version %minimum-version of the SimpleTest library. Please <a href="@download">download a more recent SimpleTest library</a>. For more detailed instructions, see <a href="@install">INSTALL.txt</a>.', array('%minimum-version' => SIMPLETEST_MINIMUM_VERSION, '@download' => $download_link, '@install' => $install_link));
-    $requirements['simpletest']['severity'] = REQUIREMENT_ERROR;
-   }
+
+  $find = '
+if (preg_match("/^simpletest\d+$/", $_SERVER[\'HTTP_USER_AGENT\'])) {
+  $db_prefix = $_SERVER[\'HTTP_USER_AGENT\'];
+}';
+  if (strpos(file_get_contents(file_directory_path() . '/../settings.php'), trim($find)) !== FALSE) {
+     $requirements['simpletest_settings'] = array(
+      'title' => $t('setting.php'),
+      'severity' => REQUIREMENT_OK
+    );
+  }
+  else {
+    $requirements['simpletest_settings'] = array(
+      'title' => $t('SimpleTest code addition to setting.php'),
+      'severity' => REQUIREMENT_ERROR,
+      'description' => $t('Must add code to the settings.php file please see <a href="@install">INSTALL.txt</a>.',
+                           array('@install' => url(drupal_get_path('module', 'simpletest') . '/INSTALL.txt')))
+    );
+  }
 
   return $requirements;
+}
+
+function simpletest_schema() {
+  $schema['simpletest'] = array(
+    'description' => t('Stores simpletest messages'),
+    'fields' => array(
+      'message_id'  => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => t('Primary Key: Unique simpletest message ID.'),
+      ),
+      'test_id' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => t('Test id, messages belonging to the same id are reported together'),
+      ),
+      'test_class' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => t('The name of the class that created this message.'),
+      ),
+      'status' => array(
+        'type' => 'varchar',
+        'length' => 9,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => t('Message status. Core understands pass, fail, exception.'),
+      ),
+      'message' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => t('The message itself.'),
+      ),
+      'message_group' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => t('The message group this message belongs to. For example: warning, browser, user.'),
+      ),
+      'caller' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => t('Name of the caller function or method that created this message.'),
+      ),
+      'line' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => t('Line number of the caller.'),
+      ),
+      'file' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => t('Name of the file where the caller is.'),
+      ),
+    ),
+    'primary key' => array('message_id'),
+    'indexes' => array(
+      'reporter' => array('test_class, message_id'),
+    ),
+  );
+  $schema['simpletest_test_id'] = array(
+    'description' => t('Stores simpletest test IDs.'),
+    'fields' => array(
+      'message_id'  => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => t('Primary Key: Unique simpletest ID.'),
+      ),
+    ),
+    'primary key' => array('message_id'),
+  );
+  return $schema;
+}
+
+/**
+ * Create the simpletest tables.
+ */
+function simpletest_update_7000() {
+  $ret = array();
+  $schema = array();
+
+  $schema['simpletest'] = array(
+    'fields' => array(
+      'message_id'  => array('type' => 'serial', 'not null' => TRUE),
+      'test_id' => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+      'test_class' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''),
+      'status' => array('type' => 'varchar', 'length' => 9, 'not null' => TRUE, 'default' => ''),
+      'message' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''),
+      'message_group' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''),
+      'caller' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''),
+      'line' => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+      'file' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''),
+    ),
+    'primary key' => array('message_id'),
+    'indexes' => array(
+      'reporter' => array('test_class, message_id'),
+    ),
+  );
+
+  $schema['simpletest_test_id'] = array(
+    'fields' => array(
+      'message_id'  => array('type' => 'serial', 'not null' => TRUE),
+    ),
+    'primary key' => array('message_id'),
+  );
+
+  foreach ($schema as $name => $definition) {
+    db_create_table($ret, $name, $definition);
+  }
+
+  return $ret;
 }

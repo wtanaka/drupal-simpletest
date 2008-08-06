@@ -1,6 +1,7 @@
-; $Id: simpletest.info,v 1.4.2.2 2008/08/05 00:06:43 boombatower Exp $
-name = "SimpleTest module"
-description = "Provides simpletest classes to developers as well as some standard tests for Drupal"
-package = Simpletest
+; $Id: simpletest.info,v 1.4.2.2.2.1 2008/08/06 01:41:06 boombatower Exp $
+name = "SimpleTest"
+description = "Provides a framework for unit and functional testing."
+package = Other
+version = VERSION
 core = 6.x
 PHP = 5.x
