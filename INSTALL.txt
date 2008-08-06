@@ -1,16 +1,28 @@
-$Id: INSTALL.txt,v 1.6.4.1 2008/08/06 01:41:06 boombatower Exp $
+$Id: INSTALL.txt,v 1.6.4.2 2008/08/06 01:48:57 boombatower Exp $
 
 INSTALLATION
 ------------
 1. Add the following code to the bottom of your sites settings.php file.
+
    if (preg_match("/^simpletest\d+$/", $_SERVER['HTTP_USER_AGENT'])) {
      $db_prefix = $_SERVER['HTTP_USER_AGENT'];
    }
-2. Go to Administer >> Site building >> Modules (admin/build/modules) and
+2. It is hightly recommonded, but not neccessary, that you add the following
+   code to install.php at the beginning of install_main(). Should look like
+   7.x branch of Drupal core.
+
+   // The user agent header is used to pass a database prefix in the request when
+   // running tests.  However, for security reasons, it is imperative that no
+   // installation be permitted using such a prefix.
+   if (preg_match("/^simpletest\d+$/", $_SERVER['HTTP_USER_AGENT'])) {
+     header('HTTP/1.1 403 Forbidden');
+     exit;
+   }
+3. Go to Administer >> Site building >> Modules (admin/build/modules) and
    enable the SimpleTest module.
-3. Go to Administer >> Site building >> Testing (admin/build/testing) to
+4. Go to Administer >> Site building >> Testing (admin/build/testing) to
    begin using the module.
-4. (Optional) Go to Administer >> Help >> SimpleTest (admin/help/simpletest)
+5. (Optional) Go to Administer >> Help >> SimpleTest (admin/help/simpletest)
    for more information on how to use the SimpleTest module.
-5. (Optional) Go to Administer >> Site configuration >> SimpleTest settings
+6. (Optional) Go to Administer >> Site configuration >> SimpleTest settings
    (admin/settings/simpletest) to configure advanced settings.
