@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.33.2.4.2.1 2008/08/06 01:41:06 boombatower Exp $
+// $Id: simpletest.module,v 1.33.2.4.2.2 2008/08/06 02:24:35 boombatower Exp $
 
 //require_once drupal_get_path('module', 'simpletest') . '/drupal_test_case.php';
 
@@ -36,9 +36,7 @@ function simpletest_menu() {
  * Implementation of hook_perm().
  */
 function simpletest_perm() {
-  return array(
-    'administer unit tests' => t('Manage and run automated testing. %warning', array('%warning' => t('Warning: Give to trusted roles only; this permission has security implications.'))),
-  );
+  return array('administer unit tests');
 }
 
 /**

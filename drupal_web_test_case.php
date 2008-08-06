@@ -1,5 +1,5 @@
 <?php
-// $Id: drupal_web_test_case.php,v 1.2.2.3.2.1 2008/08/06 01:41:06 boombatower Exp $
+// $Id: drupal_web_test_case.php,v 1.2.2.3.2.2 2008/08/06 02:24:35 boombatower Exp $
 
 /**
  * Test case for typical Drupal tests.
@@ -546,7 +546,7 @@ class DrupalWebTestCase {
     static $available;
 
     if (!isset($available) || $reset) {
-      $available = array_keys(module_invoke_all('perm'));
+      $available = module_invoke_all('perm');
     }
 
     $valid = TRUE;
