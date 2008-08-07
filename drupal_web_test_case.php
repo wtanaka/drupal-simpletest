@@ -1,5 +1,5 @@
 <?php
-// $Id: drupal_web_test_case.php,v 1.2.2.3.2.2 2008/08/06 02:24:35 boombatower Exp $
+// $Id: drupal_web_test_case.php,v 1.2.2.3.2.3 2008/08/07 18:15:07 boombatower Exp $
 
 /**
  * Test case for typical Drupal tests.
@@ -523,8 +523,8 @@ class DrupalWebTestCase {
     if ($role && !empty($role->rid)) {
       // Assign permissions to role and mark it for clean-up.
       db_query("INSERT INTO {permission} (rid, perm) VALUES (%d, '%s')", $role->rid, implode(', ', $permissions));
-      $count = db_result(db_query("SELECT COUNT(*) FROM {permission} WHERE rid = %d", $role->rid));
-      $this->assertTrue($count == count($permissions), t('Created permissions: @perms', array('@perms' => implode(', ', $permissions))), t('Role'));
+      $perm = db_result(db_query("SELECT perm FROM {permission} WHERE rid = %d", $role->rid));
+      $this->assertTrue(count(explode(', ', $perm)) == count($permissions), t('Created permissions: @perms', array('@perms' => implode(', ', $permissions))), t('Role'));
       return $role->rid;
     }
     else {
