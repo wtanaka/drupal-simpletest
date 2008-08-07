@@ -1,0 +1,10 @@
+// $Id: CHANGELOG.txt,v 1.1.2.1 2008/08/07 19:15:07 boombatower Exp $
+
+SimpleTest 6.x-2.2, xxxx-xx-xx (development version)
+------------------------------
+- Bugs:
+    * #292062: fixed role creation permission check for 6.x style.
+
+SimpleTest 6.x-2.1, 2008-08-05
+------------------------------
+- Complete backport of Drupal 7.x SimpleTest module.
