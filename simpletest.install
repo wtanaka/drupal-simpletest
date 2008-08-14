@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.install,v 1.4.2.3.2.3 2008/08/14 03:42:06 boombatower Exp $
+// $Id: simpletest.install,v 1.4.2.3.2.4 2008/08/14 22:16:17 boombatower Exp $
 
 /**
  * Implementation of hook_install().
@@ -139,7 +139,7 @@ if (preg_match("/^simpletest\d+$/", $_SERVER[\'HTTP_USER_AGENT\'])) {
 }';
   if (strpos(file_get_contents(file_directory_path() . '/../settings.php'), trim($find)) !== FALSE) {
      $requirements['simpletest_settings'] = array(
-      'title' => $t('setting.php'),
+      'title' => $t('SimpleTest code addition to setting.php'),
       'severity' => REQUIREMENT_OK
     );
   }
@@ -147,8 +147,9 @@ if (preg_match("/^simpletest\d+$/", $_SERVER[\'HTTP_USER_AGENT\'])) {
     $requirements['simpletest_settings'] = array(
       'title' => $t('SimpleTest code addition to setting.php'),
       'severity' => REQUIREMENT_ERROR,
-      'description' => $t('Must add code to the settings.php file please see <a href="@install">INSTALL.txt</a>.',
-                           array('@install' => url(drupal_get_path('module', 'simpletest') . '/INSTALL.txt')))
+      'description' => $t('Must add code to the %settings file please see <a href="@install">INSTALL.txt</a>.',
+                           array('%settings' => realpath(file_directory_path() . '/../settings.php'),
+                                 '@install' => url(drupal_get_path('module', 'simpletest') . '/INSTALL.txt')))
     );
   }
 

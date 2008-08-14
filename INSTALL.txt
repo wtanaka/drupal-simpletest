@@ -1,8 +1,10 @@
-$Id: INSTALL.txt,v 1.6.4.3 2008/08/14 03:56:35 boombatower Exp $
+$Id: INSTALL.txt,v 1.6.4.4 2008/08/14 22:16:17 boombatower Exp $
 
 INSTALLATION
 ------------
-1. Add the following code to the bottom of your sites settings.php file.
+1. Add the following code to the bottom of your sites settings.php file. Make
+   sure you remove the white-space from the left so that the module will
+   confirm that you have installed the code correctly.
 
    if (preg_match("/^simpletest\d+$/", $_SERVER['HTTP_USER_AGENT'])) {
      $db_prefix = $_SERVER['HTTP_USER_AGENT'];
