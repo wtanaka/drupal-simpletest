@@ -1,4 +1,4 @@
-$Id: INSTALL.txt,v 1.6.4.2 2008/08/06 01:48:57 boombatower Exp $
+$Id: INSTALL.txt,v 1.6.4.3 2008/08/14 03:56:35 boombatower Exp $
 
 INSTALLATION
 ------------
@@ -18,6 +18,18 @@ INSTALLATION
      header('HTTP/1.1 403 Forbidden');
      exit;
    }
+3. If there are any test modules they will be displayed on the admin modules
+   page (admin/build/modules) unless the following code is added to
+   modules/system/system.admin.inc in system_modules() just after:
+   "$files = module_rebuild_cache();".
+
+   // Remove hidden modules from display list.
+   foreach ($files as $filename => $file) {
+     if (!empty($file->info['hidden'])) {
+       unset($files[$filename]);
+     }
+   }
+
 3. Go to Administer >> Site building >> Modules (admin/build/modules) and
    enable the SimpleTest module.
 4. Go to Administer >> Site building >> Testing (admin/build/testing) to

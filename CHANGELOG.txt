@@ -1,4 +1,4 @@
-// $Id: CHANGELOG.txt,v 1.1.2.3 2008/08/14 03:42:06 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.4 2008/08/14 03:56:35 boombatower Exp $
 
 SimpleTest 6.x-2.2, xxxx-xx-xx (development version)
 ------------------------------
@@ -7,6 +7,7 @@ SimpleTest 6.x-2.2, xxxx-xx-xx (development version)
 - Backports:
     * #290316: test_id field name corrected.
     * #293500: change message field to type text.
+    * #268063: added instruction in INSTALL.txt about hidden property.
 
 SimpleTest 6.x-2.1, 2008-08-05
 ------------------------------
