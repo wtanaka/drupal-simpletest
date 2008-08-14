@@ -1,11 +1,12 @@
-// $Id: CHANGELOG.txt,v 1.1.2.2 2008/08/14 03:30:43 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.3 2008/08/14 03:42:06 boombatower Exp $
 
 SimpleTest 6.x-2.2, xxxx-xx-xx (development version)
 ------------------------------
 - Bugs:
     * #292062: fixed role creation permission check for 6.x style.
 - Backports:
-    * #290316: backported: test_id field name corrected.
+    * #290316: test_id field name corrected.
+    * #293500: change message field to type text.
 
 SimpleTest 6.x-2.1, 2008-08-05
 ------------------------------

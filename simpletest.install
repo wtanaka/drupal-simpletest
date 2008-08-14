@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.install,v 1.4.2.3.2.2 2008/08/14 03:30:43 boombatower Exp $
+// $Id: simpletest.install,v 1.4.2.3.2.3 2008/08/14 03:42:06 boombatower Exp $
 
 /**
  * Implementation of hook_install().
@@ -185,10 +185,8 @@ function simpletest_schema() {
         'description' => t('Message status. Core understands pass, fail, exception.'),
       ),
       'message' => array(
-        'type' => 'varchar',
-        'length' => 255,
+        'type' => 'text',
         'not null' => TRUE,
-        'default' => '',
         'description' => t('The message itself.'),
       ),
       'message_group' => array(
@@ -253,10 +251,10 @@ function simpletest_update_6000() {
         'type' => 'serial',
         'not null' => TRUE,
         'description' => t('Primary Key: Unique simpletest ID used to group test results together. Each time a set of tests
-                            are run a new test ID is used.'),
-      ),
+                            are run a new test ID is used.')
+      )
     ),
-    'primary key' => array('test_id'),
+    'primary key' => array('test_id')
   );
 
   // Clear test results to prevent conflict.
@@ -265,6 +263,27 @@ function simpletest_update_6000() {
   // Replace old table with new to make sure primary keys and such are fixed.
   db_drop_table($ret, 'simpletest_test_id');
   db_create_table($ret, 'simpletest_test_id', $schema['simpletest_test_id']);
+
+  return $ret;
+}
+
+/**
+ * Change message field to type text.
+ */
+function simpletest_update_6001() {
+  $ret = array();
+  $schema = array();
+
+  $schema = array(
+    'type' => 'text',
+    'not null' => TRUE
+  );
+
+  // Clear test results to prevent odd results.
+  db_query('DELETE FROM {simpletest}');
+
+  db_drop_field($ret, 'simpletest', 'message');
+  db_add_field($ret, 'simpletest', 'message', $schema);
 
   return $ret;
 }
