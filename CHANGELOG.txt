@@ -1,4 +1,4 @@
-// $Id: CHANGELOG.txt,v 1.1.2.6 2008/08/15 16:39:07 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.7 2008/08/15 16:42:51 boombatower Exp $
 
 SimpleTest 6.x-2.2, xxxx-xx-xx (development version)
 ------------------------------
@@ -11,6 +11,7 @@ SimpleTest 6.x-2.2, xxxx-xx-xx (development version)
     * #291750: remove results after displayed.
 - Changes:
     * #295001: clarified INSTALL.txt and installation requirements message.
+    * Updated README.txt with issue information.
 
 SimpleTest 6.x-2.1, 2008-08-05
 ------------------------------
