@@ -1,4 +1,4 @@
-// $Id: CHANGELOG.txt,v 1.1.2.5 2008/08/14 22:16:17 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.6 2008/08/15 16:39:07 boombatower Exp $
 
 SimpleTest 6.x-2.2, xxxx-xx-xx (development version)
 ------------------------------
@@ -8,6 +8,7 @@ SimpleTest 6.x-2.2, xxxx-xx-xx (development version)
     * #290316: test_id field name corrected.
     * #293500: change message field to type text.
     * #268063: added instruction in INSTALL.txt about hidden property.
+    * #291750: remove results after displayed.
 - Changes:
     * #295001: clarified INSTALL.txt and installation requirements message.
 
