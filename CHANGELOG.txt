@@ -1,4 +1,4 @@
-// $Id: CHANGELOG.txt,v 1.1.2.14 2008/08/23 20:29:40 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.15 2008/08/23 20:31:06 boombatower Exp $
 
 SimpleTest 6.x-2.3, xxxx-xx-xx (development version)
 ------------------------------
@@ -8,6 +8,7 @@ SimpleTest 6.x-2.3, xxxx-xx-xx (development version)
     * #298137: drupalCreateContentType() should reset node permissions.
     * #268148: Don't verify SSL certificates.
     * #293099: Clarify form documentation and error handling.
+    * #296027: {simpletest} indexes come with wrong array expression.
 
 SimpleTest 6.x-2.2, 2008-08-15
 ------------------------------
