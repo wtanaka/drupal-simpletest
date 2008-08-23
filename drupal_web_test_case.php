@@ -1,5 +1,5 @@
 <?php
-// $Id: drupal_web_test_case.php,v 1.2.2.3.2.4 2008/08/23 20:23:04 boombatower Exp $
+// $Id: drupal_web_test_case.php,v 1.2.2.3.2.5 2008/08/23 20:24:14 boombatower Exp $
 
 /**
  * Test case for typical Drupal tests.
@@ -1072,6 +1072,43 @@ class DrupalWebTestCase {
       $options = array_merge($options, $this->getAllOptions($element->optgroup));
     }
     return $options;
+  }
+
+  /**
+   * Pass if a link with the specified label is found, and optional with the
+   * specified index.
+   *
+   * @param $label
+   *   Text between the anchor tags.
+   * @param $index
+   *   Link position counting from zero.
+   * @param $message
+   *   Message to display.
+   * @param $group
+   *   The group this message belongs to, defaults to 'Other'.
+   */
+  public function assertLink($label, $index = 0, $message = '', $group = 'Other') {
+    $links = $this->xpath('//a[text()="' . $label . '"]');
+    $message = ($message ?  $message : t('Link with label "!label" found.', array('!label' => $label)));
+    $this->_assert(isset($links[$index]), $message, $group);
+  }
+
+  /**
+   * Pass if a link with the specified label is not found.
+   *
+   * @param $label
+   *   Text between the anchor tags.
+   * @param $index
+   *   Link position counting from zero.
+   * @param $message
+   *   Message to display.
+   * @param $group
+   *   The group this message belongs to, defaults to 'Other'.
+   */
+  public function assertNoLink($label, $message = '', $group = 'Other') {
+    $links = $this->xpath('//a[text()="' . $label . '"]');
+    $message = ($message ?  $message : t('Link with label "!label" not found.', array('!label' => $label)));
+    $this->_assert(empty($links), $message, $group);
   }
 
   /**
