@@ -1,4 +1,4 @@
-// $Id: CHANGELOG.txt,v 1.1.2.12 2008/08/23 20:25:29 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.13 2008/08/23 20:27:59 boombatower Exp $
 
 SimpleTest 6.x-2.3, xxxx-xx-xx (development version)
 ------------------------------
@@ -6,6 +6,7 @@ SimpleTest 6.x-2.3, xxxx-xx-xx (development version)
     * #297869: Add xpath method to SimpleTest.
     * #297894: Add assertLink and assertNoLink to SimpleTest.
     * #298137: drupalCreateContentType() should reset node permissions.
+    * #268148: Don't verify SSL certificates.
 
 SimpleTest 6.x-2.2, 2008-08-15
 ------------------------------

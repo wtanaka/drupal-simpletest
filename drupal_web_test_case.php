@@ -1,5 +1,5 @@
 <?php
-// $Id: drupal_web_test_case.php,v 1.2.2.3.2.6 2008/08/23 20:25:29 boombatower Exp $
+// $Id: drupal_web_test_case.php,v 1.2.2.3.2.7 2008/08/23 20:27:59 boombatower Exp $
 
 /**
  * Test case for typical Drupal tests.
@@ -733,6 +733,8 @@ class DrupalWebTestCase {
         CURLOPT_URL => $base_url,
         CURLOPT_FOLLOWLOCATION => TRUE,
         CURLOPT_RETURNTRANSFER => TRUE,
+        CURLOPT_SSL_VERIFYPEER => FALSE,
+		CURLOPT_SSL_VERIFYHOST => FALSE,
       );
       if (preg_match('/simpletest\d+/', $db_prefix)) {
         $curl_options[CURLOPT_USERAGENT] = $db_prefix;
