@@ -1,4 +1,4 @@
-// $Id: CHANGELOG.txt,v 1.1.2.15 2008/08/23 20:31:06 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.16 2008/08/29 18:10:45 boombatower Exp $
 
 SimpleTest 6.x-2.3, xxxx-xx-xx (development version)
 ------------------------------
@@ -9,6 +9,9 @@ SimpleTest 6.x-2.3, xxxx-xx-xx (development version)
     * #268148: Don't verify SSL certificates.
     * #293099: Clarify form documentation and error handling.
     * #296027: {simpletest} indexes come with wrong array expression.
+- Changes:
+    * #297890: Add notice to INSTALL.txt instructing users on Windows to
+               encode settings file with the UNIX standard.
 
 SimpleTest 6.x-2.2, 2008-08-15
 ------------------------------
