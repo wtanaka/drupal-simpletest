@@ -1,4 +1,4 @@
-// $Id: CHANGELOG.txt,v 1.1.2.18 2008/09/01 22:33:02 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.19 2008/09/01 22:41:51 boombatower Exp $
 
 SimpleTest 6.x-2.3, xxxx-xx-xx (development version)
 ------------------------------
@@ -14,6 +14,7 @@ SimpleTest 6.x-2.3, xxxx-xx-xx (development version)
 - Changes:
     * #297890: Add notice to INSTALL.txt instructing users on Windows to
                encode settings file with the UNIX standard.
+    * #302606: Usability: improve installation error message.
 
 SimpleTest 6.x-2.2, 2008-08-15
 ------------------------------
