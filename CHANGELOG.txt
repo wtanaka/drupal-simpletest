@@ -1,4 +1,4 @@
-// $Id: CHANGELOG.txt,v 1.1.2.17 2008/09/01 22:31:38 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.18 2008/09/01 22:33:02 boombatower Exp $
 
 SimpleTest 6.x-2.3, xxxx-xx-xx (development version)
 ------------------------------
@@ -10,6 +10,7 @@ SimpleTest 6.x-2.3, xxxx-xx-xx (development version)
     * #293099: Clarify form documentation and error handling.
     * #296027: {simpletest} indexes come with wrong array expression.
     * #299461: assertEqual() does not work with arrays.
+    * #246261: Simpletest-light doesn't handle selects with <optgroup>'s correctly.
 - Changes:
     * #297890: Add notice to INSTALL.txt instructing users on Windows to
                encode settings file with the UNIX standard.
