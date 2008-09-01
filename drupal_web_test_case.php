@@ -1,5 +1,5 @@
 <?php
-// $Id: drupal_web_test_case.php,v 1.2.2.3.2.8 2008/08/23 20:29:40 boombatower Exp $
+// $Id: drupal_web_test_case.php,v 1.2.2.3.2.9 2008/09/01 22:31:38 boombatower Exp $
 
 /**
  * Test case for typical Drupal tests.
@@ -95,7 +95,7 @@ class DrupalWebTestCase {
    *   The status passed in.
    */
   protected function assertTrue($value, $message = '', $group = 'Other') {
-    return $this->_assert((bool) $value, $message ? $message : t('%value is TRUE', array('%value' => $value)), $group);
+    return $this->_assert((bool) $value, $message ? $message : t('Value is TRUE'), $group);
   }
 
   /**
@@ -111,7 +111,7 @@ class DrupalWebTestCase {
    *   The status passed in.
    */
   protected function assertFalse($value, $message = '', $group = 'Other') {
-    return $this->_assert(!$value, $message ? $message : t('%value is FALSE', array('%value' => $value)), $group);
+    return $this->_assert(!$value, $message ? $message : t('Value is FALSE'), $group);
   }
 
   /**
@@ -127,7 +127,7 @@ class DrupalWebTestCase {
    *   The status passed in.
    */
   protected function assertNull($value, $message = '', $group = 'Other') {
-    return $this->_assert(!isset($value), $message ? $message : t('%value is NULL', array('%value' => $value)), $group);
+    return $this->_assert(!isset($value), $message ? $message : t('Value is NULL'), $group);
   }
 
   /**
@@ -143,7 +143,7 @@ class DrupalWebTestCase {
    *   The status passed in.
    */
   protected function assertNotNull($value, $message = '', $group = 'Other') {
-    return $this->_assert(isset($value), $message ? $message : t('%value is not NULL', array('%value' => $value)), $group);
+    return $this->_assert(isset($value), $message ? $message : t('Value is not NULL'), $group);
   }
 
   /**
@@ -161,7 +161,7 @@ class DrupalWebTestCase {
    *   The status passed in.
    */
   protected function assertEqual($first, $second, $message = '', $group = 'Other') {
-    return $this->_assert($first == $second, $message ? $message : t('%first is equal to %second', array('%first' => $first, '%second' => $second)), $group);
+    return $this->_assert($first == $second, $message ? $message : t('First value is equal to second value'), $group);
   }
 
   /**
@@ -179,7 +179,7 @@ class DrupalWebTestCase {
    *   The status passed in.
    */
   protected function assertNotEqual($first, $second, $message = '', $group = 'Other') {
-    return $this->_assert($first != $second, $message ? $message : t('%first is not equal to %second', array('%first' => $first, '%second' => $second)), $group);
+    return $this->_assert($first != $second, $message ? $message : t('First value is not equal to second value'), $group);
   }
 
   /**
@@ -197,7 +197,7 @@ class DrupalWebTestCase {
    *   The status passed in.
    */
   protected function assertIdentical($first, $second, $message = '', $group = 'Other') {
-    return $this->_assert($first === $second, $message ? $message : t('%first is identical to %second', array('%first' => $first, '%second' => $second)), $group);
+    return $this->_assert($first === $second, $message ? $message : t('First value is identical to second value'), $group);
   }
 
   /**
@@ -215,7 +215,7 @@ class DrupalWebTestCase {
    *   The status passed in.
    */
   protected function assertNotIdentical($first, $second, $message = '', $group = 'Other') {
-    return $this->_assert($first !== $second, $message ? $message : t('%first is not identical to %second', array('%first' => $first, '%second' => $second)), $group);
+    return $this->_assert($first !== $second, $message ? $message : t('First value is not identical to second value'), $group);
   }
 
   /**
@@ -1219,7 +1219,7 @@ class DrupalWebTestCase {
    * @return
    *   TRUE on pass, FALSE on fail.
    */
-  function assertRaw($raw, $message = "%s", $group = 'Other') {
+  function assertRaw($raw, $message = '%s found', $group = 'Other') {
     return $this->_assert(strpos($this->_content, $raw) !== FALSE, $message, $group);
   }
 
@@ -1236,7 +1236,7 @@ class DrupalWebTestCase {
    * @return
    *   TRUE on pass, FALSE on fail.
    */
-  function assertNoRaw($raw, $message = "%s", $group = 'Other') {
+  function assertNoRaw($raw, $message = '%s found', $group = 'Other') {
     return $this->_assert(strpos($this->_content, $raw) === FALSE, $message, $group);
   }
 
@@ -1297,7 +1297,7 @@ class DrupalWebTestCase {
       $this->plain_text = filter_xss($this->_content, array());
     }
     if (!$message) {
-      $message = '"' . $text . '"' . ($not_exists ? ' not found.' : ' found.');
+      $message = '"' . $text . '"' . ($not_exists ? ' not found' : ' found');
     }
     return $this->_assert($not_exists == (strpos($this->plain_text, $text) === FALSE), $message, $group);
   }
@@ -1314,7 +1314,7 @@ class DrupalWebTestCase {
    * @return
    *   TRUE on pass, FALSE on fail.
    */
-  function assertPattern($pattern, $message = '%s', $group = 'Other') {
+  function assertPattern($pattern, $message = 'Pattern %s found', $group = 'Other') {
     return $this->_assert((bool) preg_match($pattern, $this->drupalGetContent()), $message, $group);
   }
 
@@ -1330,7 +1330,7 @@ class DrupalWebTestCase {
    * @return
    *   TRUE on pass, FALSE on fail.
    */
-  function assertNoPattern($pattern, $message = '%s', $group = 'Other') {
+  function assertNoPattern($pattern, $message = 'Pattern %s not found', $group = 'Other') {
     return $this->_assert(!preg_match($pattern, $this->drupalGetContent()), $message, $group);
   }
 
