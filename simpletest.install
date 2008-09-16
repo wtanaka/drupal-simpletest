@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.install,v 1.4.2.3.2.7 2008/09/16 02:52:01 boombatower Exp $
+// $Id: simpletest.install,v 1.4.2.3.2.8 2008/09/16 02:56:25 boombatower Exp $
 
 /**
  * Implementation of hook_install().
@@ -286,6 +286,30 @@ function simpletest_update_6001() {
 
   db_drop_field($ret, 'simpletest', 'message');
   db_add_field($ret, 'simpletest', 'message', $schema);
+
+  return $ret;
+}
+
+/**
+ * Change caller field to function.
+ */
+function simpletest_update_6002() {
+  $ret = array();
+  $schema = array();
+
+  $schema = array(
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE,
+    'default' => ''
+  );
+
+  // Clear test results to prevent odd results.
+  db_query('DELETE FROM {simpletest}');
+
+
+  db_drop_field($ret, 'simpletest', 'caller');
+  db_add_field($ret, 'simpletest', 'function', $schema);
 
   return $ret;
 }
