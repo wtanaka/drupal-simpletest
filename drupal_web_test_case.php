@@ -1,5 +1,5 @@
 <?php
-// $Id: drupal_web_test_case.php,v 1.2.2.3.2.10 2008/09/01 22:33:02 boombatower Exp $
+// $Id: drupal_web_test_case.php,v 1.2.2.3.2.11 2008/09/16 02:52:01 boombatower Exp $
 
 /**
  * Test case for typical Drupal tests.
@@ -42,44 +42,73 @@ class DrupalWebTestCase {
    *   The message string.
    * @param $group
    *   WHich group this assert belongs to.
-   * @param $custom_caller
+   * @param $caller
    *   By default, the assert comes from a function which names start with
    *   'test'. Instead, you can specify where this assert originates from
-   *   by passing in an associative array as $custom_caller. Key 'file' is
+   *   by passing in an associative array as $caller. Key 'file' is
    *   the name of the source file, 'line' is the line number and 'function'
    *   is the caller function itself.
    */
-  protected function _assert($status, $message = '', $group = 'Other', $custom_caller = NULL) {
+  protected function _assert($status, $message = '', $group = 'Other', $caller = NULL) {
     global $db_prefix;
+
+    // Convert boolean status to string status.
     if (is_bool($status)) {
       $status = $status ? 'pass' : 'fail';
     }
+
+    // Increment summary result counter.
     $this->_results['#' . $status]++;
-    if (!isset($custom_caller)) {
-      $callers = debug_backtrace();
-      array_shift($callers);
-      foreach ($callers as $function) {
-        if (substr($function['function'], 0, 6) != 'assert' && $function['function'] != 'pass' && $function['function'] != 'fail') {
-          break;
-        }
-      }
+
+    // Get the function information about the call to the assertion method.
+    if (!$caller) {
+      $caller = $this->getAssertionCall();
     }
-    else {
-      $function = $custom_caller;
-    }
+
+    // Switch to non-testing database to store results in.
     $current_db_prefix = $db_prefix;
     $db_prefix = $this->db_prefix_original;
-    db_query("INSERT INTO {simpletest} (test_id, test_class, status, message, message_group, caller, line, file) VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s')", $this->test_id, get_class($this), $status, $message, $group, $function['function'], $function['line'], $function['file']);
-    $this->_assertions[] = array(
+
+    // Creation assertion array that can be displayed while tests are running.
+    $this->_assertions[] = $assertion = array(
+      'test_id' => $this->test_id,
+      'test_class' => get_class($this),
       'status' => $status,
       'message' => $message,
-      'group' => $group,
-      'function' => $function['function'],
-      'line' => $function['line'],
-      'file' => $function['file'],
+      'message_group' => $group,
+      'function' => $caller['function'],
+      'line' => $caller['line'],
+      'file' => $caller['file'],
     );
+
+    // Store assertion for display after the test has completed.
+    db_query("INSERT INTO {simpletest} (test_id, test_class, status, message, message_group, function, line, file) VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s')", array_values($assertion));
+
+    // Return to testing prefix.
     $db_prefix = $current_db_prefix;
     return $status;
+  }
+
+  /**
+   * Cycles through backtrace until the first non-assertion method is found.
+   *
+   * @return
+   *   Array representing the true caller.
+   */
+  protected function getAssertionCall() {
+    $backtrace = debug_backtrace();
+
+    // The first element is the call. The second element is the caller.
+    // We skip calls that occured in one of the methods of DrupalWebTestCase
+    // or in an assertion function.
+    while (($caller = $backtrace[1]) &&
+          ((isset($caller['class']) && $caller['class'] == 'DrupalWebTestCase') ||
+            substr($caller['function'], 0, 6) == 'assert')) {
+      // We remove that call.
+      array_shift($backtrace);
+    }
+
+    return _drupal_get_last_caller($backtrace);
   }
 
   /**
@@ -253,11 +282,11 @@ class DrupalWebTestCase {
    *   The message to display along with the assertion.
    * @param $group
    *   The type of assertion - examples are "Browser", "PHP".
-   * @param $custom_caller
+   * @param $caller
    *   The caller of the error.
    */
-  protected function error($message = '', $group = 'Other', $custom_caller = NULL) {
-    return $this->_assert('exception', $message, $group, $custom_caller);
+  protected function error($message = '', $group = 'Other', $caller = NULL) {
+    return $this->_assert('exception', $message, $group, $caller);
   }
 
   /**
@@ -271,8 +300,13 @@ class DrupalWebTestCase {
       // If the current method starts with "test", run it - it's a test.
       if (strtolower(substr($method, 0, 4)) == 'test') {
         $this->setUp();
-        $this->$method();
-        // Finish up.
+        try {
+          $this->$method();
+          // Finish up.
+        }
+        catch (Exception $e) {
+          $this->exceptionHandler($e);
+        }
         $this->tearDown();
       }
     }
@@ -298,13 +332,26 @@ class DrupalWebTestCase {
         E_USER_NOTICE => 'User notice',
         E_RECOVERABLE_ERROR => 'Recoverable error',
       );
-      $this->error($message, $error_map[$severity], array(
-        'function' => '',
-        'line' => $line,
-        'file' => $file,
-      ));
+
+      $backtrace = debug_backtrace();
+      $this->error($message, $error_map[$severity], _drupal_get_last_caller($backtrace));
     }
     return TRUE;
+  }
+
+  /**
+   * Handle exceptions.
+   *
+   * @see set_exception_handler
+   */
+  function exceptionHandler($exception) {
+    $backtrace = $exception->getTrace();
+    // Push on top of the backtrace the call that generated the exception.
+    array_unshift($backtrace, array(
+      'line' => $exception->getLine(),
+      'file' => $exception->getFile(),
+    ));
+    $this->error($exception->getMessage(), 'Uncaught exception', _drupal_get_last_caller($backtrace));
   }
 
   /**
@@ -633,6 +680,7 @@ class DrupalWebTestCase {
 
     // Generate temporary prefixed database to ensure that tests have a clean starting point.
     $db_prefix = 'simpletest' . mt_rand(1000, 1000000);
+
     include_once './includes/install.inc';
     drupal_install_system();
 
@@ -713,7 +761,6 @@ class DrupalWebTestCase {
 
       // Close the CURL handler.
       $this->curlClose();
-      restore_error_handler();
     }
   }
 
@@ -790,7 +837,7 @@ class DrupalWebTestCase {
       // them.
       @$htmlDom = DOMDocument::loadHTML($this->_content);
       if ($htmlDom) {
-        $this->assertTrue(TRUE, t('Valid HTML found on "@path"', array('@path' => $this->getUrl())), t('Browser'));
+        $this->pass(t('Valid HTML found on "@path"', array('@path' => $this->getUrl())), t('Browser'));
         // It's much easier to work with simplexml than DOM, luckily enough
         // we can just simply import our DOM tree.
         $this->elements = simplexml_import_dom($htmlDom);
@@ -1257,7 +1304,7 @@ class DrupalWebTestCase {
    *   TRUE on pass, FALSE on fail.
    */
   function assertText($text, $message = '', $group = 'Other') {
-    return $this->assertTextHelper($text, $message, $group = 'Other', FALSE);
+    return $this->assertTextHelper($text, $message, $group, FALSE);
   }
 
   /**
@@ -1550,4 +1597,36 @@ class DrupalWebTestCase {
     $match = is_array($code) ? in_array($curl_code, $code) : $curl_code == $code;
     return $this->assertTrue($match, $message ? $message : t('HTTP response expected !code, actual !curl_code', array('!code' => $code, '!curl_code' => $curl_code)), t('Browser'));
   }
+}
+
+/*
+ * From common.inc in Drupal 7.
+ */
+
+/**
+ * Gets the last caller (file name and line of the call, function in which the call originated) from a backtrace.
+ *
+ * @param $backtrace
+ *  A standard PHP backtrace.
+ * @return
+ *  An associative array with keys 'file', 'line' and 'function'.
+ */
+function _drupal_get_last_caller($backtrace) {
+  // The first trace is the call itself.
+  // It gives us the line and the file of the last call.
+  $call = $backtrace[0];
+
+  // The second call give us the function where the call originated.
+  if (isset($backtrace[1])) {
+    if (isset($backtrace[1]['class'])) {
+      $call['function'] = $backtrace[1]['class'] . $backtrace[1]['type'] . $backtrace[1]['function'] . '()';
+    }
+    else {
+      $call['function'] = $backtrace[1]['function'] . '()';
+    }
+  }
+  else {
+    $call['function'] = 'main()';
+  }
+  return $call;
 }

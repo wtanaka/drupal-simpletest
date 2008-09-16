@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.33.2.4.2.4 2008/08/15 16:39:07 boombatower Exp $
+// $Id: simpletest.module,v 1.33.2.4.2.5 2008/09/16 02:52:01 boombatower Exp $
 
 //require_once drupal_get_path('module', 'simpletest') . '/drupal_test_case.php';
 
@@ -106,7 +106,7 @@ function simpletest_test_form() {
             $result->message_group,
             basename($result->file),
             $result->line,
-            $result->caller,
+            $result->function,
             $map[$status],
           ),
           'class' => "simpletest-$status",
