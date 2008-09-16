@@ -1,6 +1,8 @@
-// $Id: CHANGELOG.txt,v 1.1.2.19 2008/09/01 22:41:51 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.20 2008/09/16 02:18:19 boombatower Exp $
 
-SimpleTest 6.x-2.3, xxxx-xx-xx (development version)
+SimpleTest 6.x-2.4, xxxx-xx-xx (development version)
+
+SimpleTest 6.x-2.3, 2008-09-15
 ------------------------------
 - Backports:
     * #297869: Add xpath method to SimpleTest.
