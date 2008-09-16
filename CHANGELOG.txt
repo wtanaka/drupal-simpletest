@@ -1,8 +1,9 @@
-// $Id: CHANGELOG.txt,v 1.1.2.21 2008/09/16 02:52:01 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.22 2008/09/16 02:59:53 boombatower Exp $
 
 SimpleTest 6.x-2.4, xxxx-xx-xx (development version)
 - Backports:
    * #305077: Rework simpletest backend.
+   * #308399: The simpletest error handler is broken for PHP functions.
 
 SimpleTest 6.x-2.3, 2008-09-15
 ------------------------------

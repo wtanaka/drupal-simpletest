@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.test,v 1.1.2.4 2008/09/16 02:52:01 boombatower Exp $
+// $Id: simpletest.test,v 1.1.2.5 2008/09/16 02:59:53 boombatower Exp $
 
 class SimpleTestTestCase extends DrupalWebTestCase {
   /**
@@ -107,11 +107,14 @@ class SimpleTestTestCase extends DrupalWebTestCase {
 
     $this->pass(t('Test ID is @id.', array('@id' => $this->test_id)));
 
-    // Generates a warning
+    // Generates a warning.
     $i = 1 / 0;
 
     // Call an assert function specific to that class.
     $this->assertNothing();
+    
+    // Generates a warning inside a PHP function.
+    array_key_exists(NULL, NULL);
   }
 
   /**
@@ -136,6 +139,9 @@ class SimpleTestTestCase extends DrupalWebTestCase {
 
     // Check that the backtracing code works for specific assert function.
     $this->assertAssertion('This is nothing.', 'Other', 'Pass', 'simpletest.test', 'SimpleTestTestCase->stubTest()');
+
+    // Check that errors that occur inside PHP internal functions are correctly reported.
+    $this->assertAssertion('The second argument should be either an array or an object', 'Warning', 'Fail', 'simpletest.test', 'SimpleTestTestCase->stubTest()');
 
     $this->test_ids[] = $test_id = $this->getTestIdFromResults();
     $this->assertTrue($test_id, t('Found test ID in results.'));
@@ -168,7 +174,7 @@ class SimpleTestTestCase extends DrupalWebTestCase {
     $message = trim(strip_tags($message));
     $found = FALSE;
     foreach ($this->results['assertions'] as $assertion) {
-      if ($assertion['message'] == $message &&
+      if ((strpos($assertion['message'], $message) !== FALSE) &&
           $assertion['type'] == $type &&
           $assertion['status'] == $status &&
           $assertion['file'] == $file &&

@@ -1,5 +1,5 @@
 <?php
-// $Id: drupal_web_test_case.php,v 1.2.2.3.2.11 2008/09/16 02:52:01 boombatower Exp $
+// $Id: drupal_web_test_case.php,v 1.2.2.3.2.12 2008/09/16 02:59:53 boombatower Exp $
 
 /**
  * Test case for typical Drupal tests.
@@ -1612,6 +1612,12 @@ class DrupalWebTestCase {
  *  An associative array with keys 'file', 'line' and 'function'.
  */
 function _drupal_get_last_caller($backtrace) {
+  // Errors that occur inside PHP internal functions
+  // do not generate information about file and line.
+  while ($backtrace && !isset($backtrace[0]['line'])) {
+    array_shift($backtrace);
+  }
+
   // The first trace is the call itself.
   // It gives us the line and the file of the last call.
   $call = $backtrace[0];
