@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.install,v 1.4.2.3.2.8 2008/09/16 02:56:25 boombatower Exp $
+// $Id: simpletest.install,v 1.4.2.3.2.9 2008/09/17 05:48:44 boombatower Exp $
 
 /**
  * Implementation of hook_install().
@@ -117,13 +117,7 @@ function simpletest_requirements($phase) {
       );
       break;
     case 'install':
-      if ($has_curl) {
-        $requirements['simpletest_curl'] = array(
-          'title' => $t('cURL'),
-          'severity' => REQUIREMENT_OK,
-        );
-      }
-      else {
+      if (!$has_curl) {
         $requirements['simpletest_curl'] = array(
           'title' => $t('cURL'),
           'severity' => REQUIREMENT_ERROR,
