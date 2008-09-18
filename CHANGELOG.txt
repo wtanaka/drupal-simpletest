@@ -1,6 +1,8 @@
-// $Id: CHANGELOG.txt,v 1.1.2.26 2008/09/17 05:51:14 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.27 2008/09/18 20:28:10 boombatower Exp $
 
 SimpleTest 6.x-2.4, xxxx-xx-xx (development version)
+- Bugs:
+   * #310427: settings.php check doesn't work properly.
 - Backports:
    * #305077: Rework simpletest backend.
    * #308399: The simpletest error handler is broken for PHP functions.
