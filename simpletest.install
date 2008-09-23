@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.install,v 1.4.2.3.2.11 2008/09/23 01:55:40 boombatower Exp $
+// $Id: simpletest.install,v 1.4.2.3.2.12 2008/09/23 04:53:40 boombatower Exp $
 
 /**
  * Implementation of hook_install().
@@ -127,9 +127,8 @@ function simpletest_requirements($phase) {
       break;
   }
 
-  // Check for the first line of the code to be inserted into the configuration file.
-  $find = "if (preg_match(\"/^simpletest\d+$/\", \$_SERVER['HTTP_USER_AGENT'])) {";
-  if (strpos(file_get_contents(conf_path() . '/settings.php'), $find) !== FALSE) {
+  // Check that the global variable is defined signifying that the code was inserted correctly.
+  if (isset($GLOBALS['simpletest_installed'])) {
      $requirements['simpletest_settings'] = array(
       'title' => $t('SimpleTest code addition'),
       'value' => t('Found'),

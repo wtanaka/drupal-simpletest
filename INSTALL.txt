@@ -1,4 +1,4 @@
-$Id: INSTALL.txt,v 1.6.4.5 2008/08/29 18:10:45 boombatower Exp $
+$Id: INSTALL.txt,v 1.6.4.6 2008/09/23 04:53:40 boombatower Exp $
 
 INSTALLATION
 ------------
@@ -8,6 +8,7 @@ INSTALLATION
    Windows make sure you encode the file with the UNIX standard or the
    code will not be detected.
 
+   $GLOBALS['simpletest_installed'] = TRUE;
    if (preg_match("/^simpletest\d+$/", $_SERVER['HTTP_USER_AGENT'])) {
      $db_prefix = $_SERVER['HTTP_USER_AGENT'];
    }
