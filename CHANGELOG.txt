@@ -1,6 +1,8 @@
-// $Id: CHANGELOG.txt,v 1.1.2.30 2008/09/23 02:28:43 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.31 2008/09/23 04:55:17 boombatower Exp $
 
-SimpleTest 6.x-2.4, xxxx-xx-xx (development version)
+SimpleTest 6.x-2.5, xxxx-xx-xx (development version)
+
+SimpleTest 6.x-2.4, 2008-09-22
 - Bugs:
    * #310427: settings.php check doesn't work properly.
 - Backports:
