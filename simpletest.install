@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.install,v 1.4.2.3.2.10 2008/09/18 20:28:10 boombatower Exp $
+// $Id: simpletest.install,v 1.4.2.3.2.11 2008/09/23 01:55:40 boombatower Exp $
 
 /**
  * Implementation of hook_install().
@@ -127,25 +127,23 @@ function simpletest_requirements($phase) {
       break;
   }
 
-  // Manually encode string so that it doesn't cause DOS/UNIX encoding issues.
-  $find = "if (preg_match(\"/^simpletest\d+$/\", \$_SERVER['HTTP_USER_AGENT'])) {\n" .
-          "  \$db_prefix = \$_SERVER['HTTP_USER_AGENT'];\n" .
-          "}\n";
-  if (strpos(file_get_contents(file_directory_path() . '/../settings.php'), $find) !== FALSE) {
+  // Check for the first line of the code to be inserted into the configuration file.
+  $find = "if (preg_match(\"/^simpletest\d+$/\", \$_SERVER['HTTP_USER_AGENT'])) {";
+  if (strpos(file_get_contents(conf_path() . '/settings.php'), $find) !== FALSE) {
      $requirements['simpletest_settings'] = array(
-      'title' => $t('SimpleTest code addition to setting.php'),
+      'title' => $t('SimpleTest code addition'),
       'value' => t('Found'),
       'severity' => REQUIREMENT_OK
     );
   }
   else {
     $requirements['simpletest_settings'] = array(
-      'title' => $t('SimpleTest code addition to setting.php'),
+      'title' => $t('SimpleTest code addition'),
       'value' => t('Not-found'),
       'severity' => REQUIREMENT_ERROR,
       'description' => $t('SimpleTest could not be installed. Must add code to the %settings file please see
                            <a href="@install">INSTALL.txt</a>.',
-                           array('%settings' => realpath(file_directory_path() . '/../settings.php'),
+                           array('%settings' => realpath(conf_path() . '/settings.php'),
                                  '@install' => url(drupal_get_path('module', 'simpletest') . '/INSTALL.txt')))
     );
   }

@@ -1,4 +1,4 @@
-// $Id: CHANGELOG.txt,v 1.1.2.28 2008/09/18 20:34:16 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.29 2008/09/23 01:55:40 boombatower Exp $
 
 SimpleTest 6.x-2.4, xxxx-xx-xx (development version)
 - Bugs:
@@ -11,6 +11,8 @@ SimpleTest 6.x-2.4, xxxx-xx-xx (development version)
    * #295697: update cURL requirement.
    * #299186: assertFieldByXPath does not work for selects or textareas with value.
    * #308272: Improve test selection page.
+- Changes:
+   * #310783: Fix up requirements check for settings.php.
 
 SimpleTest 6.x-2.3, 2008-09-15
 ------------------------------
