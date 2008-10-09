@@ -1,4 +1,4 @@
-// $Id: CHANGELOG.txt,v 1.1.2.33 2008/10/09 05:05:15 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.34 2008/10/09 05:12:32 boombatower Exp $
 
 SimpleTest 6.x-2.5, xxxx-xx-xx (development version)
 ------------------------------
@@ -17,6 +17,7 @@ SimpleTest 6.x-2.4, 2008-09-22
    * #308272: Improve test selection page.
    * #255613: Update clickLink() to use drupalGet() and clean-up code.
    * #308668: Make test selection page work with non-JS.
+   * #316344: Add meta refresh support to SimpleTest.
 - Changes:
    * #310783: Fix up requirements check for settings.php.
 
