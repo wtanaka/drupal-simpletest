@@ -1,4 +1,4 @@
-// $Id: CHANGELOG.txt,v 1.1.2.32 2008/09/23 04:56:29 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.33 2008/10/09 05:05:15 boombatower Exp $
 
 SimpleTest 6.x-2.5, xxxx-xx-xx (development version)
 ------------------------------
@@ -16,6 +16,7 @@ SimpleTest 6.x-2.4, 2008-09-22
    * #299186: assertFieldByXPath does not work for selects or textareas with value.
    * #308272: Improve test selection page.
    * #255613: Update clickLink() to use drupalGet() and clean-up code.
+   * #308668: Make test selection page work with non-JS.
 - Changes:
    * #310783: Fix up requirements check for settings.php.
 
