@@ -1,4 +1,4 @@
-$Id: INSTALL.txt,v 1.6.4.6 2008/09/23 04:53:40 boombatower Exp $
+$Id: INSTALL.txt,v 1.6.4.7 2008/10/12 22:53:33 boombatower Exp $
 
 INSTALLATION
 ------------
@@ -41,5 +41,3 @@ INSTALLATION
    begin using the module.
 5. (Optional) Go to Administer >> Help >> SimpleTest (admin/help/simpletest)
    for more information on how to use the SimpleTest module.
-6. (Optional) Go to Administer >> Site configuration >> SimpleTest settings
-   (admin/settings/simpletest) to configure advanced settings.
