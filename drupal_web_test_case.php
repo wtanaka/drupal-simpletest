@@ -1,5 +1,5 @@
 <?php
-// $Id: drupal_web_test_case.php,v 1.2.2.3.2.16 2008/10/09 05:12:32 boombatower Exp $
+// $Id: drupal_web_test_case.php,v 1.2.2.3.2.17 2008/10/14 02:19:43 boombatower Exp $
 
 /**
  * Test case for typical Drupal tests.
@@ -708,7 +708,8 @@ class DrupalWebTestCase {
     // Use temporary files directory with the same prefix as database.
     $this->original_file_directory = file_directory_path();
     variable_set('file_directory_path', file_directory_path() . '/' . $db_prefix);
-    file_check_directory(file_directory_path(), TRUE); // Create the files directory.
+    $directory = file_directory_path();
+    file_check_directory($directory, TRUE); // Create the files directory.
   }
 
   /**

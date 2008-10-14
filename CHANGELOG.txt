@@ -1,10 +1,11 @@
-// $Id: CHANGELOG.txt,v 1.1.2.36 2008/10/12 22:53:33 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.37 2008/10/14 02:19:43 boombatower Exp $
 
 SimpleTest 6.x-2.5, xxxx-xx-xx (development version)
 ------------------------------
 - Backports:
    * #308668: Make test selection page work with non-JS.
    * #316344: Add meta refresh support to SimpleTest.
+   * #320127: error in drupal_web_test_case.php.
 - Changes:
    * #319682: Install.txt refers to non-existent admin page.
 
