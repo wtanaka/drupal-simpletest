@@ -1,6 +1,9 @@
-// $Id: CHANGELOG.txt,v 1.1.2.41 2008/10/22 23:16:46 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.42 2008/10/22 23:18:15 boombatower Exp $
 
-SimpleTest 6.x-2.5, xxxx-xx-xx (development version)
+SimpleTest 6.x-2.6, xxxx-xx-xx (development version)
+------------------------------
+
+SimpleTest 6.x-2.5, 2008-10-22
 ------------------------------
 - Backports:
    * #308668: Make test selection page work with non-JS.
