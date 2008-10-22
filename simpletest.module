@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.module,v 1.33.2.4.2.8 2008/10/09 05:12:32 boombatower Exp $
+// $Id: simpletest.module,v 1.33.2.4.2.9 2008/10/22 23:14:51 boombatower Exp $
 
 //require_once drupal_get_path('module', 'simpletest') . '/drupal_test_case.php';
 
@@ -337,6 +337,13 @@ function simpletest_run_tests($test_list, $reporter = 'drupal', $batch_mode = FA
     'init_message' => t('SimpleTest is initializing...') . ' ' . format_plural(count($test_list), "one test case will run.", "@count test cases will run."),
   );
   batch_set($batch);
+  // Normally, the forms portion of the batch API takes care of calling
+  // batch_process(), but in the process it saves the whole $form into the
+  // database (which is huge for the test selection form).
+  // By calling batch_process() directly, we skip that behavior and ensure
+  // that we don't exceed the size of data that can be sent to the database
+  // (max_allowed_packet on MySQL).
+  batch_process();
 }
 
 /**
