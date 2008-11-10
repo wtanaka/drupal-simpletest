@@ -1,10 +1,11 @@
-// $Id: CHANGELOG.txt,v 1.1.2.44 2008/11/04 03:55:51 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.45 2008/11/10 02:12:33 boombatower Exp $
 
 SimpleTest 6.x-2.6, xxxx-xx-xx (development version)
 ------------------------------
 - Backports:
    * #305150: Keep running tests checked.
    * #313902: DX: Show fatal errors in tests. (Added to INSTALL.txt)
+   * #304940: SimpleTest shouldn't try to upload non files.
 
 SimpleTest 6.x-2.5, 2008-10-22
 ------------------------------
