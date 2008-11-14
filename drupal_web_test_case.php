@@ -1,5 +1,5 @@
 <?php
-// $Id: drupal_web_test_case.php,v 1.2.2.3.2.20 2008/11/10 02:12:33 boombatower Exp $
+// $Id: drupal_web_test_case.php,v 1.2.2.3.2.21 2008/11/14 18:49:16 chx Exp $
 
 /**
  * Test case for typical Drupal tests.
@@ -955,7 +955,7 @@ class DrupalWebTestCase {
             }
             $post = implode('&', $post);
           }
-          $out = $this->curlExec(array(CURLOPT_URL => $action, CURLOPT_POST => TRUE, CURLOPT_POSTFIELDS => $post, CURLOPT_HEADER => FALSE, CURLOPT_NOBODY => FALSE));
+          $out = $this->curlExec(array(CURLOPT_URL => $action, CURLOPT_POST => TRUE, CURLOPT_POSTFIELDS => $post, CURLOPT_HEADER => FALSE));
           // Ensure that any changes to variables in the other thread are picked up.
           $this->refreshVariables();
 
