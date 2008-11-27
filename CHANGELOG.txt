@@ -1,4 +1,4 @@
-// $Id: CHANGELOG.txt,v 1.1.2.46 2008/11/14 23:25:34 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.47 2008/11/27 21:31:57 boombatower Exp $
 
 SimpleTest 6.x-2.6, xxxx-xx-xx (development version)
 ------------------------------
@@ -7,6 +7,8 @@ SimpleTest 6.x-2.6, xxxx-xx-xx (development version)
    * #313902: DX: Show fatal errors in tests. (Added to INSTALL.txt)
    * #304940: SimpleTest shouldn't try to upload non files.
    * #308186: cURL 7.18.2 and SimpleTest module bitterly despise one another. (again?)
+- Changes:
+   * #334679 by hass: improve update path from 5.x and 6.x-1.x to 6.x-2.x.
 
 SimpleTest 6.x-2.5, 2008-10-22
 ------------------------------
