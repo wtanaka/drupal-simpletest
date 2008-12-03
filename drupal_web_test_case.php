@@ -1,11 +1,12 @@
 <?php
-// $Id: drupal_web_test_case.php,v 1.2.2.3.2.21 2008/11/14 18:49:16 chx Exp $
+// $Id: drupal_web_test_case.php,v 1.2.2.3.2.22 2008/12/03 06:42:45 boombatower Exp $
 
 /**
  * Test case for typical Drupal tests.
  */
 class DrupalWebTestCase {
   protected $_logged_in = FALSE;
+  protected $_headers;
   protected $_content;
   protected $plain_text;
   protected $ch;
@@ -788,7 +789,8 @@ class DrupalWebTestCase {
         CURLOPT_FOLLOWLOCATION => TRUE,
         CURLOPT_RETURNTRANSFER => TRUE,
         CURLOPT_SSL_VERIFYPEER => FALSE,
-		CURLOPT_SSL_VERIFYHOST => FALSE,
+        CURLOPT_SSL_VERIFYHOST => FALSE,
+        CURLOPT_HEADERFUNCTION => array($this, 'curlHeaderCallback'),
       );
       if (preg_match('/simpletest\d+/', $db_prefix)) {
         $curl_options[CURLOPT_USERAGENT] = $db_prefix;
@@ -815,11 +817,20 @@ class DrupalWebTestCase {
     $this->curlConnect();
     $url = empty($curl_options[CURLOPT_URL]) ? curl_getinfo($this->ch, CURLINFO_EFFECTIVE_URL) : $curl_options[CURLOPT_URL];
     curl_setopt_array($this->ch, $this->curl_options + $curl_options);
+    $this->_headers = array();
     $this->_content = curl_exec($this->ch);
     $this->plain_text = FALSE;
     $this->elements = FALSE;
     $this->assertTrue($this->_content !== FALSE, t('!method to !url, response is !length bytes.', array('!method' => !empty($curl_options[CURLOPT_NOBODY]) ? 'HEAD' : (empty($curl_options[CURLOPT_POSTFIELDS]) ? 'GET' : 'POST'), '!url' => $url, '!length' => strlen($this->_content))), t('Browser'));
     return $this->_content;
+  }
+
+  /**
+   * Saves HTTP response headers to the _headers array.
+   */
+  protected function curlHeaderCallback($ch, $header) {
+    $this->_headers[] = $header;
+    return strlen($header);
   }
 
   /**
@@ -955,7 +966,7 @@ class DrupalWebTestCase {
             }
             $post = implode('&', $post);
           }
-          $out = $this->curlExec(array(CURLOPT_URL => $action, CURLOPT_POST => TRUE, CURLOPT_POSTFIELDS => $post, CURLOPT_HEADER => FALSE));
+          $out = $this->curlExec(array(CURLOPT_URL => $action, CURLOPT_POST => TRUE, CURLOPT_POSTFIELDS => $post));
           // Ensure that any changes to variables in the other thread are picked up.
           $this->refreshVariables();
 
@@ -1008,7 +1019,7 @@ class DrupalWebTestCase {
    */
   function drupalHead($path, $options = array()) {
     $options['absolute'] = TRUE;
-    $out = $this->curlExec(array(CURLOPT_HEADER => TRUE, CURLOPT_NOBODY => TRUE, CURLOPT_URL => url($path, $options)));
+    $out = $this->curlExec(array(CURLOPT_NOBODY => TRUE, CURLOPT_URL => url($path, $options)));
     $this->refreshVariables(); // Ensure that any changes to variables in the other thread are picked up.
     return $out;
   }
@@ -1289,6 +1300,92 @@ class DrupalWebTestCase {
    */
   function getUrl() {
     return curl_getinfo($this->ch, CURLINFO_EFFECTIVE_URL);
+  }
+
+  /**
+   * Gets the HTTP response headers of the requested page. Normally we are only
+   * interested in the headers returned by the last request. However, if a page
+   * is redirected or HTTP authentication is in use, multiple requests will be
+   * required to retrieve the page. Headers from all requests may be requested
+   * by passing TRUE to this function.
+   *
+   * @param $all_requests
+   *   Boolean value specifying whether to return headers from all requests
+   *   instead of just the last request. Defaults to FALSE.
+   * @return
+   *   A name/value array if headers from only the last request are requested.
+   *   If headers from all requests are requested, an array of name/value
+   *   arrays, one for each request.
+   *
+   *   The pseudonym ":status" is used for the HTTP status line.
+   *
+   *   Values for duplicate headers are stored as a single comma-separated list.
+   */
+  function drupalGetHeaders($all_requests = FALSE) {
+    $request = 0;
+    $headers = array($request => array());
+    foreach ($this->_headers as $header) {
+      $header = trim($header);
+      if ($header === '') {
+        $request++;
+      }
+      else {
+        if (strpos($header, 'HTTP/') === 0) {
+          $name = ':status';
+          $value = $header;
+        }
+        else {
+          list($name, $value) = explode(':', $header, 2);
+          $name = strtolower($name);
+        }
+        if (isset($headers[$request][$name])) {
+          $headers[$request][$name] .= ',' . trim($value);
+        }
+        else {
+          $headers[$request][$name] = trim($value);
+        }
+      }
+    }
+    if (!$all_requests) {
+      $headers = array_pop($headers);
+    }
+    return $headers;
+  }
+
+  /**
+   * Gets the value of an HTTP response header. If multiple requests were
+   * required to retrieve the page, only the headers from the last request will
+   * be checked by default. However, if TRUE is passed as the second argument,
+   * all requests will be processed from last to first until the header is
+   * found.
+   *
+   * @param $name
+   *   The name of the header to retrieve. Names are case-insensitive (see RFC
+   *   2616 section 4.2).
+   * @param $all_requests
+   *   Boolean value specifying whether to check all requests if the header is
+   *   not found in the last request. Defaults to FALSE.
+   * @return
+   *   The HTTP header value or FALSE if not found.
+   */
+  protected function drupalGetHeader($name, $all_requests = FALSE) {
+    $name = strtolower($name);
+    $header = FALSE;
+    if ($all_requests) {
+      foreach (array_reverse($this->drupalGetHeaders(TRUE)) as $headers) {
+        if (isset($headers[$name])) {
+          $header = $headers[$name];
+          break;
+        }
+      }
+    }
+    else {
+      $headers = $this->drupalGetHeaders();
+      if (isset($headers[$name])) {
+        $header = $headers[$name];
+      }
+    }
+    return $header;
   }
 
   /**
