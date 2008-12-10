@@ -1,4 +1,4 @@
-// $Id: CHANGELOG.txt,v 1.1.2.48 2008/12/03 06:42:45 boombatower Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.49 2008/12/10 16:29:26 boombatower Exp $
 
 SimpleTest 6.x-2.6, xxxx-xx-xx (development version)
 ------------------------------
@@ -8,6 +8,7 @@ SimpleTest 6.x-2.6, xxxx-xx-xx (development version)
    * #304940: SimpleTest shouldn't try to upload non files.
    * #308186: cURL 7.18.2 and SimpleTest module bitterly despise one another. (again?)
    * #330582: Retrieve HTTP response headers.
+   * #336043: Simpletest speedup: skip call to curlExec() in curlConnect().
 - Changes:
    * #334679 by hass: improve update path from 5.x and 6.x-1.x to 6.x-2.x.
 

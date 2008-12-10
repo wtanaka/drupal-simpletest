@@ -1,5 +1,5 @@
 <?php
-// $Id: drupal_web_test_case.php,v 1.2.2.3.2.22 2008/12/03 06:42:45 boombatower Exp $
+// $Id: drupal_web_test_case.php,v 1.2.2.3.2.23 2008/12/10 16:29:26 boombatower Exp $
 
 /**
  * Test case for typical Drupal tests.
@@ -776,8 +776,8 @@ class DrupalWebTestCase {
    * Initializes the cURL connection and gets a session cookie.
    *
    * This function will add authentication headers as specified in
-   * simpletest_httpauth_username and simpletest_httpauth_pass variables.
-   * Also, see the description of $curl_options among the properties.
+   * simpletest_httpauth_username and simpletest_httpauth_pass variables. Also,
+   * see the description of $curl_options among the properties.
    */
   protected function curlConnect() {
     global $base_url, $db_prefix;
@@ -801,7 +801,7 @@ class DrupalWebTestCase {
         }
         $curl_options[CURLOPT_USERPWD] = $auth;
       }
-      return $this->curlExec($curl_options);
+      curl_setopt_array($this->ch, $this->curl_options + $curl_options);
     }
   }
 
