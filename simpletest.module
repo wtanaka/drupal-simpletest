@@ -516,7 +516,8 @@ function simpletest_clean_database() {
 
   $ret = array();
   foreach ($tables as $table) {
-    db_drop_table($ret, $table);
+    db_query("DROP TABLE %s", $table); // see #345115.
+    //db_drop_table($ret, $table);
   }
 
   if (count($ret) > 0) {
@@ -539,7 +540,7 @@ function simpletest_get_like_tables($base_table = 'simpletest', $count = FALSE) 
   $url = parse_url($db_url);
   $database = substr($url['path'], 1);
   $select = $count ? 'COUNT(table_name)' : 'table_name';
-  $result = db_query("SELECT $select FROM information_schema.tables WHERE table_schema = '$database' AND table_name LIKE '$db_prefix$base_table%'");
+  $result = db_query("SELECT $select FROM information_schema.tables WHERE table_schema = '$database' AND table_name LIKE '$base_table%'");
   $schema = drupal_get_schema_unprocessed('simpletest');
 
   if ($count) {
